@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, myPredictions, fetchDailyStocks, predict } = useStock()
+const { dailyStocks, myPredictions, refresh, predict } = useStock()
 const hearts = ref<number[]>([])
 
 const toggleHeart = (id: number) => {
@@ -131,7 +131,7 @@ const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId ==
 const cards = ref<HTMLElement[]>([])
 
 onMounted(async () => {
-  await fetchDailyStocks()
+  await refresh()
   cards.value.forEach((card) => {
     const id = Number(card.dataset.id)
     const { direction, isSwiping, lengthY } = useSwipe(card, {
