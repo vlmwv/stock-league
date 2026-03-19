@@ -58,12 +58,12 @@
               </div>
               <h4 class="text-xl font-bold">{{ stock.name }}</h4>
             </div>
-            <div class="text-right">
-              <div class="text-lg font-semibold tabular-nums" :class="stock.change >= 0 ? 'text-red-400' : 'text-blue-400'">
-                {{ stock.price.toLocaleString() }}
-              </div>
-              <div class="text-xs tabular-nums" :class="stock.change >= 0 ? 'text-red-400/80' : 'text-blue-400/80'">
-                {{ stock.change >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change).toLocaleString() }} ({{ stock.changeRate }}%)
+            <div :class="[stock.change_amount >= 0 ? 'text-emerald-400' : 'text-rose-400', 'text-right']">
+              <div class="text-xl font-bold">{{ stock.last_price.toLocaleString() }}</div>
+              <div class="text-xs flex items-center justify-end gap-1 mt-1">
+                <span v-if="stock.change_amount > 0">▲</span>
+                <span v-else-if="stock.change_amount < 0">▼</span>
+                <span>{{ Math.abs(stock.change_amount).toLocaleString() }} ({{ stock.change_rate }}%)</span>
               </div>
             </div>
           </div>
@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, myPredictions, predict } = useStock()
+const { dailyStocks, myPredictions, fetchDailyStocks, predict } = useStock()
 const hearts = ref<number[]>([])
 
 const toggleHeart = (id: number) => {
@@ -130,7 +130,8 @@ const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId ==
 // Swipe Logic for Each Card
 const cards = ref<HTMLElement[]>([])
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchDailyStocks()
   cards.value.forEach((card) => {
     const id = Number(card.dataset.id)
     const { direction, isSwiping, lengthY } = useSwipe(card, {
