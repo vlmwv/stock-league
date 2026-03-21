@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-bg-deep pb-32 overflow-x-hidden selection:bg-brand-primary/30">
-    <TopHeader />
+    <TopHeader @open-guide="isGuideOpen = true" />
+    <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
 
     <main class="max-w-md mx-auto">
       <!-- Hero Section (Premium Gradient) -->
@@ -32,11 +33,49 @@
         </div>
       </section>
 
+      <!-- Recommended Stocks (Horizontal Scroll) -->
+      <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-6 mb-10">
+        <div class="flex justify-between items-end mb-4 px-2">
+          <div>
+            <h3 class="text-xl font-black text-slate-200 tracking-tight">AI 추천 종목</h3>
+            <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Real-time AI Insights</p>
+          </div>
+        </div>
+        
+        <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
+          <div 
+            v-for="stock in recommendedStocks" 
+            :key="stock.id"
+            class="min-w-[280px] glass-dark rounded-3xl p-5 border border-white/5 relative overflow-hidden group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <h4 class="font-bold text-slate-200">{{ stock.name }}</h4>
+              <button 
+                @click.stop="toggleHeart(stock.id)"
+                class="transition-colors"
+                :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
+              >
+                <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 line-clamp-2 italic mb-3">"{{ stock.summary }}"</p>
+            <div class="flex justify-between items-center text-[10px] font-bold">
+              <span class="text-slate-500 uppercase">{{ stock.code }}</span>
+              <span :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                {{ stock.last_price.toLocaleString() }}
+              </span>
+            </div>
+            <!-- Decorative gradient -->
+            <div class="absolute -bottom-4 -right-4 w-16 h-16 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- Stock List Section -->
       <section class="px-6 space-y-6">
         <div class="flex justify-between items-end mb-2 px-2">
           <div>
-            <h3 class="text-xl font-black text-slate-200 tracking-tight">오늘의 종목</h3>
+            <h3 class="text-xl font-black text-slate-200 tracking-tight">오늘의 도전 종목</h3>
             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Selection of 5 Stocks</p>
           </div>
           <div class="text-right">
@@ -56,6 +95,47 @@
             @toggle-heart="toggleHeart"
             @cancel-prediction="cancelPrediction"
           />
+        </div>
+      </section>
+
+      <!-- Stock List Section (Card Stack) -->
+      <section class="px-6 relative h-[500px]">
+        <div v-if="currentIndex < dailyStocks.length" class="relative w-full h-full">
+          <StockCard 
+            v-for="(stock, index) in dailyStocks.slice(currentIndex, currentIndex + 3)" 
+            :key="stock.id"
+            :stock="stock"
+            :is-hearted="isHearted(stock.id)"
+            :prediction="getPrediction(stock.id)"
+            :is-top="index === 0"
+            :index="index"
+            class="absolute inset-0 transition-all duration-500"
+            :style="{
+              transform: `translateY(${index * 20}px) scale(${1 - index * 0.05})`,
+              opacity: 1 - index * 0.2,
+              filter: `blur(${index * 2}px)`
+            }"
+            @predict="onPredict"
+            @toggle-heart="toggleHeart"
+            @cancel-prediction="cancelPrediction"
+          />
+        </div>
+
+        <!-- All Completed State -->
+        <div v-else class="flex flex-col items-center justify-center h-full text-center space-y-6 animate-scale-in">
+          <div class="w-20 h-20 rounded-full bg-brand-primary/20 flex items-center justify-center border border-brand-primary/30 shadow-2xl">
+            <UIcon name="i-heroicons-check-circle-20-solid" class="w-10 h-10 text-brand-primary" />
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-2xl font-black text-slate-100 italic">오늘의 예측 완료!</h3>
+            <p class="text-sm text-slate-400 font-medium">내일 20:20에 결과를 확인하세요.</p>
+          </div>
+          <NuxtLink 
+            to="/ranking"
+            class="px-8 py-3 rounded-2xl bg-slate-800 text-slate-200 font-black text-xs uppercase tracking-widest border border-white/5 hover:bg-slate-700 transition-all"
+          >
+            랭킹 확인하기
+          </NuxtLink>
         </div>
       </section>
     </main>
@@ -81,21 +161,13 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, myPredictions, refresh, predict } = useStock()
-const hearts = ref<number[]>([])
+const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, toggleHeart, predict } = useStock()
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
-const showHint = ref(true)
-
-const toggleHeart = (id: number) => {
-  const index = hearts.value.indexOf(id)
-  if (index > -1) {
-    hearts.value.splice(index, 1)
-  } else {
-    hearts.value.push(id)
-  }
-}
+const showHint = ref(false)
+const isGuideOpen = ref(false)
+const currentIndex = ref(0)
 
 const isHearted = (id: number) => hearts.value.includes(id)
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
@@ -108,6 +180,11 @@ const onPredict = (id: number, prediction: 'up' | 'down') => {
     selectedPrediction.value = prediction
     isResultOpen.value = true
     showHint.value = false
+    
+    // Move to next card after animation
+    setTimeout(() => {
+      currentIndex.value++
+    }, 600)
   }
 }
 
@@ -115,13 +192,29 @@ const cancelPrediction = (id: number) => {
   const index = myPredictions.value.findIndex(p => p.stockId === id)
   if (index > -1) {
     myPredictions.value.splice(index, 1)
+    if (currentIndex.value > 0) {
+      currentIndex.value--
+    }
   }
 }
 
 onMounted(async () => {
-  await refresh()
-  // Hide hint after 5 seconds
-  setTimeout(() => { showHint.value = false }, 5000)
+  await Promise.all([
+    refresh(),
+    fetchWishlist()
+  ])
+  
+  // Show guide on first visit
+  const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
+  if (!hasSeenGuide) {
+    isGuideOpen.value = true
+    localStorage.setItem('hasSeenLeagueGuide', 'true')
+  }
+
+  // Show hint after 2 seconds
+  setTimeout(() => { showHint.value = true }, 2000)
+  // Hide hint after 7 seconds
+  setTimeout(() => { showHint.value = false }, 7000)
 })
 </script>
 
@@ -132,5 +225,13 @@ onMounted(async () => {
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

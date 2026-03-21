@@ -38,5 +38,10 @@ export default defineNuxtConfig({
       enabled: true,
       type: 'module'
     }
+  },
+  nitro: {
+    experimental: {
+      openAPI: true
+    }
   }
 })

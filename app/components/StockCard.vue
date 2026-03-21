@@ -60,6 +60,23 @@
         </p>
       </div>
 
+      <!-- Swipe Suggestion (New) -->
+      <Transition name="fade">
+        <div v-if="!prediction" class="mt-6 flex items-center justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
+          <div class="flex flex-col items-center gap-1">
+            <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
+            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">UP</span>
+          </div>
+          <div class="h-px w-8 bg-slate-800"></div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Swipe to Predict</p>
+          <div class="h-px w-8 bg-slate-800"></div>
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">DOWN</span>
+            <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
+          </div>
+        </div>
+      </Transition>
+
       <!-- Prediction Overlay -->
       <Transition name="fade">
         <div 
@@ -96,6 +113,8 @@ const props = defineProps<{
   stock: any
   isHearted: boolean
   prediction: 'up' | 'down' | null
+  isTop?: boolean
+  index?: number
 }>()
 
 const emit = defineEmits(['predict', 'toggleHeart', 'cancelPrediction'])
@@ -104,38 +123,52 @@ const cardRef = ref<HTMLElement | null>(null)
 const swipeEffect = ref<'up' | 'down' | null>(null)
 const translateY = ref(0)
 const rotation = ref(0)
+const isFlying = ref(false)
 
 const cardStyle = computed(() => ({
   transform: `translateY(${translateY.value}px) rotate(${rotation.value}deg)`,
-  opacity: 1 - Math.abs(translateY.value) / 500
+  opacity: isFlying.value ? 0 : 1 - (Math.abs(translateY.value) / 500),
+  transition: isFlying.value ? 'all 0.6s cubic-bezier(0.2, 0, 0.2, 1)' : (translateY.value === 0 ? 'all 0.5s ease-out' : 'none'),
+  pointerEvents: (props.isTop ? 'auto' : 'none') as 'auto' | 'none',
+  zIndex: 100 - (props.index || 0)
 }))
 
 onMounted(() => {
   if (cardRef.value) {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
-      threshold: 60,
+      threshold: 40,
       onSwipe: () => {
+        if (!props.isTop || props.prediction) return
         translateY.value = lengthY.value
-        rotation.value = (lengthY.value / 100) * 2 // Give a slight tilt
+        rotation.value = (lengthY.value / 100) * 4 // More tilt for better feel
         
-        if (lengthY.value < -30) {
+        if (lengthY.value < -20) {
           swipeEffect.value = 'up'
-        } else if (lengthY.value > 30) {
+        } else if (lengthY.value > 20) {
           swipeEffect.value = 'down'
         } else {
           swipeEffect.value = null
         }
       },
       onSwipeEnd: (e, direction) => {
-        if (direction === 'up' && translateY.value < -60) {
+        if (!props.isTop || props.prediction) return
+
+        if (direction === 'up' && translateY.value < -100) {
+          isFlying.value = true
+          translateY.value = -800
+          rotation.value = -30
           emit('predict', props.stock.id, 'up')
-        } else if (direction === 'down' && translateY.value > 60) {
+        } else if (direction === 'down' && translateY.value > 100) {
+          isFlying.value = true
+          translateY.value = 800
+          rotation.value = 30
           emit('predict', props.stock.id, 'down')
+        } else {
+          // Snap back
+          translateY.value = 0
+          rotation.value = 0
         }
         
-        // Reset animation
-        translateY.value = 0
-        rotation.value = 0
         swipeEffect.value = null
       }
     })

@@ -11,25 +11,83 @@ interface Stock {
 export const useStock = () => {
   const client = useSupabaseClient()
   
-  // 1. Fetch data from Supabase using useAsyncData
+  // 1. Fetch today's daily stocks with stock details
   const { data: stocks, refresh, error: fetchError } = useAsyncData('dailyStocks', async () => {
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Join daily_stocks with stocks and news (latest summary)
     const { data, error } = await client
-      .from('stocks')
-      .select('*')
-      .limit(5)
+      .from('daily_stocks')
+      .select(`
+        id,
+        game_date,
+        llm_summary,
+        stocks (
+          id,
+          code,
+          name,
+          last_price,
+          change_amount,
+          change_rate
+        )
+      `)
+      .eq('game_date', today)
     
     if (error) {
       console.error('Supabase Error:', error)
       return []
     }
-    return data || []
+
+    // Map to local Stock interface
+    return (data || []).map((ds: any) => ({
+      id: ds.stocks.id,
+      daily_id: ds.id,
+      name: ds.stocks.name,
+      code: ds.stocks.code,
+      last_price: ds.stocks.last_price || 0,
+      change_amount: ds.stocks.change_amount || 0,
+      change_rate: ds.stocks.change_rate || 0,
+      summary: ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...'
+    }))
   })
 
   // 2. Fallback to mock data if no data exists in DB
+  const { data: recommended, refresh: refreshRecommended } = useAsyncData('recommendedStocks', async () => {
+    // Fetch latest 10 news items with stock details
+    const { data, error } = await client
+      .from('news')
+      .select(`
+        llm_summary,
+        stocks (
+          id,
+          code,
+          name,
+          last_price,
+          change_amount,
+          change_rate
+        )
+      `)
+      .order('published_at', { ascending: false })
+      .limit(10)
+    
+    if (error) return []
+    return (data || []).map((n: any) => ({
+      id: n.stocks.id,
+      name: n.stocks.name,
+      code: n.stocks.code,
+      last_price: n.stocks.last_price || 0,
+      change_amount: n.stocks.change_amount || 0,
+      change_rate: n.stocks.change_rate || 0,
+      summary: n.llm_summary
+    }))
+  })
+
   const dailyStocks = computed(() => {
+// ...
     if (stocks.value && stocks.value.length > 0) {
       return stocks.value
     }
+    // ... mock data remains same
     return [
       { id: 1, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, summary: 'DB 데이터가 없거나 로드 전입니다.' },
       { id: 2, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, summary: 'DB 데이터가 없거나 로드 전입니다.' },
@@ -38,24 +96,86 @@ export const useStock = () => {
       { id: 5, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, summary: 'DB 데이터가 없거나 로드 전입니다.' }
     ]
   })
+// ... remaining methods
 
+  const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
 
-  const predict = (stockId: number, prediction: 'up' | 'down') => {
-    if (!myPredictions.value) return
-    const index = myPredictions.value.findIndex(p => p.stockId === stockId)
-    if (index > -1 && myPredictions.value[index]) {
-      myPredictions.value[index].prediction = prediction
+  const fetchWishlist = async () => {
+    const { data: user } = await client.auth.getUser()
+    if (!user.user) return
+
+    const { data, error } = await client
+      .from('wishlists')
+      .select('stock_id')
+      .eq('user_id', user.user.id)
+    
+    if (!error && data) {
+      hearts.value = data.map((w: any) => w.stock_id)
+    }
+  }
+
+  const toggleHeart = async (stockId: number) => {
+    const { data: user } = await client.auth.getUser()
+    if (!user.user) return
+
+    const isHearted = hearts.value.includes(stockId)
+    
+    if (isHearted) {
+      const { error } = await client
+        .from('wishlists')
+        .delete()
+        .eq('user_id', user.user.id)
+        .eq('stock_id', stockId)
+      
+      if (!error) {
+        hearts.value = hearts.value.filter(id => id !== stockId)
+      }
     } else {
-      myPredictions.value.push({ stockId, prediction })
+      const { error } = await client
+        .from('wishlists')
+        .insert({ user_id: user.user.id, stock_id: stockId })
+      
+      if (!error) {
+        hearts.value.push(stockId)
+      }
+    }
+  }
+
+  const predict = async (stockId: number, prediction: 'up' | 'down') => {
+    const { data: user } = await client.auth.getUser()
+    if (!user.user) return
+
+    const today = new Date().toISOString().split('T')[0]
+    
+    const { error } = await client
+      .from('predictions')
+      .upsert({
+        user_id: user.user.id,
+        stock_id: stockId,
+        game_date: today,
+        prediction_type: prediction,
+        result: 'pending'
+      }, { onConflict: 'user_id, stock_id, game_date' })
+
+    if (!error) {
+      const index = myPredictions.value.findIndex(p => p.stockId === stockId)
+      if (index > -1) {
+        myPredictions.value[index].prediction = prediction
+      } else {
+        myPredictions.value.push({ stockId, prediction })
+      }
     }
   }
 
   return {
     dailyStocks,
+    hearts,
     myPredictions,
     refresh,
     fetchError,
+    fetchWishlist,
+    toggleHeart,
     predict
   }
 }

@@ -1,15 +1,8 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
-  const user = await serverSupabaseUser(event)
-
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: '로그인이 필요합니다.',
-    })
-  }
+  const user = event.context.user
 
   const body = await readBody(event)
   const { stock_id } = body

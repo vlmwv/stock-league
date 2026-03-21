@@ -30,9 +30,10 @@
 ### [백엔드 로직]
 
 #### [NEW] [에지 함수 (Edge Functions)](./supabase/functions/)
-- `collect-news`: 뉴스/공시 수집 및 LLM 기반 요약.
-- `update-rankings`: 20:20 주기 랭킹 집계 및 결과 생성.
-- `generate-recommendations`: 21:20 주기 LLM 추천 종목 선정.
+- `fetch-market-news-periodically`: 장중 뉴스/공시 수집 및 LLM 요약.
+- `calculate-rankings`: 20:25 주기 랭킹 집계 및 결과 생성.
+- `select-daily-stocks`: 21:20 주기 LLM 추천 종목 선정.
+- `process-daily-results`: 20:20 주기 시세 확인 및 채점.
 
 ### [프론트엔드 최적화]
 

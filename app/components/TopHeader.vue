@@ -10,6 +10,14 @@
     </div>
 
     <div class="flex items-center gap-3">
+      <button 
+        @click="$emit('openGuide')"
+        class="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95"
+        title="가이드 보기"
+      >
+        <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
+      </button>
+
       <template v-if="user">
         <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50">
           <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300" />
@@ -60,6 +68,8 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
 const isScrolled = ref(false)
+
+defineEmits(['openGuide'])
 
 const handleLogout = async () => {
   await supabase.auth.signOut()
