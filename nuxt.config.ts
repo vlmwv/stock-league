@@ -4,7 +4,7 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
   compatibilityDate: '2024-11-01',
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/index.css'],
   devtools: { enabled: true },
   modules: [
     '@nuxt/ui',

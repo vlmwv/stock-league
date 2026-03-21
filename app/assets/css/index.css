@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand-primary: #6366f1; /* Indigo 500 */
+  --color-brand-secondary: #a855f7; /* Purple 500 */
+  --color-accent-up: #ef4444; /* Red 500 */
+  --color-accent-down: #3b82f6; /* Blue 500 */
+  --color-bg-deep: #0f172a; /* Slate 900 */
+  --color-bg-card: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+}
+
+@theme {
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-secondary: var(--color-brand-secondary);
+  --color-accent-up: var(--color-accent-up);
+  --color-accent-down: var(--color-accent-down);
+  --color-bg-deep: var(--color-bg-deep);
+}
+
+body {
+  @apply bg-bg-deep text-slate-100 font-sans selection:bg-brand-primary/30;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  @apply backdrop-blur-xl bg-white/5 border border-white/10;
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-slate-900/80 border border-slate-700/50;
+}
+
+/* Animations */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors;
+}
