@@ -76,6 +76,17 @@ erDiagram
         int change_amount "변동액"
         numeric change_rate "변동률"
     }
+    hall_of_fame {
+        bigint id PK "고유 ID"
+        uuid user_id FK "사용자 ID"
+        text period_type "타입 (monthly, yearly)"
+        text period_key "기간 키 (예: 2024-03, 2024)"
+        int rank "최종 순위"
+        numeric win_rate "승률"
+        int prediction_count "참여 횟수"
+        int points "획득 포인트"
+        timestamp recorded_at "기록 일시"
+    }
 
     profiles ||--o{ predictions : "performs"
     profiles ||--o{ wishlists : "has"
@@ -85,4 +96,5 @@ erDiagram
     stocks ||--o{ news : "mentioned_in"
     stocks ||--o{ wishlists : "added_to"
     stocks ||--o{ stock_price_history : "price_records"
+    profiles ||--o{ hall_of_fame : "records"
 ```
