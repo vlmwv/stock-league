@@ -98,7 +98,7 @@ const toggleHeart = (id: number) => {
 }
 
 const isHearted = (id: number) => hearts.value.includes(id)
-const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction
+const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
   const stock = dailyStocks.value.find(s => s.id === id)

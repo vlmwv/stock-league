@@ -10,14 +10,14 @@
             <div class="relative inline-block mb-6">
               <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"></div>
               <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
+                <img :src="user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
               </div>
               <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center">
                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-white" />
               </div>
             </div>
             
-            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">김주식 (Felix)</h2>
+            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
             <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">Master Prediction Tier</p>
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
@@ -92,4 +92,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
+
+const user = useSupabaseUser()
 </script>

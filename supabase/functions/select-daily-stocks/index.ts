@@ -6,19 +6,29 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-async function summarizeStockWithGemini(newsItems: any[], stockName: string, sector: string): Promise<string> {
+async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[], stockName: string, sector: string): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스와 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n`
+  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n`
   
   if (newsItems && newsItems.length > 0) {
-    newsItems.slice(0, 3).forEach((n: any, i: number) => {
-      prompt += `${i + 1}. 제목: ${n.tit}\n내용: ${n.subcontent}\n\n`
+    prompt += `[최근 뉴스]\n`
+    newsItems.slice(0, 2).forEach((n: any, i: number) => {
+      prompt += `- ${n.tit}\n`
     })
-  } else {
-    prompt += `(최근 특징적인 뉴스가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
+  }
+
+  if (disclosureItems && disclosureItems.length > 0) {
+    prompt += `\n[최근 공시]\n`
+    disclosureItems.slice(0, 2).forEach((d: any, i: number) => {
+      prompt += `- ${d.title}\n`
+    })
+  }
+
+  if (!newsItems.length && !disclosureItems.length) {
+    prompt += `(최근 특징적인 뉴스나 공시가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
   }
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -83,24 +93,29 @@ Deno.serve(async (req) => {
     // 2. 각 종목별 뉴스 수집 및 Gemini 요약 생성
     for (const stock of selectedStocks) {
       try {
-        console.log(`Fetching Naver News for ${stock.name} (${stock.code})...`)
+        console.log(`Fetching News & Disclosures for ${stock.name} (${stock.code})...`)
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
-        const newsRes = await fetch(newsUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
-        })
+        const disclosureUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
+        
+        const [newsRes, discRes] = await Promise.all([
+          fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+          fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+        ])
         
         let newsItems = []
         if (newsRes.ok) {
           const newsData = await newsRes.json()
           newsItems = newsData?.items || []
-        } else {
-          console.warn(`Failed to fetch news for ${stock.name}`)
+        }
+        
+        let disclosureItems = []
+        if (discRes.ok) {
+          const discData = await discRes.json()
+          disclosureItems = Array.isArray(discData) ? discData : (discData?.items || [])
         }
         
         console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const summary = await summarizeStockWithGemini(newsItems, stock.name, stock.sector)
+        const summary = await summarizeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
         
         // 3. daily_stocks 테이블에 중복 여부 확인 후 삽입
         const { data: existing, error: checkError } = await supabase

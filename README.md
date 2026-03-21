@@ -35,7 +35,26 @@ npm install
 npm run dev
 ```
 
-## 5. 관련 문서
+## 5. 인증 설정 (Supabase Auth)
+
+이 프로젝트는 Supabase Auth를 사용하여 회원가입 및 소셜 로그인을 관리합니다.
+
+### 5.1 환경 변수 설정
+`.env` 파일에 다음 정보가 포함되어 있어야 합니다:
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+```
+
+### 5.2 OAuth2.0 설정 (Google, Kakao, Naver)
+1. **Supabase Dashboard** > **Authentication** > **Providers**로 이동합니다.
+2. 각 제공자(Google, Kakao, Naver)를 활성화하고, 해당 개발자 센터(Google Cloud Console, Kakao Developers, Naver Developers)에서 발급받은 **Client ID**와 **Client Secret**을 입력합니다.
+3. **Redirect URL** 설정:
+   - 각 개발자 센터의 Redirect URI 설정에 다음 주소를 추가합니다:
+     - `https://your-project-ref.supabase.co/auth/v1/callback`
+   - 서비스 내 콜백 페이지: `http://localhost:3000/auth/confirm` (로컬 기준)
+
+## 6. 관련 문서
 - [기획 및 요구사항](plan_request.md)
 - [아키텍처 추천](architecture_recommend.md)
 - [포팅 및 구현 계획](plan_implementation.md)

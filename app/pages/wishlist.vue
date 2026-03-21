@@ -58,6 +58,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
 const { dailyStocks, myPredictions, predict } = useStock()
 const hearts = ref<number[]>([1, 4]) // Mocked hearted IDs for demo
 
@@ -78,7 +81,7 @@ const toggleHeart = (id: number) => {
   }
 }
 
-const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction
+const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
   const stock = dailyStocks.value.find(s => s.id === id)

@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 const navItems = [
-  { id: 'game', label: 'Game', icon: 'i-heroicons-gamepad-20-solid', to: '/' },
+  { id: 'game', label: 'Game', icon: 'i-heroicons-puzzle-piece-20-solid', to: '/' },
   { id: 'ranking', label: 'Rank', icon: 'i-heroicons-trophy-20-solid', to: '/ranking' },
   { id: 'wishlist', label: 'Wish', icon: 'i-heroicons-heart-20-solid', to: '/wishlist' },
   { id: 'mypage', label: 'My', icon: 'i-heroicons-user-20-solid', to: '/mypage' }
