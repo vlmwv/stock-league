@@ -1,0 +1,154 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
+const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
+
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+async function summarizeStockWithGemini(newsItems: any[], stockName: string, sector: string): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not set')
+  }
+
+  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스와 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n`
+  
+  if (newsItems && newsItems.length > 0) {
+    newsItems.slice(0, 3).forEach((n: any, i: number) => {
+      prompt += `${i + 1}. 제목: ${n.tit}\n내용: ${n.subcontent}\n\n`
+    })
+  } else {
+    prompt += `(최근 특징적인 뉴스가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
+  }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 200,
+      }
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Gemini API Error:', errorText)
+    throw new Error(`Gemini API failed: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const summaryText = data.candidates?.[0]?.content?.parts?.[0]?.text
+  
+  return summaryText?.trim() || '추천 사유를 생성하지 못했습니다.'
+}
+
+Deno.serve(async (req) => {
+  try {
+    console.log('Selecting daily stocks triggered...')
+    
+    // 1. 시가총액 상위 100개 종목 가져오기
+    const { data: topStocks, error: topError } = await supabase
+      .from('stocks')
+      .select('id, code, name, sector')
+      .lte('market_cap_rank', 100)
+    
+    if (topError) throw topError
+    if (!topStocks || topStocks.length === 0) {
+      throw new Error('No stocks found in the database. Please run update-krx-stocks first.')
+    }
+
+    // 배열 섞기 (Fisher-Yates shuffle)
+    const shuffledStocks = [...topStocks]
+    for (let i = shuffledStocks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledStocks[i], shuffledStocks[j]] = [shuffledStocks[j], shuffledStocks[i]];
+    }
+
+    const selectedStocks = shuffledStocks.slice(0, 5)
+    console.log(`Selected 5 stocks: ${selectedStocks.map((s: any) => s.name).join(', ')}`)
+
+    // 내일 날짜 (KST 기준)
+    const now = new Date()
+    const kstOffset = 9 * 60 * 60 * 1000
+    const kstDate = new Date(now.getTime() + kstOffset)
+    kstDate.setDate(kstDate.getDate() + 1)
+    const tomorrowStr = kstDate.toISOString().split('T')[0]
+    
+    let processedCount = 0
+    let errors = []
+    
+    // 2. 각 종목별 뉴스 수집 및 Gemini 요약 생성
+    for (const stock of selectedStocks) {
+      try {
+        console.log(`Fetching Naver News for ${stock.name} (${stock.code})...`)
+        const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
+        const newsRes = await fetch(newsUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        })
+        
+        let newsItems = []
+        if (newsRes.ok) {
+          const newsData = await newsRes.json()
+          newsItems = newsData?.items || []
+        } else {
+          console.warn(`Failed to fetch news for ${stock.name}`)
+        }
+        
+        console.log(`Generating summary with Gemini for ${stock.name}...`)
+        const summary = await summarizeStockWithGemini(newsItems, stock.name, stock.sector)
+        
+        // 3. daily_stocks 테이블에 중복 여부 확인 후 삽입
+        const { data: existing, error: checkError } = await supabase
+          .from('daily_stocks')
+          .select('id')
+          .eq('game_date', tomorrowStr)
+          .eq('stock_id', stock.id)
+          .maybeSingle()
+          
+        if (checkError) throw checkError
+        
+        if (!existing) {
+          const { error: insertError } = await supabase
+            .from('daily_stocks')
+            .insert({
+              stock_id: stock.id,
+              game_date: tomorrowStr,
+              llm_summary: summary,
+              status: 'pending'
+            })
+            
+          if (insertError) throw insertError
+          processedCount++
+          console.log(`Successfully saved daily_stock for ${stock.name}`)
+        } else {
+          console.log(`${stock.name} is already selected for ${tomorrowStr}`)
+        }
+        
+      } catch (err: any) {
+        console.error(`Error processing stock ${stock.name}:`, err.message)
+        errors.push({ stock: stock.name, error: err.message })
+      }
+    }
+
+    return new Response(JSON.stringify({ 
+      message: `Successfully selected and summarized ${processedCount} stocks for ${tomorrowStr}`, 
+      game_date: tomorrowStr,
+      errors: errors.length > 0 ? errors : undefined
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    })
+    
+  } catch (err: any) {
+    console.error('Fatal Edge Function Error:', err.message)
+    return new Response(JSON.stringify({ error: err.message }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    })
+  }
+})
