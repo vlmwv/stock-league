@@ -6,28 +6,37 @@
 
 ### [프로젝트 초기화 및 기반 설정]
 
-#### [NEW] [Nuxt.js + PWA 설정](file:///Users/min-woolee/IdeaProjects/mine/stock/)
+#### [NEW] [Nuxt.js + PWA 설정](./)
 - Nuxt.js (v3) 기반의 프로젝트 구성.
 - `@vite-pwa/nuxt`를 통한 PWA 설정 (모바일 앱 경험 제공).
 - `Pinia` (상태 관리) 및 `VueUse` (제스처 핸들링) 라이브러리 연동.
 
+### [인증 및 보안 레이어]
+
+#### [NEW] [인증 시스템 (Supabase Auth)](./)
+- **소셜 로그인 (OAuth2)**: 구글, 카카오, 네이버 등 주요 Provider 연동.
+- **세션 관리**: `@nuxtjs/supabase` 모듈의 `useSupabaseUser`를 이용한 유저 상태 관리.
+- **보안 로직**: 클라이언트 측 미들웨어를 통한 페이지 접근 제한 및 서버 측 세션 검증.
+
+
 ### [데이터 및 서버리스 레이어]
 
-#### [NEW] [Supabase & Redis](file:///Users/min-woolee/IdeaProjects/mine/stock/supabase/)
+#### [NEW] [Supabase](./supabase/)
 - PostgreSQL 스키마 설계 및 RLS(행 레벨 보안) 정책 적용.
-- Upstash Redis(서버리스)를 연동하여 실시간 시세 및 당일 게임 데이터 캐싱.
 - **Supabase Edge Functions**: DART/뉴스 수집, 랭킹 집계, LLM 요약 등을 처리하는 서버리스 함수 구현.
+- **RLS (Row Level Security)**: `auth.uid()`를 활용하여 사용자가 본인의 예측 데이터 및 프로필만 수정 가능하도록 정책 설정.
+
 
 ### [백엔드 로직]
 
-#### [NEW] [에지 함수 (Edge Functions)](file:///Users/min-woolee/IdeaProjects/mine/stock/supabase/functions/)
+#### [NEW] [에지 함수 (Edge Functions)](./supabase/functions/)
 - `collect-news`: 뉴스/공시 수집 및 LLM 기반 요약.
 - `update-rankings`: 20:20 주기 랭킹 집계 및 결과 생성.
 - `generate-recommendations`: 21:20 주기 LLM 추천 종목 선정.
 
 ### [프론트엔드 최적화]
 
-#### [NEW] [핵심 페이지 및 컴포넌트](file:///Users/min-woolee/IdeaProjects/mine/stock/pages/)
+#### [NEW] [핵심 페이지 및 컴포넌트](./pages/)
 - `game/index.vue`: `useSwipe`를 이용한 상/하 플릭 예측 UI.
 - `ranking/index.vue`: 월간/주간/실시간 랭킹 대시보드.
 - `components/ResultPopup.vue`: `canvas-confetti`를 활용한 당첨 결과 애니메이션.

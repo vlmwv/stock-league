@@ -7,16 +7,11 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
   modules: [
+    '@nuxt/ui',
     '@nuxtjs/supabase',
     '@vueuse/nuxt',
     '@vite-pwa/nuxt'
   ],
-  postcss: {
-    plugins: {
-      '@tailwindcss/postcss': {},
-      autoprefixer: {},
-    },
-  },
   supabase: {
     redirect: false // 인증 없이 메인화면 접근 가능하도록 설정
   },

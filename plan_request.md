@@ -10,12 +10,12 @@
   - 매일 08:00에 예측 마감
 
 2. 기술 스펙
-  - nuxt.js, vercel, 슈파베이스, redis
-  - vue, typescript, tailwindcss 
+  - nuxt.js, railway, supabase
+  - vue, typescript, nuxtui
   - docker-compose 활용
 
 
-2. 기능 상세설명_
+2. 기능 상세설명
   - 회원 가입은 이메일 가입, OAuth2 소셜 로그인 지원, JWT 토큰 발급
   - api 구분은 사용자, 관리자, 공통, 외부로 구분되면, api path와 권한이 분리됨
   - 게임 참여 종목 노출시 LLM 요약정보를 같이 노출함

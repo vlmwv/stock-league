@@ -47,8 +47,8 @@
           @contextmenu.prevent="toggleHeart(stock.id)"
         >
           <!-- Flick Hint Indicators -->
-          <div class="absolute inset-x-0 top-0 h-1 bg-green-500/0 transition-all duration-300 group-hover:bg-green-500/20 shadow-[0_-10px_20px_rgba(34,197,94,0.3)]"></div>
-          <div class="absolute inset-x-0 bottom-0 h-1 bg-red-500/0 transition-all duration-300 group-hover:bg-red-500/20 shadow-[0_10px_20px_rgba(239,68,68,0.3)]"></div>
+          <div class="absolute inset-x-0 top-0 h-1 bg-red-500/0 transition-all duration-300 group-hover:bg-red-500/20 shadow-[0_-10px_20px_rgba(239,68,68,0.3)]"></div>
+          <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500/0 transition-all duration-300 group-hover:bg-blue-500/20 shadow-[0_10px_20px_rgba(59,130,246,0.3)]"></div>
 
           <div class="flex justify-between items-start mb-4">
             <div>
@@ -58,7 +58,7 @@
               </div>
               <h4 class="text-xl font-bold">{{ stock.name }}</h4>
             </div>
-            <div :class="[stock.change_amount >= 0 ? 'text-emerald-400' : 'text-rose-400', 'text-right']">
+            <div :class="[stock.change_amount > 0 ? 'text-red-500' : stock.change_amount < 0 ? 'text-blue-500' : 'text-slate-400', 'text-right']">
               <div class="text-xl font-bold">{{ stock.last_price.toLocaleString() }}</div>
               <div class="text-xs flex items-center justify-end gap-1 mt-1">
                 <span v-if="stock.change_amount > 0">▲</span>
@@ -77,10 +77,10 @@
           <!-- Prediction Status -->
           <div v-if="getPrediction(stock.id)" 
                class="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px] rounded-2xl border-2 transition-all duration-500"
-               :class="getPrediction(stock.id) === 'up' ? 'border-green-500/50' : 'border-red-500/50'"
+               :class="getPrediction(stock.id) === 'up' ? 'border-red-500/50' : 'border-blue-500/50'"
           >
              <span class="text-2xl font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r"
-                   :class="getPrediction(stock.id) === 'up' ? 'from-green-400 to-emerald-600' : 'from-red-400 to-rose-600'"
+                   :class="getPrediction(stock.id) === 'up' ? 'from-red-400 to-rose-600' : 'from-blue-400 to-indigo-600'"
              >
                 {{ getPrediction(stock.id) === 'up' ? '상승 예측 중 ↑' : '하락 예측 중 ↓' }}
              </span>
@@ -150,12 +150,12 @@ onMounted(async () => {
 
 <style scoped>
 /* Smooth indicator animations */
-.group:hover div[class*="bg-green-500"] {
-  height: 8px;
-  background-color: rgba(34, 197, 94, 0.4);
-}
 .group:hover div[class*="bg-red-500"] {
   height: 8px;
   background-color: rgba(239, 68, 68, 0.4);
+}
+.group:hover div[class*="bg-blue-500"] {
+  height: 8px;
+  background-color: rgba(59, 130, 246, 0.4);
 }
 </style>
