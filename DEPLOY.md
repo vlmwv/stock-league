@@ -44,12 +44,38 @@ Railway 서비스의 **Variables** 탭에서 다음 항목을 추가합니다.
 
 ---
 
-## 3. 주기적 배치 작업 (Cron Jobs)
+## 3. Supabase CLI를 통한 배포 (Database & Functions)
 
-현재 이 프로젝트는 **Supabase Edge Functions**를 통해 데이터 수집(뉴스, 시세 등)을 수행하도록 설계되어 있습니다.
+로컬에 작성된 마이그레이션과 에지 함수를 운영 환경에 반영하기 위해 **Supabase CLI**를 사용합니다.
+
+### 3.1 로그인 및 프로젝트 연결
+```bash
+# 1. 로그인
+npx supabase login
+
+# 2. 프로젝트 연결 (최초 1회)
+npx supabase link --project-ref zmqjooidmibqrigziipq
+```
+
+### 3.2 데이터베이스 마이그레이션 (DB Push)
+`supabase/migrations/` 폴더 내의 파일들을 운영 DB에 반영합니다.
+```bash
+npx supabase db push
+```
+
+### 3.3 에지 함수 배포 (Edge Functions)
+`supabase/functions/` 하위 소스들을 배포합니다.
+```bash
+npx supabase functions deploy
+```
+*개별 배포 예시: `npx supabase functions deploy select-daily-stocks`*
+
+---
+
+## 4. 주기적 배치 작업 (Cron Jobs) 확인
+
+배포가 완료되면 다음 작업들이 Supabase 내부에서 자동으로 실행됩니다.
 
 - **장중 뉴스 수집**: 매 시간 실행 (`fetch-market-news-periodically`)
 - **결과 처리 및 랭킹**: 매일 20:20~20:40 실행
 - **내일의 종목 선정**: 매일 21:20 실행
-
-이 작업들은 `supabase/functions/` 하위 소스들을 배포하고 Supabase 에지 함수 메뉴에서 스케줄러를 등록하여 활성화할 수 있습니다.
