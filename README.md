@@ -47,12 +47,15 @@ SUPABASE_URL=your_supabase_project_url
 SUPABASE_KEY=your_supabase_anon_key
 ```
 
-### 5.2 OAuth2.0 설정 (Google, Kakao, Naver)
+### 5.2 OAuth2.0 설정 (Google, Kakao)
 1. **Supabase Dashboard** > **Authentication** > **Providers**로 이동합니다.
-2. 각 제공자(Google, Kakao, Naver)를 활성화하고, 해당 개발자 센터(Google Cloud Console, Kakao Developers, Naver Developers)에서 발급받은 **Client ID**와 **Client Secret**을 입력합니다.
+   - [대시보드 바로가기](https://supabase.com/dashboard/project/zmqjooidmibqrigziipq/auth/providers)
+2. 각 제공자(Google, Kakao)의 아코디언 메뉴를 펼치고 **'Enable'** 스위치를 켭니다.
+3. 해당 개발자 센터에서 발급받은 **Client ID**와 **Client Secret**을 입력한 후 **'Save'**를 클릭합니다.
+   - **참고**: 이 값들은 소스 코드(`.env` 등)에 넣지 않고 Supabase 대시보드 내에 직접 설정합니다.
 3. **Redirect URL** 설정:
    - 각 개발자 센터의 Redirect URI 설정에 다음 주소를 추가합니다:
-     - `https://your-project-ref.supabase.co/auth/v1/callback`
+     - `https://zmqjooidmibqrigziipq.supabase.co/auth/v1/callback`
    - 서비스 내 콜백 페이지: `http://localhost:3000/auth/confirm` (로컬 기준)
 
 ## 6. 관련 문서

@@ -31,14 +31,6 @@
             <UIcon name="i-ri-kakao-talk-fill" class="w-5 h-5" />
             카카오로 시작하기
           </button>
-
-          <button 
-            @click="handleOAuthLogin('naver')"
-            class="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-[#03C75A] text-white font-bold transition-all hover:bg-[#02b351] active:scale-[0.98] shadow-lg shadow-green-500/5"
-          >
-            <span class="font-black text-lg">N</span>
-            네이버로 시작하기
-          </button>
         </div>
 
         <div class="relative mb-8">
@@ -115,7 +107,7 @@ watchEffect(() => {
   }
 })
 
-const handleOAuthLogin = async (provider: 'google' | 'kakao' | 'naver') => {
+const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,

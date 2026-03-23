@@ -14,10 +14,11 @@
     - [x] 랭킹 스키마 정의 (주간, 월간, 연간, 역대)
     - [x] 요약/뉴스 스키마 정의 (LLM 요약, 뉴스/전자공시)
     - [x] 명예의 전당 스키마 정의 (월간/연간 리그 리셋 기록 보관)
-- [/] 인증 및 권한 관리
+- [x] 인증 및 권한 관리
     - [x] Supabase Auth 연동 및 미들웨어 설정 (`app/middleware/auth.ts`)
-    - [ ] 서버 사이드 JWT 토큰 검증 보완
-    - [ ] 관리자 페이지 전용 권한 설정 (RBAC)
+    - [x] OAuth 제공자(Kakao, Google, Naver) 인증키 설정 및 활성화
+    - [x] 서버 사이드 JWT 토큰 검증 보완 (RBAC 연동)
+    - [x] 관리자 페이지 전용 권한 설정 (RBAC)
 - [x] 에지 컴퓨팅 & 배치 작업 (Supabase Edge Functions)
     - [x] 뉴스/전자공시 수집/요약 함수 (Gemini 연동 완료)
     - [x] **장중 뉴스/전자공시 주기적 수집 및 요약 배치 (`fetch-market-news-periodically`)**
@@ -26,7 +27,7 @@
     - [x] KRX 상위 100종목 업데이트 함수 (20:40 주기)
     - [x] 일일 5개 종목 선정 및 LLM 추천 요약 함수 (21:20 주기)
     - [x] 매월/매년 초 명예의 전당 데이터 이관 배치 함수
-    - [ ] 에지 함수 보안 설정 및 환경 변수(Secrets) 관리 가이드 작성
+    - [x] 에지 함수 보안 설정 및 환경 변수(Secrets) 관리 가이드 작성
 - [x] 핵심 게임 기능 구현
     - [x] 게임 종목 리스트 API (LLM 요약 포함)
     - [x] 예측 제출 API (플릭 제스처 대응)
@@ -46,6 +47,10 @@
 - [/] 최종 검증 및 배포
     - [ ] 전체 비즈니스 로직 로컬 통합 테스트
     - [x] Vercel 배포 연동 (GitHub 연동 완료)
+    - [ ] Railway 배포 연동 및 설정
+        - [x] Railway 설정 파일(`railway.json`) 생성
+        - [ ] Railway 프로젝트 생성 및 GitHub 저장소 연결
+        - [ ] 환경 변수(`SUPABASE_URL`, `SUPABASE_KEY` 등) 설정
     - [ ] Supabase Edge Functions 배포 및 Cron 트리거 설정
     - [x] 온보딩 가이드 및 참여 UX 개선
         - [x] `LeagueGuide` 컴포넌트 개발

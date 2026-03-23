@@ -34,11 +34,24 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 검증된 사용자 정보를 context에 저장하여 이후 라우트에서 활용 가능하게 함
-    event.context.user = user
-    console.log(`[AuthMiddleware] Authenticated user: ${user.id} for ${url.pathname}`)
+    // RBAC: app_metadata에서 역할 정보를 가져옴
+    const role = (user.app_metadata?.role as string) || 'user'
+    
+    // 관리자 전용 경로 체크 (/api/admin/**)
+    if (url.pathname.startsWith('/api/admin/') && role !== 'admin') {
+      console.warn(`[AuthMiddleware] Forbidden access attempt by ${user.id} to ${url.pathname}`)
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Forbidden: 관리자 전용 기능입니다.'
+      })
+    }
+
+    // 검증된 사용자 정보 및 역할을 context에 저장
+    event.context.user = { ...user, role } as any
+    
+    console.log(`[AuthMiddleware] Authenticated user: ${user.id} (Role: ${role}) for ${url.pathname}`)
   } catch (error: any) {
-    if (error.statusCode === 401) {
+    if (error.statusCode === 401 || error.statusCode === 403) {
       throw error
     }
     
