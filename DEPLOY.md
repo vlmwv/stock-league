@@ -13,6 +13,10 @@
 | :--- | :--- | :--- |
 | `SUPABASE_URL` | `https://zmqjooidmibqrigziipq.supabase.co` | 프로젝트 접속 URL |
 | `SUPABASE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzAzMDcsImV4cCI6MjA4OTUwNjMwN30.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo` | 익명 키 (Anon Key) |
+| `SUPABASE_SERVICE_ROLE_KEY` | `(Supabase 대시보드에서 확인)` | 관리자용 서비스 역할 키 (Admin Only) |
+
+> [!CAUTION]
+> `SUPABASE_SERVICE_ROLE_KEY`는 모든 RLS(Row Level Security)를 우회하는 강력한 키입니다. 절대로 클라이언트 사이드 코드(`.vue` 파일 등)에서 사용하지 마세요. 오직 서버 사이드 배치 작업이나 관리용 API에서만 사용해야 합니다.
 
 ### 1.2 소셜 로그인 (OAuth 2.0) 설정
 - **위치**: [Supabase Dashboard > Authentication > Providers](https://supabase.com/dashboard/project/zmqjooidmibqrigziipq/auth/providers)
