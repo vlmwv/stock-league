@@ -1,2 +1,10 @@
-[install]
-cmds = ["npm install --legacy-peer-deps"]
+[variables]
+    NIXPACKS_NODE_VERSION = "22"
+    NIXPACKS_NO_CI = "1"
+
+[phases.setup]
+    nixPkgs = ["nodejs_22"]
+
+[phases.install]
+    dependsOn = ["setup"]
+    cmds = ["npm install --legacy-peer-deps"]
