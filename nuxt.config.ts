@@ -40,7 +40,6 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: 'railway',
     experimental: {
       openAPI: true
     }
