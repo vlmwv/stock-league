@@ -2,21 +2,44 @@
 [functions.select-daily-stocks]
 enabled = true
 verify_jwt = true
-import_map = "./functions/select-daily-stocks/deno.json"
-# Uncomment to specify a custom file path to the entrypoint.
-# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
 entrypoint = "./functions/select-daily-stocks/index.ts"
-# Specifies static files to be bundled with the function. Supports glob patterns.
-# For example, if you want to serve static HTML pages in your function:
-# static_files = [ "./functions/select-daily-stocks/*.html" ]
 
 [functions.transfer-hall-of-fame]
 enabled = true
 verify_jwt = true
-import_map = "./functions/transfer-hall-of-fame/deno.json"
-# Uncomment to specify a custom file path to the entrypoint.
-# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
 entrypoint = "./functions/transfer-hall-of-fame/index.ts"
-# Specifies static files to be bundled with the function. Supports glob patterns.
-# For example, if you want to serve static HTML pages in your function:
-# static_files = [ "./functions/transfer-hall-of-fame/*.html" ]
+
+[functions.calculate-rankings]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/calculate-rankings/index.ts"
+
+[functions.fetch-market-news-periodically]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/fetch-market-news-periodically/index.ts"
+
+[functions.fetch-news-summary]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/fetch-news-summary/index.ts"
+
+[functions.process-daily-results]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/process-daily-results/index.ts"
+
+[functions.update-krx-stocks]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/update-krx-stocks/index.ts"
+
+[functions.update-krx-top-100]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/update-krx-top-100/index.ts"
+
+[functions.update-naver-stocks]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/update-naver-stocks/index.ts"
