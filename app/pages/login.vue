@@ -109,11 +109,13 @@ watchEffect(() => {
 
 const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
   try {
+    const scopes = provider === 'kakao' ? 'profile' : undefined
+    console.log(`[OAuth Login] Provider: ${provider}, Scopes: ${scopes}`)
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        // 이메일(account_email)을 제외하고 닉네임과 프로필 이미지만 요청
-        scopes: provider === 'kakao' ? 'profile_nickname profile_image' : undefined,
+        scopes,
         redirectTo: `${window.location.origin}/auth/confirm`
       }
     })
