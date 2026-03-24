@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
   const publicRoutes = [
     '/api/hall-of-fame',
     '/api/rankings',
-    '/api/stocks'
+    '/api/stocks',
+    '/api/_nuxt_icon'
   ]
 
   // 현재 경로가 화이트리스트에 포함되는지 확인 (접두사 매칭)
