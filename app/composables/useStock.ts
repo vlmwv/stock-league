@@ -39,7 +39,7 @@ export const useStock = () => {
     }
 
     // Map to local Stock interface
-    return (data || []).map((ds: any) => ({
+    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
       id: ds.stocks.id,
       daily_id: ds.id,
       name: ds.stocks.name,
@@ -71,7 +71,7 @@ export const useStock = () => {
       .limit(10)
     
     if (error) return []
-    return (data || []).map((n: any) => ({
+    return (data || []).filter((n: any) => n.stocks).map((n: any) => ({
       id: n.stocks.id,
       name: n.stocks.name,
       code: n.stocks.code,
