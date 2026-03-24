@@ -109,15 +109,21 @@ watchEffect(() => {
 
 const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
   try {
-    const scopes = provider === 'kakao' ? 'profile' : undefined
-    console.log(`[OAuth Login] Provider: ${provider}, Scopes: ${scopes}`)
+    const options: any = {
+      redirectTo: `${window.location.origin}/auth/confirm`
+    }
+    
+    // 카카오의 경우, 비즈니스 인증이 필요한 'account_email'을 강제로 제외하기 위함
+    if (provider === 'kakao') {
+      options.scopes = 'profile_nickname profile_image'
+      options.queryParams = { scope: 'profile_nickname profile_image' }
+    }
+    
+    console.log(`[OAuth Login] Provider: ${provider}, Options:`, options)
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
-      options: {
-        scopes,
-        redirectTo: `${window.location.origin}/auth/confirm`
-      }
+      options
     })
     if (error) throw error
   } catch (error: any) {
