@@ -1,91 +1,56 @@
 # 서비스 배포 가이드 (Deployment Guide)
 
-본 문서는 주식 예측 리그 프로젝트의 핵심 서비스인 **Supabase**와 **Railway**의 배포 및 설정 방법을 정리합니다.
+본 문서는 **주식 예측 리그** 프로젝트의 운영 서버(Railway + Supabase) 배포 및 최종 설정 방법을 정리합니다.
 
 ---
 
 ## 1. Supabase 설정 (Backend & Auth)
 
 ### 1.1 환경 변수 및 접속 정보
-대부분의 애플리케이션 설정은 `.env` 파일과 Supabase 대시보드에 연동됩니다.
-
-| 변수명 | 실제 값 | 비고 |
+| 변수명 | 실제 값 (예시) | 비고 |
 | :--- | :--- | :--- |
 | `SUPABASE_URL` | `https://zmqjooidmibqrigziipq.supabase.co` | 프로젝트 접속 URL |
-| `SUPABASE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzAzMDcsImV4cCI6MjA4OTUwNjMwN30.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo` | 익명 키 (Anon Key) |
-| `SUPABASE_SERVICE_ROLE_KEY` | `(Supabase 대시보드에서 확인)` | 관리자용 서비스 역할 키 (Admin Only) |
+| `SUPABASE_KEY` | `eyJhbG...` | 익명 키 (Anon Key) |
 
-> [!CAUTION]
-> `SUPABASE_SERVICE_ROLE_KEY`는 모든 RLS(Row Level Security)를 우회하는 강력한 키입니다. 절대로 클라이언트 사이드 코드(`.vue` 파일 등)에서 사용하지 마세요. 오직 서버 사이드 배치 작업이나 관리용 API에서만 사용해야 합니다.
-
-### 1.2 소셜 로그인 (OAuth 2.0) 설정
-- **위치**: [Supabase Dashboard > Authentication > Providers](https://supabase.com/dashboard/project/zmqjooidmibqrigziipq/auth/providers)
-- **지원 제공자**: Google, Kakao (Naver는 지원하지 않음)
-- **Redirect URI**: 
-  - `https://zmqjooidmibqrigziipq.supabase.co/auth/v1/callback` 를 각 개발자 센터에 등록.
+### 1.2 소셜 로그인 (Kakao) 주의사항
+- **KOE205 에러 발생 시**: 카카오 개발자 센터의 **[동의항목]**에서 `닉네임`과 `프로필 사진`을 **선택 동의** 이상으로 설정해야 합니다.
+- **이메일(account_email) 관련**: 현재 비즈니스 인증 없이 로그인할 수 있도록 보정되어 있습니다. 만약 이메일 정보를 받고 싶다면 카카오 비즈니스 인증 후 코드를 수정해야 합니다.
+- **Redirect URI 등록**: `https://<YOUR_DOMAIN>/auth/confirm` 및 Supabase 콜백 주소를 카카오/구글 센터에 반드시 등록하세요.
 
 ---
 
-## 2. Railway 배포 (Nuxt.js Web Hosting)
+## 2. Railway 배포 설정 (Nuxt 4 / SSR)
 
-### 2.1 프로젝트 연결 및 배포
-1. [Railway Dashboard](https://railway.app/new)에서 저장소(GitHub Repo)를 연결합니다.
-2. 루트 디렉토리에 있는 `railway.json` 설정에 따라 자동으로 빌드 및 배포가 시작됩니다.
+### 2.1 커스텀 빌드 (Dockerfile)
+Nuxt 4와 `oxc-parser` 등 네이티브 바인딩 이슈를 해결하기 위해 **Dockerfile**을 통한 빌드를 권장합니다.
+- **Builder**: Railway Settings에서 `DOCKERFILE`을 선택하세요.
+- **PORT**: `8080` 포트로 통신하도록 설정되어 있습니다.
 
-### 2.2 환경 변수 (Variables) 추가
-Railway 서비스의 **Variables** 탭에서 다음 항목을 추가합니다.
-- `SUPABASE_URL`: 상단 1.1의 URL 입력
-- `SUPABASE_KEY`: 상단 1.1의 KEY 입력
-- `NODE_ENV`: `production`
+### 2.2 런타임 환경 변수 (Railway Variables)
+반드시 다음 변수들을 Railway 대시보드에 직접 입력해야 합니다.
+- `SUPABASE_URL`: Supabase 프로젝트 URL
+- `SUPABASE_KEY`: Supabase 익명 키
+- `PORT`: `8080` (자동 감지되지만 명시 권장)
 
-### 2.3 도메인 설정 (Domain & Custom Domain)
-- **기본 도메인**: **Settings > Networking**에서 **Generate Domain**을 선택하여 `xxx.up.railway.app` 형태의 도메인을 생성할 수 있습니다.
-- **커스텀 도메인**: 
-  1. **Settings > Networking**에서 **Custom Domain**을 클릭합니다.
-  2. 구매하신 도메인(예: `stockleague.com`)을 입력합니다.
-  3. Railway에서 제공하는 DNS 설정(CNAME 레코드 등)을 도메인 구매처(가비아, 후이즈 등)의 DNS 설정에 등록합니다.
-- **중요**: 생성된 도메인 주소를 **Supabase Dashboard > Authentication > URL Configuration > Redirect URLs**에 추가해야 정상적인 로그인이 가능합니다.
-
-### 2.4 데이터베이스 초기화 (Supabase SQL)
-- 배포 후 발생하는 500 에러는 테이블이 없기 때문입니다. **Supabase SQL Editor**에서 다음 파일들을 순서대로 실행하세요.
-  1. [`initial_schema.sql`](./supabase/migrations/20260320000000_initial_schema.sql)
-  2. [`extended_schema.sql`](./supabase/migrations/20260320000001_extended_schema.sql)
-  3. [`seed.sql`](./supabase/seed.sql)
+> [!IMPORTANT]
+> Nuxt 4 환경에서는 환경 변수가 `process.env`를 통해 런타임에 주입되어야 합니다. 현재 `nuxt.config.ts`에서 `runtimeConfig`와 최상단 매핑을 통해 안정성을 확보했습니다.
 
 ---
 
-## 3. Supabase CLI를 통한 배포 (Database & Functions)
+## 3. 데이터베이스 및 서버 유지보수
 
-로컬에 작성된 마이그레이션과 에지 함수를 운영 환경에 반영하기 위해 **Supabase CLI**를 사용합니다.
+### 3.1 초기 스키마 반영 (SQL Editor)
+테이블이 비어있어 발생하는 500 에러를 방지하기 위해 다음 순서로 SQL을 실행하세요:
+1. `supabase/migrations/20260320000000_initial_schema.sql` (기본 테이블)
+2. `supabase/migrations/20260320000001_extended_schema.sql` (확장 기능)
+3. `supabase/seed.sql` (초기 종목 데이터)
 
-### 3.1 로그인 및 프로젝트 연결
-```bash
-# 1. 로그인
-npx supabase login
-
-# 2. 프로젝트 연결 (최초 1회)
-npx supabase link --project-ref zmqjooidmibqrigziipq
-```
-
-### 3.2 데이터베이스 마이그레이션 (DB Push)
-`supabase/migrations/` 폴더 내의 파일들을 운영 DB에 반영합니다.
-```bash
-npx supabase db push
-```
-
-### 3.3 에지 함수 배포 (Edge Functions)
-`supabase/functions/` 하위 소스들을 배포합니다.
-```bash
-npx supabase functions deploy
-```
-*개별 배포 예시: `npx supabase functions deploy select-daily-stocks`*
+### 3.2 에러 모니터링
+- **Nitro 로그**: 서버 에러 발생 시 Railway **Deploy Logs**에 상세 스택 트레이스가 출력되도록 `server/plugins/error.ts`가 구성되어 있습니다.
+- **AuthMiddleware**: `/api/` 경로 요청 시 인증되지 않은 사용자는 `401` 에러가 발생하며, 아이콘 등 공용 리소스는 화이트리스트 처리되어 있습니다.
 
 ---
 
-## 4. 주기적 배치 작업 (Cron Jobs) 확인
-
-배포가 완료되면 다음 작업들이 Supabase 내부에서 자동으로 실행됩니다.
-
-- **장중 뉴스 수집**: 매 시간 실행 (`fetch-market-news-periodically`)
-- **결과 처리 및 랭킹**: 매일 20:20~20:40 실행
-- **내일의 종목 선정**: 매일 21:20 실행
+## 4. 커스텀 도메인
+- `ninanoai.com` 등 커스텀 도메인을 사용할 경우, Railway Networking 설정에서 등록 후 생성된 CNAME 값을 DNS 업체(가비아 등)에 등록하세요.
+- 등록 후 **Supabase > Authentication > URL Configuration**에서 해당 도메인을 `Site URL` 또는 `Redirect URLs`에 추가해야 로그인이 정상 작동합니다.
