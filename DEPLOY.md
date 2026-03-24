@@ -38,9 +38,19 @@ Railway 서비스의 **Variables** 탭에서 다음 항목을 추가합니다.
 - `SUPABASE_KEY`: 상단 1.1의 KEY 입력
 - `NODE_ENV`: `production`
 
-### 2.3 도메인 설정 (Domain Expansion)
-- **Settings > Networking**에서 **Generate Domain**을 선택하여 외부 접속 URL을 생성합니다.
-- 생성된 도메인(예: `xxx.up.railway.app`)을 **Supabase Dashboard > Authentication > URL Configuration > Redirect URLs**에 추가해야 정상적인 로그인이 가능합니다.
+### 2.3 도메인 설정 (Domain & Custom Domain)
+- **기본 도메인**: **Settings > Networking**에서 **Generate Domain**을 선택하여 `xxx.up.railway.app` 형태의 도메인을 생성할 수 있습니다.
+- **커스텀 도메인**: 
+  1. **Settings > Networking**에서 **Custom Domain**을 클릭합니다.
+  2. 구매하신 도메인(예: `stockleague.com`)을 입력합니다.
+  3. Railway에서 제공하는 DNS 설정(CNAME 레코드 등)을 도메인 구매처(가비아, 후이즈 등)의 DNS 설정에 등록합니다.
+- **중요**: 생성된 도메인 주소를 **Supabase Dashboard > Authentication > URL Configuration > Redirect URLs**에 추가해야 정상적인 로그인이 가능합니다.
+
+### 2.4 데이터베이스 초기화 (Supabase SQL)
+- 배포 후 발생하는 500 에러는 테이블이 없기 때문입니다. **Supabase SQL Editor**에서 다음 파일들을 순서대로 실행하세요.
+  1. [`initial_schema.sql`](./supabase/migrations/20260320000000_initial_schema.sql)
+  2. [`extended_schema.sql`](./supabase/migrations/20260320000001_extended_schema.sql)
+  3. [`seed.sql`](./supabase/seed.sql)
 
 ---
 
