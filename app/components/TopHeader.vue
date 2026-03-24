@@ -31,7 +31,7 @@
           </div>
           <UPopover :popper="{ placement: 'bottom-end' }">
             <button class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden">
-              <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
+              <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>
               <div class="p-2 w-48 bg-slate-900/90 border border-slate-700/50 rounded-xl glass-dark">

@@ -112,6 +112,9 @@ const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
+        // 프사(profile_image)를 제외한 닉네임과 이메일만 요청 (필요한 것만 조합해 보세요)
+        // 만약 이메일도 필요 없다면 'profile_nickname'만 넣으면 됩니다.
+        scopes: provider === 'kakao' ? 'profile_nickname' : undefined,
         redirectTo: `${window.location.origin}/auth/confirm`
       }
     })
