@@ -119,8 +119,6 @@ const handleOAuthLogin = async (provider: 'google' | 'kakao') => {
       options.queryParams = { scope: 'profile_nickname profile_image' }
     }
     
-    console.log(`[OAuth Login] Provider: ${provider}, Options:`, options)
-    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options
