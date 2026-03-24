@@ -7,4 +7,4 @@
 
 [phases.install]
     dependsOn = ["setup"]
-    cmds = ["rm -f package-lock.json", "npm install --legacy-peer-deps"]
+    cmds = ["rm -f package-lock.json", "npm install --legacy-peer-deps --ignore-scripts", "npm install --legacy-peer-deps"]
