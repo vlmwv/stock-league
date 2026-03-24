@@ -13,6 +13,8 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
   supabase: {
+    url: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+    key: process.env.NUXT_PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY,
     redirect: false // 인증 없이 메인화면 접근 가능하도록 설정
   },
   pwa: {
