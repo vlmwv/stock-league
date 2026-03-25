@@ -1,9 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 // 예측 성공 시 지급 포인트
 const POINTS_FOR_WIN = 10;
@@ -71,21 +71,33 @@ Deno.serve(async (req) => {
       else if (change_amount < 0) resultOutcome = 'down';
 
       // 3. stocks 테이블 업데이트 및 stock_price_history 삽입
-      await supabase.from('stocks').update({
+      const { error: updateError } = await supabase.from('stocks').update({
         last_price,
         change_amount,
         change_rate,
         updated_at
       }).eq('id', stock_id);
 
+      if (updateError) {
+        console.error(`Error updating stocks for ${code}:`, updateError.message);
+      } else {
+        console.log(`Successfully updated stock price for ${code}`);
+      }
+
       // (선택) stock_price_history에 기록 (upsert 방식으로 당일 데이터 중복 방지)
-      await supabase.from('stock_price_history').upsert({
+      const { error: historyError } = await supabase.from('stock_price_history').upsert({
         stock_id,
         price_date: currentDateStr,
         close_price: last_price,
         change_amount,
         change_rate
       }, { onConflict: 'stock_id, price_date' });
+
+      if (historyError) {
+        console.error(`Error upserting stock_price_history for ${code}:`, historyError.message);
+      } else {
+        console.log(`Successfully saved stock_price_history for ${code}`);
+      }
 
       // 4. predictions(유저 예측 내역) 결과 처리
       const { data: predictions, error: predError } = await supabase

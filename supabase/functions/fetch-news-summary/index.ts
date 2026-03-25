@@ -64,7 +64,11 @@ Deno.serve(async (req) => {
     console.log('Fetching news summary triggered...')
     
     // 1. 오늘 게임(예측)에 해당하는 5개 종목을 먼저 조회
-    const todayStr = new Date().toISOString().split('T')[0]
+    // 한국 시간 기준 현재 날짜(YYYY-MM-DD) 구하기
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstDate = new Date(now.getTime() + kstOffset);
+    const todayStr = kstDate.toISOString().split('T')[0];
     
     let { data: dailyStocks, error: dsError } = await supabase
       .from('daily_stocks')

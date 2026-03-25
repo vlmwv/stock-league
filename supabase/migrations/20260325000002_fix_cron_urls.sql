@@ -1,21 +1,4 @@
--- 1. pg_cron 및 pg_net 확장 활성화
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-CREATE EXTENSION IF NOT EXISTS pg_net;
-
--- 2. Supabase Vault에 SERVICE_ROLE_KEY 등록
--- [주의] 아래의 첫 번째 인자('eyJhbG...') 부분에 본인 프로젝트의 Service Role Key를 입력하세요.
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM vault.secrets WHERE name = 'service_role_key') THEN
-        PERFORM vault.create_secret(
-            'YOUR_SERVICE_ROLE_KEY_HERE', -- <--- 여기에 실제 키 입력
-            'service_role_key',
-            '크론 작업용 서비스 롤 키'
-        );
-    END IF;
-END $$;
-
--- 3. 기존 동일 이름의 작업 제거 (중복 방지)
+-- 기존 잘못된 URL을 가진 크론 작업 제거 및 실제 URL로 재등록
 DO $$ 
 BEGIN
     PERFORM cron.unschedule('fetch-market-news-periodically') FROM cron.job WHERE jobname = 'fetch-market-news-periodically';
@@ -27,16 +10,13 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
 END $$;
 
--- 4. 각 배치 작업 스케줄링 등록 (Vault 사용)
-
--- [주의] 'YOUR_PROJECT_REF' 부분을 본인의 Supabase Project ID로 변경하세요.
 -- 1) 장중 뉴스/공시 주기적 수집
 SELECT cron.schedule(
   'fetch-market-news-periodically',
   '*/30 0-7 * * 1-5',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/fetch-market-news-periodically',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/fetch-market-news-periodically',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
@@ -51,7 +31,7 @@ SELECT cron.schedule(
   '20 11 * * *',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/process-daily-results',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/process-daily-results',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
@@ -66,7 +46,7 @@ SELECT cron.schedule(
   '30 11 * * *',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/calculate-rankings',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/calculate-rankings',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
@@ -81,7 +61,7 @@ SELECT cron.schedule(
   '40 11 * * *',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/update-krx-top-100',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/update-krx-top-100',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
@@ -96,7 +76,7 @@ SELECT cron.schedule(
   '20 12 * * *',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/select-daily-stocks',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/select-daily-stocks',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
@@ -111,7 +91,7 @@ SELECT cron.schedule(
   '5 0 1 * *',
   $$
   SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/transfer-hall-of-fame',
+    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/transfer-hall-of-fame',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)

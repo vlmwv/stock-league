@@ -51,6 +51,29 @@ Nuxt 4와 `oxc-parser` 등 네이티브 바인딩 이슈를 해결하기 위해 
 
 ---
 
-## 4. 커스텀 도메인
-- `ninanoai.com` 등 커스텀 도메인을 사용할 경우, Railway Networking 설정에서 등록 후 생성된 CNAME 값을 DNS 업체(가비아 등)에 등록하세요.
-- 등록 후 **Supabase > Authentication > URL Configuration**에서 해당 도메인을 `Site URL` 또는 `Redirect URLs`에 추가해야 로그인이 정상 작동합니다.
+## 5. 에지 함수(Edge Functions) 및 배치 작업
+
+뉴스 수집, 랭킹 집계 등 백엔드 배치는 Supabase Edge Functions로 동작합니다.
+
+### 5.1 에지 함수 배포
+로컬 PC에서 Supabase CLI를 사용하여 배포합니다:
+```bash
+# 전체 함수 배포
+supabase functions deploy
+
+# 특정 함수만 배포
+supabase functions deploy fetch-market-news-periodically
+```
+
+### 5.2 환경 변수(Secrets) 설정
+에지 함수 트리거 및 LLM 연동을 위해 다음 비밀키들을 설정해야 합니다:
+```bash
+supabase secrets set GEMINI_API_KEY=your_gemini_api_key
+supabase secrets set SUPABASE_URL=your_project_url
+supabase secrets set SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### 5.3 크론(Cron) 작업 등록
+`supabase/migrations/20260324000000_setup_cron_jobs.sql` 파일을 Supabase SQL Editor에서 실행하세요.
+- **주의**: 실행 전 파일 내의 `YOUR_PROJECT_REF`와 `YOUR_SERVICE_ROLE_KEY_HERE` 부분을 실제 값으로 수정해야 합니다.
+- **상세 검증 방법**: 배치 작업의 정상 동작 여부 확인 및 수동 테스트 방법은 [배치 기능 검증 가이드](file:///Users/min-woolee/IdeaProjects/mine/stock/BATCH_VERIFICATION.md)를 참고하세요.
