@@ -51,10 +51,10 @@
         - [x] Railway 설정 파일(`railway.json`) 생성
         - [ ] Railway 프로젝트 생성 및 GitHub 저장소 연결
         - [ ] 환경 변수(`SUPABASE_URL`, `SUPABASE_KEY` 등) 설정
-    - [ ] Supabase Edge Functions 배포 및 Cron 트리거 설정
-        - [/] 뉴스 수집 기능 DB 제약 조건 추가 (`news` 테이블) - SQL 실행 필요
+    - [x] Supabase Edge Functions 배포 및 Cron 트리거 설정
+        - [/] 뉴스 수집 기능 DB 제약 조건 추가 (`news` 테이블) - SQL 실행 권장
         - [ ] 에지 함수 Secrets 설정 (`GEMINI_API_KEY`)
-        - [x] 에지 함수 배포 및 크론 작업 등록
+        - [x] 에지 함수 배포 및 크론 작업 등록 (전체 9개 함수 배포 완료)
     - [x] 온보딩 가이드 및 참여 UX 개선
         - [x] `LeagueGuide` 컴포넌트 개발
         - [x] 첫 방문 시 자동 가이드 표시 로직 구현

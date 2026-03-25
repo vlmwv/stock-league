@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
 
 // 환경 변수 설정
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''

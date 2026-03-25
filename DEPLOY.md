@@ -10,7 +10,7 @@
 | 변수명 | 실제 값 (예시) | 비고 |
 | :--- | :--- | :--- |
 | `SUPABASE_URL` | `https://zmqjooidmibqrigziipq.supabase.co` | 프로젝트 접속 URL |
-| `SUPABASE_KEY` | `eyJhbG...` | 익명 키 (Anon Key) |
+| `SUPABASE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzAzMDcsImV4cCI6MjA4OTUwNjMwN30.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo` | 익명 키 (Anon Key) |
 
 ### 1.2 소셜 로그인 (Kakao) 주의사항
 - **KOE205 에러 발생 시**: 카카오 개발자 센터의 **[동의항목]**에서 `닉네임`과 `프로필 사진`을 **선택 동의** 이상으로 설정해야 합니다.
@@ -68,9 +68,9 @@ supabase functions deploy fetch-market-news-periodically
 ### 5.2 환경 변수(Secrets) 설정
 에지 함수 트리거 및 LLM 연동을 위해 다음 비밀키들을 설정해야 합니다:
 ```bash
-supabase secrets set GEMINI_API_KEY=your_gemini_api_key
-supabase secrets set SUPABASE_URL=your_project_url
-supabase secrets set SERVICE_ROLE_KEY=your_service_role_key
+supabase secrets set GEMINI_API_KEY=AIzaSyCKm2Vx9flJTBjP-lABZ6VHGBjMMLoitXU
+supabase secrets set SUPABASE_URL=https://zmqjooidmibqrigziipq.supabase.co
+supabase secrets set SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzkzMDMwNywiZXhwIjoyMDg5NTA2MzA3fQ.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo
 ```
 
 ### 5.3 크론(Cron) 작업 등록

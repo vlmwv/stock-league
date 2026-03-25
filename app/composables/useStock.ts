@@ -31,7 +31,7 @@ export const useStock = () => {
           change_rate
         )
       `)
-      .eq('game_date', today)
+      .eq('game_date', today as any)
     
     if (error) {
       console.error('Supabase Error:', error)
@@ -122,9 +122,9 @@ export const useStock = () => {
     const isHearted = hearts.value.includes(stockId)
     
     if (isHearted) {
-      const { error } = await client
+      const { error } = await (client
         .from('wishlists')
-        .delete()
+        .delete() as any)
         .eq('user_id', user.user.id)
         .eq('stock_id', stockId)
       
@@ -132,9 +132,9 @@ export const useStock = () => {
         hearts.value = hearts.value.filter(id => id !== stockId)
       }
     } else {
-      const { error } = await client
+      const { error } = await (client
         .from('wishlists')
-        .insert({ user_id: user.user.id, stock_id: stockId })
+        .insert({ user_id: user.user.id, stock_id: stockId } as any) as any)
       
       if (!error) {
         hearts.value.push(stockId)
@@ -148,7 +148,7 @@ export const useStock = () => {
 
     const today = new Date().toISOString().split('T')[0]
     
-    const { error } = await client
+    const { error } = await (client
       .from('predictions')
       .upsert({
         user_id: user.user.id,
@@ -156,9 +156,9 @@ export const useStock = () => {
         game_date: today,
         prediction_type: prediction,
         result: 'pending'
-      }, { onConflict: 'user_id, stock_id, game_date' })
+      } as any, { onConflict: 'user_id, stock_id, game_date' } as any) as any)
 
-    if (!error) {
+    if (!error && myPredictions.value) {
       const index = myPredictions.value.findIndex(p => p.stockId === stockId)
       if (index > -1) {
         myPredictions.value[index].prediction = prediction
@@ -170,6 +170,7 @@ export const useStock = () => {
 
   return {
     dailyStocks,
+    recommendedStocks: recommended,
     hearts,
     myPredictions,
     refresh,
