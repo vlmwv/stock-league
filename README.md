@@ -59,8 +59,10 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
    - 서비스 내 콜백 페이지: `http://localhost:3000/auth/confirm` (로컬 기준)
 
 ## 6. 관련 문서
-- [기획 및 요구사항](plan_request.md)
-- [아키텍처 추천](architecture_recommend.md)
-- [포팅 및 구현 계획](plan_implementation.md)
+- [배포 가이드](DEPLOY.md)
+- [기획 및 요구사항](docs/plan_request.md)
+- [아키텍처 추천](docs/architecture_recommend.md)
+- [포팅 및 구현 계획](docs/plan_implementation.md)
+- [배치 작업 검증](docs/BATCH_VERIFICATION.md)
 - [ERD (Entity Relationship Diagram)](erd.md)
 - [작업 목록(Task)](task.md)

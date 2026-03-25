@@ -1,7 +1,5 @@
 # 주식 예측 리그 ERD (Entity Relationship Diagram)
 
-![한글 ERD](../../../.gemini/antigravity/brain/bcd1a553-ac78-450d-bbc4-96f90d5afb16/stock_prediction_erd_korean_1774058691414.png)
-
 ```mermaid
 erDiagram
     profiles {

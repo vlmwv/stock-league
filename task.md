@@ -44,16 +44,16 @@
 - [x] LLM 연동
     - [x] 뉴스/전자공시 요약 생성 (Gemini 1.5 Flash)
     - [x] 일일 종목 추천 요약 (Gemini 1.5 Flash)
-- [/] 최종 검증 및 배포
-    - [ ] 전체 비즈니스 로직 로컬 통합 테스트
+- [x] 최종 검증 및 배포
+    - [x] 전체 비즈니스 로직 로컬 통합 테스트
     - [x] Vercel 배포 연동 (GitHub 연동 완료)
-    - [ ] Railway 배포 연동 및 설정
+    - [x] Railway 배포 연동 및 설정
         - [x] Railway 설정 파일(`railway.json`) 생성
-        - [ ] Railway 프로젝트 생성 및 GitHub 저장소 연결
-        - [ ] 환경 변수(`SUPABASE_URL`, `SUPABASE_KEY` 등) 설정
+        - [x] Railway 프로젝트 생성 및 GitHub 저장소 연결
+        - [x] 환경 변수(`SUPABASE_URL`, `SUPABASE_KEY` 등) 설정
     - [x] Supabase Edge Functions 배포 및 Cron 트리거 설정
-        - [/] 뉴스 수집 기능 DB 제약 조건 추가 (`news` 테이블) - SQL 실행 권장
-        - [ ] 에지 함수 Secrets 설정 (`GEMINI_API_KEY`)
+        - [x] 뉴스 수집 기능 DB 제약 조건 추가 (`news` 테이블) - SQL 실행 권장
+        - [x] 에지 함수 Secrets 설정 (`GEMINI_API_KEY`)
         - [x] 에지 함수 배포 및 크론 작업 등록 (전체 9개 함수 배포 완료)
     - [x] 온보딩 가이드 및 참여 UX 개선
         - [x] `LeagueGuide` 컴포넌트 개발
@@ -63,4 +63,4 @@
         - [x] `StockCard` 던지기 애니메이션 구현
         - [x] `index.vue` 카드 스택 레이아웃 및 큐 관리 로직 구현
         - [x] 온보딩 가이드 내용 업데이트
-    - [ ] 프로젝트 최종 마무리 (README 업데이트 및 커스텀 도메인 안내)
+    - [x] 프로젝트 최종 마무리 (README 업데이트 및 커스텀 도메인 안내)
