@@ -150,6 +150,7 @@ const cardStyle = computed(() => ({
   zIndex: 100 - (props.index || 0)
 }))
 
+onMounted(() => {
   if (cardRef.value) {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
       threshold: 30, // Reduced threshold for better responsiveness
