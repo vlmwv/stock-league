@@ -8,15 +8,32 @@
     <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     
     <div class="relative glass-dark rounded-[2.5rem] p-7 shadow-2xl overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
-      <!-- Flick Indicators (Animated) -->
       <div 
-        class="absolute inset-x-0 top-0 h-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-30"
-        :class="[swipeEffect === 'up' ? 'bg-rose-500 blur-md scale-x-100' : 'bg-rose-500/20 scale-x-50']"
-      ></div>
+        class="absolute inset-x-0 top-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/up"
+        @click.stop="onMaskClick('up')"
+      >
+        <div 
+          class="absolute inset-x-0 top-0 h-2 bg-rose-500 blur-md scale-x-50 group-hover/up:scale-x-100 transition-transform duration-500"
+          :class="{ 'opacity-100 blur-lg': swipeEffect === 'up' }"
+        ></div>
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
+          <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500 animate-bounce" />
+          <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
+        </div>
+      </div>
       <div 
-        class="absolute inset-x-0 bottom-0 h-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-30"
-        :class="[swipeEffect === 'down' ? 'bg-indigo-500 blur-md scale-x-100' : 'bg-indigo-500/20 scale-x-50']"
-      ></div>
+        class="absolute inset-x-0 bottom-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/down"
+        @click.stop="onMaskClick('down')"
+      >
+        <div 
+          class="absolute inset-x-0 bottom-0 h-2 bg-indigo-500 blur-md scale-x-50 group-hover/down:scale-x-100 transition-transform duration-500"
+          :class="{ 'opacity-100 blur-lg': swipeEffect === 'down' }"
+        ></div>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
+          <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
+          <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400 animate-bounce" />
+        </div>
+      </div>
 
       <div class="flex justify-between items-start mb-6">
         <div class="space-y-1">
@@ -133,7 +150,6 @@ const cardStyle = computed(() => ({
   zIndex: 100 - (props.index || 0)
 }))
 
-onMounted(() => {
   if (cardRef.value) {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
       threshold: 30, // Reduced threshold for better responsiveness
@@ -158,17 +174,9 @@ onMounted(() => {
         const threshold = 120 // Distance needed to trigger prediction
         
         if (translateY.value < -threshold) {
-          // Swipe UP -> UP Prediction
-          isFlying.value = true
-          translateY.value = -1000
-          rotation.value = -45
-          emit('predict', props.stock.id, 'up')
+          triggerPrediction('up')
         } else if (translateY.value > threshold) {
-          // Swipe DOWN -> DOWN Prediction
-          isFlying.value = true
-          translateY.value = 1000
-          rotation.value = 45
-          emit('predict', props.stock.id, 'down')
+          triggerPrediction('down')
         } else {
           // Snap back if not far enough
           translateY.value = 0
@@ -179,7 +187,42 @@ onMounted(() => {
       }
     })
   }
+
+  // Keyboard support for the top card
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!props.isTop || props.prediction || isFlying.value) return
+    
+    if (e.key === 'ArrowUp') {
+      triggerPrediction('up')
+    } else if (e.key === 'ArrowDown') {
+      triggerPrediction('down')
+    }
+  }
+
+  window.addEventListener('keydown', handleKeyDown)
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown)
+  })
 })
+
+const onMaskClick = (type: 'up' | 'down') => {
+  if (!props.isTop || props.prediction || isFlying.value) return
+  triggerPrediction(type)
+}
+
+const triggerPrediction = (type: 'up' | 'down') => {
+  isFlying.value = true
+  if (type === 'up') {
+    // Intuitive Up: Shoot up with a slight bounce
+    translateY.value = -1200
+    rotation.value = -10
+  } else {
+    // Intuitive Down: Sink down
+    translateY.value = 1200
+    rotation.value = 10
+  }
+  emit('predict', props.stock.id, type)
+}
 </script>
 
 <style scoped>
