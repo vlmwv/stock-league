@@ -23,9 +23,9 @@
 
 <script setup lang="ts">
 const navItems = [
-  { id: 'game', label: 'Game', icon: 'i-heroicons-puzzle-piece-20-solid', to: '/' },
-  { id: 'ranking', label: 'Rank', icon: 'i-heroicons-trophy-20-solid', to: '/ranking' },
-  { id: 'wishlist', label: 'Wish', icon: 'i-heroicons-heart-20-solid', to: '/wishlist' },
-  { id: 'mypage', label: 'My', icon: 'i-heroicons-user-20-solid', to: '/mypage' }
+  { id: 'market', label: '홈', icon: 'i-heroicons-chart-bar-20-solid', to: '/' },
+  { id: 'daily', label: '예측', icon: 'i-heroicons-calendar-days-20-solid', to: '/daily' },
+  { id: 'ranking', label: '랭킹', icon: 'i-heroicons-trophy-20-solid', to: '/ranking' },
+  { id: 'mypage', label: '마이', icon: 'i-heroicons-user-20-solid', to: '/mypage' }
 ]
 </script>

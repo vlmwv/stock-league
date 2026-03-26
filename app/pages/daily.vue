@@ -1,0 +1,149 @@
+<template>
+  <div class="min-h-screen bg-bg-deep pb-32 overflow-x-hidden selection:bg-brand-primary/30">
+    <TopHeader @open-guide="isGuideOpen = true" />
+    <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
+
+    <main class="max-w-md mx-auto px-6 py-8">
+      <header class="mb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+          <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Today's League</span>
+        </div>
+        <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
+          오늘의 <span class="text-brand-primary">예측 리그</span>
+        </h2>
+        <p class="text-sm text-slate-500 font-medium mt-1">오늘의 5종목을 예측해 보세요.</p>
+      </header>
+
+      <!-- Stock List -->
+      <section class="space-y-4">
+        <div 
+          v-for="stock in dailyStocks" 
+          :key="stock.id"
+          class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group"
+        >
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
+                <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest bg-brand-primary/5 px-2 py-0.5 rounded-md">Trending</span>
+              </div>
+              <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-black text-slate-100">
+                {{ stock.last_price.toLocaleString() }}
+              </div>
+              <div 
+                class="text-[10px] font-bold"
+                :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+              >
+                {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }} ({{ stock.change_rate }}%)
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <p class="text-xs text-slate-400 leading-relaxed italic mb-6 line-clamp-3">
+            "{{ stock.summary }}"
+          </p>
+
+          <!-- Prediction Controls -->
+          <div class="flex items-center gap-3 mt-auto">
+            <button 
+              @click="onPredict(stock.id, 'up')"
+              class="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2 transition-all border border-rose-500/20"
+              :class="getPrediction(stock.id) === 'up' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-slate-800/50 text-rose-500/80 hover:bg-rose-500/10'"
+            >
+              <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-5 h-5" />
+              <span class="text-xs font-black uppercase tracking-widest">상승</span>
+            </button>
+            <button 
+              @click="onPredict(stock.id, 'down')"
+              class="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2 transition-all border border-indigo-500/20"
+              :class="getPrediction(stock.id) === 'down' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-800/50 text-indigo-500/80 hover:bg-indigo-500/10'"
+            >
+              <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-5 h-5" />
+              <span class="text-xs font-black uppercase tracking-widest">하락</span>
+            </button>
+            <button 
+              @click="toggleHeart(stock.id)"
+              class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
+              :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
+            >
+              <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Completion Message -->
+      <div v-if="allPredicted" class="mt-12 p-8 glass-dark rounded-[2.5rem] border border-brand-primary/20 text-center space-y-4 animate-scale-in">
+        <div class="w-16 h-16 rounded-full bg-brand-primary/20 flex items-center justify-center mx-auto border border-brand-primary/30">
+          <UIcon name="i-heroicons-check-circle-20-solid" class="w-8 h-8 text-brand-primary" />
+        </div>
+        <h3 class="text-xl font-black text-slate-100">예측 완료!</h3>
+        <p class="text-xs text-slate-400">오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>결과는 내일 20:20에 공개됩니다.</p>
+        <NuxtLink 
+          to="/ranking"
+          class="inline-block mt-4 px-8 py-3 rounded-2xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-primary/20"
+        >
+          실시간 랭킹 보기
+        </NuxtLink>
+      </div>
+    </main>
+
+    <PredictionResultDialog 
+      :is-open="isResultOpen"
+      :stock-name="selectedStockName"
+      :prediction="selectedPrediction"
+      @close="isResultOpen = false"
+    />
+    
+    <BottomNav />
+  </div>
+</template>
+
+<script setup lang="ts">
+const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict } = useStock()
+const isGuideOpen = ref(false)
+const isResultOpen = ref(false)
+const selectedStockName = ref('')
+const selectedPrediction = ref<'up' | 'down' | null>(null)
+
+const isHearted = (id: number) => hearts.value.includes(id)
+const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
+
+const allPredicted = computed(() => {
+  if (!dailyStocks.value || dailyStocks.value.length === 0) return false
+  return dailyStocks.value.every(s => myPredictions.value.some(p => p.stockId === s.id))
+})
+
+const onPredict = (id: number, prediction: 'up' | 'down') => {
+  const stock = dailyStocks.value.find(s => s.id === id)
+  if (stock) {
+    predict(id, prediction)
+    selectedStockName.value = stock.name
+    selectedPrediction.value = prediction
+    isResultOpen.value = true
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    refresh(),
+    fetchWishlist(),
+    fetchPredictions()
+  ])
+})
+</script>
+
+<style scoped>
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>

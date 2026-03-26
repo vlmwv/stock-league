@@ -18,8 +18,9 @@
 
 ## 3. 주요 기능
 - **회원 관리**: 이메일 가입 및 OAuth2 소셜 로그인 지원, JWT 토큰 인가
-- **게임 참여**: 위/아래 플릭(Flick) 제스처를 통한 직관적인 상승/하락 예측
+- **게임 참여**: 상/하 스와이프(Swipe) 제스처를 통한 직관적인 상승/하락 예측 및 게임 시작 유도 UX
 - **종목 추천 및 요약**: LLM을 활용한 종목 뉴스 및 공시 요약 정보 제공
+- **알림 시스템**: 최신 뉴스 및 중요 공시 실시간 알림 드롭다운 UI 지원
 - **찜하기**: 롱클릭을 통하여 관심 종목 찜하기 기능 지원
 - **랭킹 시스템**: 주간/월간/연간/역대 랭킹 집계 (기본 랭킹은 월간 승률 기준)
 - **결과 연출**: 유저 예측 결과 및 랭킹 상승을 보여주는 드라마틱한 팝업 애니메이션 효과
@@ -60,6 +61,7 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 
 ## 6. 관련 문서
 - [배포 가이드](DEPLOY.md)
+- [에지 함수 보안 가이드](docs/SECRETS_GUIDE.md)
 - [기획 및 요구사항](docs/plan_request.md)
 - [아키텍처 추천](docs/architecture_recommend.md)
 - [포팅 및 구현 계획](docs/plan_implementation.md)

@@ -61,11 +61,9 @@
 definePageMeta({
   middleware: 'auth'
 })
-const { dailyStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions } = useStock()
+const { wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions } = useStock()
 
-const heartedStocks = computed(() => {
-  return dailyStocks.value.filter(s => hearts.value.includes(s.id))
-})
+const heartedStocks = computed(() => wishlistStocks.value || [])
 
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
@@ -74,7 +72,7 @@ const selectedPrediction = ref<'up' | 'down' | null>(null)
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
-  const stock = dailyStocks.value.find(s => s.id === id)
+  const stock = (wishlistStocks.value || []).find((s: any) => s.id === id)
   if (stock) {
     predict(id, prediction)
     selectedStockName.value = stock.name

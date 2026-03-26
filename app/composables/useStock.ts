@@ -163,6 +163,7 @@ export const useStock = () => {
 
   const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
+  const participantCount = useState<number>('participantCount', () => 0)
 
   const fetchPredictions = async () => {
     const { data: user } = await client.auth.getUser()
@@ -184,6 +185,22 @@ export const useStock = () => {
     }
   }
 
+  const fetchParticipantCount = async () => {
+    const today = getKstDate()
+    
+    // Get unique user_ids who made predictions today
+    // Note: In a production app with many users, this should be done via a dedicated RPC or daily_stats table
+    const { data, error } = await client
+      .from('predictions')
+      .select('user_id')
+      .eq('game_date', today as any)
+    
+    if (!error && data) {
+      const uniqueUsers = new Set(data.map((p: any) => p.user_id)).size
+      participantCount.value = uniqueUsers
+    }
+  }
+
   const fetchWishlist = async () => {
     const { data: user } = await client.auth.getUser()
     if (!user.user) return
@@ -197,6 +214,26 @@ export const useStock = () => {
       hearts.value = data.map((w: any) => w.stock_id)
     }
   }
+
+  const { data: wishlistStocks, refresh: refreshWishlistStocks } = useAsyncData('wishlistStocks', async () => {
+    if (hearts.value.length === 0) return []
+    
+    const { data, error } = await client
+      .from('stocks')
+      .select('*')
+      .in('id', hearts.value)
+    
+    if (error) return []
+    return (data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      last_price: s.last_price || 0,
+      change_amount: s.change_amount || 0,
+      change_rate: s.change_rate || 0,
+      summary: s.summary || ''
+    }))
+  }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
     const { data: user } = await client.auth.getUser()
@@ -251,18 +288,33 @@ export const useStock = () => {
     }
   }
 
-  const fetchRankings = async () => {
+  const fetchRankings = async (limitNum = 100) => {
     const { data, error } = await client
       .from('profiles')
-      .select('username, avatar_url, points')
+      .select(`
+        username,
+        avatar_url,
+        points,
+        rankings(prediction_count, win_rate)
+      `)
       .order('points', { ascending: false })
-      .limit(20)
+      .limit(limitNum)
     
     if (error) {
       console.error('Error fetching rankings:', error)
       return []
     }
-    return data || []
+
+    return ((data as any[]) || []).map(p => {
+      const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0 }
+      return {
+        username: p.username,
+        avatar_url: p.avatar_url,
+        points: p.points,
+        prediction_count: stats.prediction_count,
+        win_count: Math.round(stats.prediction_count * (stats.win_rate / 100))
+      }
+    })
   }
 
   const fetchUserStats = async () => {
@@ -384,12 +436,16 @@ export const useStock = () => {
     marketCapStocks,
     hearts,
     myPredictions,
+    wishlistStocks,
+    participantCount,
     refresh,
     fetchError,
     fetchWishlist,
+    refreshWishlistStocks,
     fetchPredictions,
     refreshMarketCap,
     refreshRecommended,
+    fetchParticipantCount,
     toggleHeart,
     predict,
     fetchRankings,

@@ -32,11 +32,11 @@
               <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
             </button>
           </div>
-          <h4 class="text-2xl font-black text-slate-100 tracking-tight leading-none">{{ stock.name }}</h4>
+          <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate">{{ stock.name }}</h4>
         </div>
 
-        <div class="text-right">
-          <div class="text-2xl font-black text-slate-100 tabular-nums">
+        <div class="text-right shrink-0">
+          <div class="text-xl font-black text-slate-100 tabular-nums">
             {{ stock.last_price.toLocaleString() }}
           </div>
           <div 
@@ -65,13 +65,13 @@
         <div v-if="!prediction" class="mt-6 flex items-center justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
           <div class="flex flex-col items-center gap-1">
             <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
-            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">UP</span>
+            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
           </div>
           <div class="h-px w-8 bg-slate-800"></div>
-          <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Swipe to Predict</p>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
           <div class="h-px w-8 bg-slate-800"></div>
           <div class="flex flex-col items-center gap-1">
-            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">DOWN</span>
+            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
             <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
           </div>
         </div>

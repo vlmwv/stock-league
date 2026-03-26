@@ -4,7 +4,7 @@
       <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
         <span class="text-white font-black text-xs leading-none">SL</span>
       </div>
-      <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent tracking-tight">
+      <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent tracking-tight truncate max-w-[150px] sm:max-w-none">
         주식 예측 리그
       </h1>
     </div>
@@ -67,7 +67,7 @@
         
         <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50">
           <div class="text-right hidden xs:block">
-            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Level 1</p>
+            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">레벨 1</p>
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
           <UPopover :popper="{ placement: 'bottom-end' }">

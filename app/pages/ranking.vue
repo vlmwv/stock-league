@@ -1,12 +1,21 @@
 <script setup lang="ts">
 const { fetchRankings } = useStock()
 
-const { data: rankings, pending } = useAsyncData('userRankings', () => fetchRankings())
+const displayLimit = ref(20)
+const { data: rankings, pending, refresh } = useAsyncData('userRankings', () => fetchRankings(100))
 
 const topThree = computed(() => (rankings.value as any[])?.slice(0, 3) || [])
-const others = computed(() => (rankings.value as any[])?.slice(3) || [])
+const others = computed(() => (rankings.value as any[])?.slice(3, displayLimit.value) || [])
+const hasMore = computed(() => (rankings.value as any[])?.length > displayLimit.value)
 
-const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`
+const loadMore = () => {
+  displayLimit.value = Math.min(displayLimit.value + 20, 100)
+}
+
+const getAvatar = (user: any) => {
+  if (user.avatar_url) return user.avatar_url
+  return `https://api.dicebear.com/7.x/notionists/svg?seed=${user.username}`
+}
 </script>
 
 <template>
@@ -16,7 +25,7 @@ const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?
     <main class="max-w-md mx-auto px-6 py-8">
       <div class="mb-8">
         <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-1">실시간 랭킹</h2>
-        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Global Prediction Leaderboard</p>
+        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">글로벌 예측 리더보드</p>
       </div>
 
       <div v-if="pending" class="flex justify-center py-20">
@@ -30,7 +39,7 @@ const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?
           <div v-if="topThree[1]" class="flex-1 flex flex-col items-center group">
             <div class="relative mb-4">
               <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all">
-                <img :src="getAvatar(topThree[1].username)" alt="2nd" class="w-full h-full rounded-xl" />
+                <img :src="getAvatar(topThree[1])" alt="2nd" class="w-full h-full rounded-xl" />
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-400 border-4 border-bg-deep flex items-center justify-center font-black text-slate-900 text-xs shadow-lg">2</div>
             </div>
@@ -45,7 +54,7 @@ const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?
             <div class="relative mb-4 scale-125">
                <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
               <div class="relative w-16 h-16 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1">
-                <img :src="getAvatar(topThree[0].username)" alt="1st" class="w-full h-full rounded-xl" />
+                <img :src="getAvatar(topThree[0])" alt="1st" class="w-full h-full rounded-xl" />
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-brand-primary border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">1</div>
             </div>
@@ -59,7 +68,7 @@ const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?
           <div v-if="topThree[2]" class="flex-1 flex flex-col items-center group">
             <div class="relative mb-4">
               <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all">
-                <img :src="getAvatar(topThree[2].username)" alt="3rd" class="w-full h-full rounded-xl" />
+                <img :src="getAvatar(topThree[2])" alt="3rd" class="w-full h-full rounded-xl" />
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-700 border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">3</div>
             </div>
@@ -70,29 +79,52 @@ const getAvatar = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?
           </div>
         </div>
 
+        <!-- Leaderboard List Header -->
+        <div class="px-4 mb-4 flex items-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">
+          <div class="w-8 text-center">순위</div>
+          <div class="flex-1 ml-4">사용자</div>
+          <div class="w-16 text-center">참여/성공</div>
+          <div class="w-20 text-right">총 포인트</div>
+        </div>
+
         <!-- Leaderboard List -->
-        <div class="space-y-3">
+        <div class="space-y-2">
           <div v-for="(user, index) in others" :key="user.username" 
-               class="glass-dark rounded-3xl p-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border border-white/5 group"
+               class="glass-dark rounded-2xl p-3 flex items-center hover:bg-slate-800/50 transition-colors border border-white/5 group"
           >
-            <div class="flex items-center gap-4">
-              <span class="text-sm font-black text-slate-600 w-4">{{ index + 4 }}</span>
-              <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden">
-                 <img :src="getAvatar(user.username)" alt="user" class="w-full h-full" />
+            <!-- Rank -->
+            <div class="w-8 flex justify-center">
+              <span class="text-xs font-black" :class="index + 4 <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ index + 4 }}</span>
+            </div>
+
+            <!-- Profile & Name -->
+            <div class="flex-1 flex items-center gap-3 ml-4">
+              <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0">
+                 <img :src="getAvatar(user)" alt="user" class="w-full h-full object-cover" />
               </div>
-              <div>
-                <p class="text-sm font-black text-slate-200">{{ user.username }}</p>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Master League</p>
+              <div class="min-w-0">
+                <p class="text-sm font-bold text-slate-200 truncate">{{ user.username }}</p>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-sm font-black text-slate-100">{{ user.points.toLocaleString() }}p</p>
-              <p class="text-[10px] text-rose-500 font-bold flex items-center justify-end gap-1">
-                 <UIcon name="i-heroicons-arrow-trending-up" class="w-2.5 h-2.5" />
-                 NEW
-              </p>
+
+            <!-- Stats: Participated / Successful -->
+            <div class="w-16 text-center">
+              <p class="text-[11px] font-black text-slate-400">{{ user.prediction_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">회</span></p>
+              <p class="text-[10px] font-bold text-rose-500">{{ user.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
+            </div>
+
+            <!-- Points -->
+            <div class="w-20 text-right">
+              <p class="text-sm font-black text-slate-100">{{ user.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
             </div>
           </div>
+        </div>
+
+        <!-- Load More Button -->
+        <div v-if="hasMore" class="mt-8 flex justify-center">
+          <button @click="loadMore" class="px-6 py-2.5 rounded-2xl bg-slate-800/50 border border-white/5 text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all">
+            더 보기 (100위까지)
+          </button>
         </div>
       </template>
 
