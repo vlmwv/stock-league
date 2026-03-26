@@ -44,8 +44,8 @@ npm run dev
 ### 5.1 환경 변수 설정
 `.env` 파일에 다음 정보가 포함되어 있어야 합니다:
 ```env
-SUPABASE_URL=https://zmqjooidmibqrigziipq.supabase.co
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzAzMDcsImV4cCI6MjA4OTUwNjMwN30.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo
+SUPABASE_URL=
+SUPABASE_KEY=
 ```
 
 ### 5.2 OAuth2.0 설정 (Google, Kakao)
