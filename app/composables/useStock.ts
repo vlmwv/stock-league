@@ -13,7 +13,12 @@ export const useStock = () => {
   
   // 1. Fetch today's daily stocks with stock details
   const { data: stocks, refresh, error: fetchError } = useAsyncData('dailyStocks', async () => {
-    const today = new Date().toISOString().split('T')[0]
+    // KST (UTC+9) 기준으로 오늘 날짜 구하기
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    const today = kstDate.toISOString().split('T')[0]
+    
+    console.log(`[useStock] Fetching stocks for KST today: ${today}`)
     
     // Join daily_stocks with stocks and news (latest summary)
     let { data, error } = await client
@@ -269,6 +274,7 @@ export const useStock = () => {
     fetchWishlist,
     fetchPredictions,
     refreshMarketCap,
+    refreshRecommended,
     toggleHeart,
     predict,
     fetchRankings
