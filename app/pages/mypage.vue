@@ -22,16 +22,16 @@
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
               <div>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Rank</p>
-                <p class="text-lg font-black text-brand-primary">#12</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">순위</p>
+                <p class="text-lg font-black text-brand-primary">#{{ stats?.rank || '-' }}</p>
               </div>
               <div class="border-x border-white/5">
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Points</p>
-                <p class="text-lg font-black text-slate-200">12.4k</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">포인트</p>
+                <p class="text-lg font-black text-slate-200">{{ stats?.points?.toLocaleString() || 0 }}</p>
               </div>
               <div>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Win Rate</p>
-                <p class="text-lg font-black text-emerald-400">68%</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">승률</p>
+                <p class="text-lg font-black text-emerald-400">{{ stats?.winRate || 0 }}%</p>
               </div>
             </div>
           </div>
@@ -42,17 +42,16 @@
         </div>
       </section>
 
-      <!-- Stats Grid -->
       <section class="grid grid-cols-2 gap-4 mb-10">
         <div class="glass-dark rounded-3xl p-6 border border-white/5">
            <UIcon name="i-heroicons-fire" class="w-6 h-6 text-orange-500 mb-3" />
-           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Daily Streak</p>
-           <p class="text-xl font-black text-slate-200">12 Days</p>
+           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">연속 참여</p>
+           <p class="text-xl font-black text-slate-200">{{ stats?.streak || 0 }}일</p>
         </div>
         <div class="glass-dark rounded-3xl p-6 border border-white/5">
            <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-sky-500 mb-3" />
-           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Total Games</p>
-           <p class="text-xl font-black text-slate-200">142</p>
+           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">총 게임 수</p>
+           <p class="text-xl font-black text-slate-200">{{ stats?.totalGames || 0 }}회</p>
         </div>
       </section>
 
@@ -64,24 +63,36 @@
 
       <!-- History List -->
       <div class="space-y-4">
-        <div v-for="i in 5" :key="i" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center justify-between">
+        <div v-if="loading" class="text-center py-10 text-slate-500 font-bold">로딩 중...</div>
+        <div v-else-if="history.length === 0" class="text-center py-10 text-slate-500 font-bold">예측 기록이 없습니다.</div>
+        <div v-for="item in history" :key="item.id" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center justify-between">
            <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-400 text-xs">
-                 S{{ i }}
+                 {{ item.stockName.substring(0, 1) }}
               </div>
               <div>
-                <p class="text-sm font-black text-slate-200">Stock Name {{ i }}</p>
-                <p class="text-[10px] text-slate-500 font-bold">2026.03.{{ 22 - i }}</p>
+                <p class="text-sm font-black text-slate-200">{{ item.stockName }}</p>
+                <p class="text-[10px] text-slate-500 font-bold">{{ item.game_date }} · {{ item.prediction_type === 'up' ? '상승' : '하락' }} 예측</p>
               </div>
            </div>
            <div class="text-right">
               <span 
                 class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
-                :class="i % 2 === 0 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'"
+                :class="{
+                  'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20': item.result === 'win',
+                  'bg-rose-500/10 text-rose-500 border border-rose-500/20': item.result === 'lose',
+                  'bg-slate-500/10 text-slate-500 border border-slate-500/20': item.result === 'pending' || item.result === 'draw'
+                }"
               >
-                {{ i % 2 === 0 ? 'Success' : 'Failed' }}
+                {{ 
+                  item.result === 'win' ? '성공' : 
+                  item.result === 'lose' ? '실패' : 
+                  item.result === 'draw' ? '무승부' : '대기중'
+                }}
               </span>
-              <p class="text-[10px] font-bold text-slate-600 mt-2 tracking-tighter">{{ i % 2 === 0 ? '+150p' : '-50p' }}</p>
+              <p v-if="item.result !== 'pending'" class="text-[10px] font-bold text-slate-600 mt-2 tracking-tighter">
+                {{ item.points_awarded > 0 ? '+' : '' }}{{ item.points_awarded }}p
+              </p>
            </div>
         </div>
       </div>
@@ -96,5 +107,20 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { fetchUserStats, fetchUserHistory } = useStock()
 const user = useSupabaseUser()
+
+const stats = ref<any>(null)
+const history = ref<any[]>([])
+const loading = ref(true)
+
+onMounted(async () => {
+  const [statsData, historyData] = await Promise.all([
+    fetchUserStats(),
+    fetchUserHistory()
+  ])
+  stats.value = statsData
+  history.value = historyData
+  loading.value = false
+})
 </script>

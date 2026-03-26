@@ -80,12 +80,18 @@ Deno.serve(async (req) => {
     const selectedStocks = shuffledStocks.slice(0, 5)
     console.log(`Selected 5 stocks: ${selectedStocks.map((s: any) => s.name).join(', ')}`)
 
-    // 내일 날짜 (KST 기준)
+    // 내일 날짜 (KST 기준) 구하기
     const now = new Date()
+    // KST는 UTC+9
     const kstOffset = 9 * 60 * 60 * 1000
-    const kstDate = new Date(now.getTime() + kstOffset)
-    kstDate.setDate(kstDate.getDate() + 1)
-    const tomorrowStr = kstDate.toISOString().split('T')[0]
+    const kstNow = new Date(now.getTime() + kstOffset)
+    
+    // 내일 날짜 계산
+    const kstTomorrow = new Date(kstNow)
+    kstTomorrow.setDate(kstTomorrow.getDate() + 1)
+    
+    const tomorrowStr = kstTomorrow.toISOString().split('T')[0]
+    console.log(`Target game_date (KST Tomorrow): ${tomorrowStr}`)
     
     let processedCount = 0
     let errors = []

@@ -10,6 +10,13 @@ interface Stock {
 
 export const useStock = () => {
   const client = useSupabaseClient()
+
+  // KST (UTC+9) 날짜 구하기 헬퍼
+  const getKstDate = () => {
+    const now = new Date()
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
+    return kstDate.toISOString().split('T')[0]
+  }
   
   // 1. Fetch today's daily stocks with stock details
   const { data: stocks, refresh, error: fetchError } = useAsyncData('dailyStocks', async () => {
@@ -163,7 +170,7 @@ export const useStock = () => {
     const { data: user } = await client.auth.getUser()
     if (!user.user) return
 
-    const today = new Date().toISOString().split('T')[0]
+    const today = getKstDate()
     
     const { data, error } = await client
       .from('predictions')
@@ -171,8 +178,8 @@ export const useStock = () => {
       .eq('user_id', user.user.id)
       .eq('game_date', today as any)
     
-    if (!error && data) {
-      myPredictions.value = data.map((p: any) => ({
+    if (!error && (data as any)) {
+      myPredictions.value = (data as any).map((p: any) => ({
         stockId: p.stock_id,
         prediction: p.prediction_type
       }))
@@ -224,7 +231,7 @@ export const useStock = () => {
     const { data: user } = await client.auth.getUser()
     if (!user.user) return
 
-    const today = new Date().toISOString().split('T')[0]
+    const today = getKstDate()
     
     const { error } = await (client
       .from('predictions')
@@ -277,7 +284,7 @@ export const useStock = () => {
     const { count: higherRankCount } = await client
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .gt('points', profile?.points || 0)
+      .gt('points', (profile as any)?.points || 0)
 
     const rank = (higherRankCount || 0) + 1
 
@@ -287,8 +294,8 @@ export const useStock = () => {
       .select('result')
       .eq('user_id', userId)
 
-    const totalGames = predictions?.length || 0
-    const wins = predictions?.filter(p => p.result === 'win').length || 0
+    const totalGames = (predictions as any)?.length || 0
+    const wins = (predictions as any)?.filter((p: any) => p.result === 'win').length || 0
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0
 
     // 4. Calculate Streak
@@ -299,12 +306,12 @@ export const useStock = () => {
       .order('game_date', { ascending: false })
 
     let streak = 0
-    if (dateRecords && dateRecords.length > 0) {
-      const uniqueDates = [...new Set(dateRecords.map(d => d.game_date))]
+    if (dateRecords && (dateRecords as any).length > 0) {
+      const uniqueDates = [...new Set((dateRecords as any).map((d: any) => d.game_date))]
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       
-      let currentCheck = new Date(uniqueDates[0])
+      let currentCheck = new Date(uniqueDates[0] as string)
       currentCheck.setHours(0, 0, 0, 0)
       
       const yesterday = new Date(today)
@@ -313,7 +320,7 @@ export const useStock = () => {
       if (currentCheck >= yesterday) {
         streak = 1
         for (let i = 1; i < uniqueDates.length; i++) {
-          const prevDate = new Date(uniqueDates[i])
+          const prevDate = new Date(uniqueDates[i] as string)
           prevDate.setHours(0, 0, 0, 0)
           
           const expectedPrevDate = new Date(currentCheck)
@@ -330,7 +337,7 @@ export const useStock = () => {
     }
 
     return {
-      points: profile?.points || 0,
+      points: (profile as any)?.points || 0,
       rank,
       winRate,
       totalGames,
