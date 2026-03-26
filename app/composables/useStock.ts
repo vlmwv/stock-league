@@ -16,7 +16,7 @@ export const useStock = () => {
     const today = new Date().toISOString().split('T')[0]
     
     // Join daily_stocks with stocks and news (latest summary)
-    const { data, error } = await client
+    let { data, error } = await client
       .from('daily_stocks')
       .select(`
         id,
@@ -32,6 +32,41 @@ export const useStock = () => {
         )
       `)
       .eq('game_date', today as any)
+    
+    // Fallback: If no data for today, fetch latest available stock data
+    if (!error && (!data || data.length === 0)) {
+      console.log(`No daily stocks found for ${today}, fetching latest available...`)
+      const { data: latestDateData } = await client
+        .from('daily_stocks')
+        .select('game_date')
+        .order('game_date', { ascending: false })
+        .limit(1)
+      
+      const latestDateItem = (latestDateData as any)?.[0]
+      if (latestDateItem && latestDateItem.game_date) {
+        const latestDate = latestDateItem.game_date
+        const { data: fallbackData, error: fallbackError } = await client
+          .from('daily_stocks')
+          .select(`
+            id,
+            game_date,
+            llm_summary,
+            stocks (
+              id,
+              code,
+              name,
+              last_price,
+              change_amount,
+              change_rate
+            )
+          `)
+          .eq('game_date', latestDate)
+        
+        if (!fallbackError && fallbackData) {
+          data = fallbackData
+        }
+      }
+    }
     
     if (error) {
       console.error('Supabase Error:', error)
@@ -160,7 +195,7 @@ export const useStock = () => {
 
     if (!error && myPredictions.value) {
       const index = myPredictions.value.findIndex(p => p.stockId === stockId)
-      if (index > -1) {
+      if (index > -1 && myPredictions.value[index]) {
         myPredictions.value[index].prediction = prediction
       } else {
         myPredictions.value.push({ stockId, prediction })
