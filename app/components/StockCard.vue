@@ -10,12 +10,12 @@
     <div class="relative glass-dark rounded-[2.5rem] p-7 shadow-2xl overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
       <!-- Flick Indicators (Animated) -->
       <div 
-        class="absolute inset-x-0 top-0 h-1.5 transition-all duration-300 opacity-0 group-hover:opacity-100"
-        :class="[swipeEffect === 'up' ? 'bg-rose-500/80 blur-md scale-x-100' : 'bg-rose-500/20 scale-x-50']"
+        class="absolute inset-x-0 top-0 h-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-30"
+        :class="[swipeEffect === 'up' ? 'bg-rose-500 blur-md scale-x-100' : 'bg-rose-500/20 scale-x-50']"
       ></div>
       <div 
-        class="absolute inset-x-0 bottom-0 h-1.5 transition-all duration-300 opacity-0 group-hover:opacity-100"
-        :class="[swipeEffect === 'down' ? 'bg-indigo-500/80 blur-md scale-x-100' : 'bg-indigo-500/20 scale-x-50']"
+        class="absolute inset-x-0 bottom-0 h-2 transition-all duration-300 opacity-0 group-hover:opacity-100 z-30"
+        :class="[swipeEffect === 'down' ? 'bg-indigo-500 blur-md scale-x-100' : 'bg-indigo-500/20 scale-x-50']"
       ></div>
 
       <div class="flex justify-between items-start mb-6">
@@ -136,11 +136,13 @@ const cardStyle = computed(() => ({
 onMounted(() => {
   if (cardRef.value) {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
-      threshold: 40,
+      threshold: 30, // Reduced threshold for better responsiveness
       onSwipe: () => {
-        if (!props.isTop || props.prediction) return
-        translateY.value = lengthY.value
-        rotation.value = (lengthY.value / 100) * 4 // More tilt for better feel
+        if (!props.isTop || props.prediction || isFlying.value) return
+        
+        // Follow finger with slight resistance
+        translateY.value = lengthY.value * 0.8
+        rotation.value = (lengthY.value / 100) * 5
         
         if (lengthY.value < -20) {
           swipeEffect.value = 'up'
@@ -151,20 +153,24 @@ onMounted(() => {
         }
       },
       onSwipeEnd: (e, direction) => {
-        if (!props.isTop || props.prediction) return
+        if (!props.isTop || props.prediction || isFlying.value) return
 
-        if (direction === 'up' && translateY.value < -100) {
+        const threshold = 120 // Distance needed to trigger prediction
+        
+        if (translateY.value < -threshold) {
+          // Swipe UP -> UP Prediction
           isFlying.value = true
-          translateY.value = -800
-          rotation.value = -30
+          translateY.value = -1000
+          rotation.value = -45
           emit('predict', props.stock.id, 'up')
-        } else if (direction === 'down' && translateY.value > 100) {
+        } else if (translateY.value > threshold) {
+          // Swipe DOWN -> DOWN Prediction
           isFlying.value = true
-          translateY.value = 800
-          rotation.value = 30
+          translateY.value = 1000
+          rotation.value = 45
           emit('predict', props.stock.id, 'down')
         } else {
-          // Snap back
+          // Snap back if not far enough
           translateY.value = 0
           rotation.value = 0
         }

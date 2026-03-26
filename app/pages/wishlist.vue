@@ -61,8 +61,7 @@
 definePageMeta({
   middleware: 'auth'
 })
-const { dailyStocks, myPredictions, predict } = useStock()
-const hearts = ref<number[]>([1, 4]) // Mocked hearted IDs for demo
+const { dailyStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions } = useStock()
 
 const heartedStocks = computed(() => {
   return dailyStocks.value.filter(s => hearts.value.includes(s.id))
@@ -71,15 +70,6 @@ const heartedStocks = computed(() => {
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
-
-const toggleHeart = (id: number) => {
-  const index = hearts.value.indexOf(id)
-  if (index > -1) {
-    hearts.value.splice(index, 1)
-  } else {
-    hearts.value.push(id)
-  }
-}
 
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
@@ -99,4 +89,11 @@ const cancelPrediction = (id: number) => {
     myPredictions.value.splice(index, 1)
   }
 }
+
+onMounted(async () => {
+  await Promise.all([
+    fetchWishlist(),
+    fetchPredictions()
+  ])
+})
 </script>

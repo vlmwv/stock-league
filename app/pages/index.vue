@@ -71,73 +71,152 @@
         </div>
       </section>
 
-      <!-- Stock List Section -->
-      <section class="px-6 space-y-6">
-        <div class="flex justify-between items-end mb-2 px-2">
-          <div>
-            <h3 class="text-xl font-black text-slate-200 tracking-tight">오늘의 도전 종목</h3>
-            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Selection of 5 Stocks</p>
-          </div>
-          <div class="text-right">
-            <p class="text-xs font-bold text-slate-400">20:20</p>
-            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Result Reveal</p>
-          </div>
-        </div>
 
-        <div class="space-y-6">
-          <StockCard 
-            v-for="stock in dailyStocks" 
-            :key="stock.id"
-            :stock="stock"
-            :is-hearted="isHearted(stock.id)"
-            :prediction="getPrediction(stock.id)"
-            @predict="onPredict"
-            @toggle-heart="toggleHeart"
-            @cancel-prediction="cancelPrediction"
-          />
-        </div>
-      </section>
-
-      <!-- Stock List Section (Card Stack) -->
-      <section class="px-6 relative h-[500px]">
-        <div v-if="currentIndex < dailyStocks.length" class="relative w-full h-full">
-          <StockCard 
-            v-for="(stock, index) in dailyStocks.slice(currentIndex, currentIndex + 3)" 
-            :key="stock.id"
-            :stock="stock"
-            :is-hearted="isHearted(stock.id)"
-            :prediction="getPrediction(stock.id)"
-            :is-top="index === 0"
-            :index="index"
-            class="absolute inset-0 transition-all duration-500"
-            :style="{
-              transform: `translateY(${index * 20}px) scale(${1 - index * 0.05})`,
-              opacity: 1 - index * 0.2,
-              filter: `blur(${index * 2}px)`
-            }"
-            @predict="onPredict"
-            @toggle-heart="toggleHeart"
-            @cancel-prediction="cancelPrediction"
-          />
-        </div>
-
-        <!-- All Completed State -->
-        <div v-else class="flex flex-col items-center justify-center h-full text-center space-y-6 animate-scale-in">
-          <div class="w-20 h-20 rounded-full bg-brand-primary/20 flex items-center justify-center border border-brand-primary/30 shadow-2xl">
-            <UIcon name="i-heroicons-check-circle-20-solid" class="w-10 h-10 text-brand-primary" />
-          </div>
-          <div class="space-y-2">
-            <h3 class="text-2xl font-black text-slate-100 italic">오늘의 예측 완료!</h3>
-            <p class="text-sm text-slate-400 font-medium">내일 20:20에 결과를 확인하세요.</p>
-          </div>
-          <NuxtLink 
-            to="/ranking"
-            class="px-8 py-3 rounded-2xl bg-slate-800 text-slate-200 font-black text-xs uppercase tracking-widest border border-white/5 hover:bg-slate-700 transition-all"
+      <!-- Tabs -->
+      <div class="px-6 mb-8">
+        <div class="flex p-1 bg-slate-800/50 rounded-2xl border border-white/5">
+          <button 
+            @click="currentTab = 'daily'"
+            class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300"
+            :class="currentTab === 'daily' ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
           >
-            랭킹 확인하기
-          </NuxtLink>
+            오늘의 도전
+          </button>
+          <button 
+            @click="currentTab = 'marketCap'"
+            class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300"
+            :class="currentTab === 'marketCap' ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
+          >
+            시가총액 순위
+          </button>
         </div>
-      </section>
+      </div>
+
+      <!-- Daily Stocks View -->
+      <template v-if="currentTab === 'daily'">
+        <!-- Stock List Section (Card Stack) -->
+        <section class="px-6 relative h-[500px]">
+          <!-- Game Start State -->
+          <div v-if="!isGameStarted && currentIndex < dailyStocks.length" class="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in">
+            <div class="relative group">
+              <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <div class="relative w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center border border-white/10 shadow-3xl">
+                <UIcon name="i-heroicons-play-20-solid" class="w-12 h-12 text-brand-primary" />
+              </div>
+            </div>
+            <div class="space-y-4">
+              <h3 class="text-3xl font-black text-slate-100 italic tracking-tighter">
+                오늘의 예측 리그 <br/>
+                <span class="text-brand-primary">준비되셨나요?</span>
+              </h3>
+              <p class="text-sm text-slate-400 font-medium max-w-[200px] mx-auto leading-relaxed">
+                총 {{ dailyStocks.length }}개의 종목을 예측하고 <br/>
+                포인트를 획득하세요!
+              </p>
+            </div>
+            <button 
+              @click="isGameStarted = true"
+              class="group relative px-12 py-4 rounded-2xl bg-brand-primary text-slate-900 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all overflow-hidden"
+            >
+              <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              지금 시작하기
+            </button>
+          </div>
+
+          <!-- Active Game State -->
+          <div v-else-if="currentIndex < dailyStocks.length" class="relative w-full h-full">
+            <StockCard 
+              v-for="(stock, index) in dailyStocks.slice(currentIndex, currentIndex + 3)" 
+              :key="stock.id"
+              :stock="stock"
+              :is-hearted="isHearted(stock.id)"
+              :prediction="getPrediction(stock.id)"
+              :is-top="index === 0"
+              :index="index"
+              class="absolute inset-0 transition-all duration-500"
+              :style="{
+                transform: `translateY(${index * 20}px) scale(${1 - index * 0.05})`,
+                opacity: 1 - index * 0.2,
+                filter: `blur(${index * 2}px)`
+              }"
+              @predict="onPredict"
+              @toggle-heart="toggleHeart"
+              @cancel-prediction="cancelPrediction"
+            />
+          </div>
+
+          <!-- All Completed State -->
+          <div v-else class="flex flex-col items-center justify-center h-full text-center space-y-6 animate-scale-in">
+            <div class="w-20 h-20 rounded-full bg-brand-primary/20 flex items-center justify-center border border-brand-primary/30 shadow-2xl">
+              <UIcon name="i-heroicons-check-circle-20-solid" class="w-10 h-10 text-brand-primary" />
+            </div>
+            <div class="space-y-2">
+              <h3 class="text-2xl font-black text-slate-100 italic">오늘의 예측 완료!</h3>
+              <p class="text-sm text-slate-400 font-medium">내일 20:20에 결과를 확인하세요.</p>
+            </div>
+            <NuxtLink 
+              to="/ranking"
+              class="px-8 py-3 rounded-2xl bg-slate-800 text-slate-200 font-black text-xs uppercase tracking-widest border border-white/5 hover:bg-slate-700 transition-all"
+            >
+              랭킹 확인하기
+            </NuxtLink>
+          </div>
+        </section>
+      </template>
+
+      <!-- Market Cap View -->
+      <template v-else-if="currentTab === 'marketCap'">
+        <section class="px-6 space-y-6 animate-fade-in">
+          <div class="flex justify-between items-end mb-2 px-2">
+            <div>
+              <h3 class="text-xl font-black text-slate-200 tracking-tight">시가총액 상위 종목</h3>
+              <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Top 50 Market Cap</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div 
+              v-for="(stock, index) in marketCapStocks" 
+              :key="stock.id"
+              class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors"
+            >
+              <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black text-slate-400 border border-white/5">
+                {{ index + 1 }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-slate-200 truncate">{{ stock.name }}</h4>
+                  <span class="text-[10px] font-bold text-slate-600 uppercase">{{ stock.code }}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs font-bold text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
+                  <span 
+                    class="text-[10px] font-black"
+                    :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                  >
+                    {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  @click.stop="toggleHeart(stock.id)"
+                  class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
+                  :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600'"
+                >
+                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                </button>
+                <button 
+                  @click="openPredictionForStock(stock)"
+                  class="px-4 h-10 rounded-2xl bg-brand-primary text-slate-900 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20"
+                >
+                  예측
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </template>
     </main>
 
     <!-- Dialogs & Nav -->
@@ -161,19 +240,21 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, toggleHeart, predict } = useStock()
+const { dailyStocks, recommendedStocks, marketCapStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, refreshMarketCap } = useStock()
+const currentTab = ref('daily')
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
 const showHint = ref(false)
 const isGuideOpen = ref(false)
 const currentIndex = ref(0)
+const isGameStarted = ref(false)
 
 const isHearted = (id: number) => hearts.value.includes(id)
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
-  const stock = dailyStocks.value.find(s => s.id === id)
+  const stock = [...dailyStocks.value, ...(marketCapStocks.value || [])].find(s => s.id === id)
   if (stock) {
     predict(id, prediction)
     selectedStockName.value = stock.name
@@ -181,11 +262,19 @@ const onPredict = (id: number, prediction: 'up' | 'down') => {
     isResultOpen.value = true
     showHint.value = false
     
-    // Move to next card after animation
-    setTimeout(() => {
-      currentIndex.value++
-    }, 600)
+    // Move to next card after animation (only for daily stocks)
+    if (currentTab.value === 'daily') {
+      setTimeout(() => {
+        currentIndex.value++
+      }, 600)
+    }
   }
+}
+
+const openPredictionForStock = (stock: any) => {
+  // Simple up/down selection for list view
+  const prediction = confirm(`${stock.name}이(가) 내일 오를까요? (확인: 상 승, 취소: 하락)`) ? 'up' : 'down'
+  onPredict(stock.id, prediction)
 }
 
 const cancelPrediction = (id: number) => {
@@ -201,9 +290,26 @@ const cancelPrediction = (id: number) => {
 onMounted(async () => {
   await Promise.all([
     refresh(),
-    fetchWishlist()
+    fetchWishlist(),
+    fetchPredictions(),
+    refreshMarketCap()
   ])
   
+  // Initialize currentIndex based on existing predictions
+  if (myPredictions.value && myPredictions.value.length > 0) {
+    // If there are predictions, we should skip those cards in the stack
+    // This logic assumes predictions are made in order of dailyStocks
+    let count = 0
+    for (const stock of dailyStocks.value) {
+      if (myPredictions.value.some(p => p.stockId === stock.id)) {
+        count++
+      } else {
+        break
+      }
+    }
+    currentIndex.value = count
+  }
+
   // Show guide on first visit
   const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
   if (!hasSeenGuide) {

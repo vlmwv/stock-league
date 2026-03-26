@@ -117,6 +117,27 @@ export const useStock = () => {
     }))
   })
 
+  // 3. Fetch stocks ordered by market cap rank
+  const { data: marketCapStocks, refresh: refreshMarketCap } = useAsyncData('marketCapStocks', async () => {
+    const { data, error } = await client
+      .from('stocks')
+      .select('*')
+      .order('market_cap_rank', { ascending: true })
+      .limit(50)
+    
+    if (error) return []
+    return (data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      last_price: s.last_price || 0,
+      change_amount: s.change_amount || 0,
+      change_rate: s.change_rate || 0,
+      market_cap_rank: s.market_cap_rank,
+      summary: s.summary || ''
+    }))
+  })
+
   const dailyStocks = computed(() => {
 // ...
     if (stocks.value && stocks.value.length > 0) {
@@ -135,6 +156,26 @@ export const useStock = () => {
 
   const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
+
+  const fetchPredictions = async () => {
+    const { data: user } = await client.auth.getUser()
+    if (!user.user) return
+
+    const today = new Date().toISOString().split('T')[0]
+    
+    const { data, error } = await client
+      .from('predictions')
+      .select('stock_id, prediction_type')
+      .eq('user_id', user.user.id)
+      .eq('game_date', today as any)
+    
+    if (!error && data) {
+      myPredictions.value = data.map((p: any) => ({
+        stockId: p.stock_id,
+        prediction: p.prediction_type
+      }))
+    }
+  }
 
   const fetchWishlist = async () => {
     const { data: user } = await client.auth.getUser()
@@ -203,15 +244,33 @@ export const useStock = () => {
     }
   }
 
+  const fetchRankings = async () => {
+    const { data, error } = await client
+      .from('profiles')
+      .select('username, avatar_url, points')
+      .order('points', { ascending: false })
+      .limit(20)
+    
+    if (error) {
+      console.error('Error fetching rankings:', error)
+      return []
+    }
+    return data || []
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
+    marketCapStocks,
     hearts,
     myPredictions,
     refresh,
     fetchError,
     fetchWishlist,
+    fetchPredictions,
+    refreshMarketCap,
     toggleHeart,
-    predict
+    predict,
+    fetchRankings
   }
 }
