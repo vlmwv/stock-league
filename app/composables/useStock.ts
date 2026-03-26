@@ -144,11 +144,9 @@ export const useStock = () => {
   })
 
   const dailyStocks = computed(() => {
-// ...
     if (stocks.value && stocks.value.length > 0) {
       return stocks.value
     }
-    // ... mock data remains same
     return [
       { id: 1, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, summary: 'DB 데이터가 없거나 로드 전입니다.' },
       { id: 2, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, summary: 'DB 데이터가 없거나 로드 전입니다.' },
@@ -157,7 +155,6 @@ export const useStock = () => {
       { id: 5, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, summary: 'DB 데이터가 없거나 로드 전입니다.' }
     ]
   })
-// ... remaining methods
 
   const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
@@ -263,6 +260,119 @@ export const useStock = () => {
     return data || []
   }
 
+  const fetchUserStats = async () => {
+    const { data: userData } = await client.auth.getUser()
+    if (!userData.user) return null
+
+    const userId = userData.user.id
+
+    // 1. Get points and profile
+    const { data: profile } = await client
+      .from('profiles')
+      .select('points')
+      .eq('id', userId)
+      .single()
+
+    // 2. Get rank (number of users with more points + 1)
+    const { count: higherRankCount } = await client
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gt('points', profile?.points || 0)
+
+    const rank = (higherRankCount || 0) + 1
+
+    // 3. Get win rate and total games
+    const { data: predictions } = await client
+      .from('predictions')
+      .select('result')
+      .eq('user_id', userId)
+
+    const totalGames = predictions?.length || 0
+    const wins = predictions?.filter(p => p.result === 'win').length || 0
+    const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0
+
+    // 4. Calculate Streak
+    const { data: dateRecords } = await client
+      .from('predictions')
+      .select('game_date')
+      .eq('user_id', userId)
+      .order('game_date', { ascending: false })
+
+    let streak = 0
+    if (dateRecords && dateRecords.length > 0) {
+      const uniqueDates = [...new Set(dateRecords.map(d => d.game_date))]
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      let currentCheck = new Date(uniqueDates[0])
+      currentCheck.setHours(0, 0, 0, 0)
+      
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      
+      if (currentCheck >= yesterday) {
+        streak = 1
+        for (let i = 1; i < uniqueDates.length; i++) {
+          const prevDate = new Date(uniqueDates[i])
+          prevDate.setHours(0, 0, 0, 0)
+          
+          const expectedPrevDate = new Date(currentCheck)
+          expectedPrevDate.setDate(expectedPrevDate.getDate() - 1)
+          
+          if (prevDate.getTime() === expectedPrevDate.getTime()) {
+            streak++
+            currentCheck = prevDate
+          } else {
+            break
+          }
+        }
+      }
+    }
+
+    return {
+      points: profile?.points || 0,
+      rank,
+      winRate,
+      totalGames,
+      streak
+    }
+  }
+
+  const fetchUserHistory = async () => {
+    const { data: userData } = await client.auth.getUser()
+    if (!userData.user) return []
+
+    const { data, error } = await client
+      .from('predictions')
+      .select(`
+        id,
+        game_date,
+        prediction_type,
+        result,
+        points_awarded,
+        stocks (
+          name
+        )
+      `)
+      .eq('user_id', userData.user.id)
+      .order('game_date', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      console.error('Error fetching history:', error)
+      return []
+    }
+
+    return (data || []).map((p: any) => ({
+      id: p.id,
+      game_date: p.game_date,
+      prediction_type: p.prediction_type,
+      result: p.result,
+      points_awarded: p.points_awarded,
+      stockName: (p.stocks as any)?.name || '알 수 없는 종목'
+    }))
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
@@ -277,6 +387,8 @@ export const useStock = () => {
     refreshRecommended,
     toggleHeart,
     predict,
-    fetchRankings
+    fetchRankings,
+    fetchUserStats,
+    fetchUserHistory
   }
 }

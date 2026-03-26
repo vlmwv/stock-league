@@ -19,10 +19,51 @@
       </button>
 
       <template v-if="user">
-        <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50">
-          <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300" />
-          <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
-        </button>
+        <UPopover :popper="{ placement: 'bottom-end', offsetDistance: 12 }">
+          <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
+            <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300 group-hover:text-brand-primary transition-colors" />
+            <span v-if="hasNewNotifications" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
+          </button>
+
+          <template #content>
+            <div class="w-80 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
+                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">New</span>
+              </div>
+              
+              <div class="max-h-[320px] overflow-y-auto no-scrollbar">
+                <template v-if="recommendedStocks && recommendedStocks.length > 0">
+                  <div 
+                    v-for="news in recommendedStocks.slice(0, 5)" 
+                    :key="news.id"
+                    class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
+                  >
+                    <div class="flex flex-col gap-1">
+                      <div class="flex justify-between items-start gap-2">
+                        <span class="text-[10px] font-black text-brand-primary uppercase tracking-tight">{{ news.name }}</span>
+                        <span class="text-[10px] text-slate-500 font-medium">방금 전</span>
+                      </div>
+                      <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+                        {{ news.summary }}
+                      </h4>
+                    </div>
+                  </div>
+                </template>
+                <div v-else class="px-4 py-10 text-center">
+                  <UIcon name="i-heroicons-bell-slash" class="w-8 h-8 text-slate-700 mx-auto mb-2" />
+                  <p class="text-xs text-slate-500 font-medium">새로운 소식이 없습니다.</p>
+                </div>
+              </div>
+
+              <div class="p-2 bg-white/5">
+                <button class="w-full py-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors">
+                  모든 알림 보기
+                </button>
+              </div>
+            </div>
+          </template>
+        </UPopover>
         
         <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50">
           <div class="text-right hidden xs:block">
@@ -71,12 +112,16 @@ const isScrolled = ref(false)
 
 defineEmits(['openGuide'])
 
+const { recommendedStocks, refreshRecommended } = useStock()
+const hasNewNotifications = computed(() => recommendedStocks.value && recommendedStocks.value.length > 0)
+
 const handleLogout = async () => {
   await supabase.auth.signOut()
   router.push('/login')
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await refreshRecommended()
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 20
   })
