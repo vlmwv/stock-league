@@ -18,7 +18,7 @@
             </div>
             
             <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">Master Prediction Tier</p>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">마스터 예측 티어</p>
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
               <div>
@@ -58,7 +58,7 @@
       <!-- Prediction History Header -->
       <div class="px-2 mb-6 flex justify-between items-center">
         <h3 class="text-xl font-black text-slate-200 tracking-tight">최근 예측 기록</h3>
-        <button class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">View All</button>
+        <button class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">전체 보기</button>
       </div>
 
       <!-- History List -->
