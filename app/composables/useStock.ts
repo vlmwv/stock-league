@@ -455,35 +455,14 @@ export const useStock = () => {
 
   const fetchStocksWithStats = async () => {
     // 1. 모든 종목 정보 (또는 상위 100개)
+    // wishlist_count, win_count는 이제 DB 컬럼에서 직접 가져옵니다.
     const { data: stocksData, error: stocksError } = await client
       .from('stocks')
-      .select('*')
+      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count')
       .order('market_cap_rank', { ascending: true })
       .limit(100)
     
     if (stocksError || !stocksData) return []
-
-    // 2. 찜 합계 (wishlists 집계)
-    const { data: wishlistCounts } = await client
-      .from('wishlists')
-      .select('stock_id')
-    
-    // 3. 예측 성공 합계 (predictions 집계)
-    const { data: winCounts } = await client
-      .from('predictions')
-      .select('stock_id')
-      .eq('result', 'win')
-
-    // 클라이언트 사이드 집계 (소규모 데이터셋이므로 효율적임)
-    const wishCountMap = (wishlistCounts || []).reduce((acc: any, curr: any) => {
-      acc[curr.stock_id] = (acc[curr.stock_id] || 0) + 1
-      return acc
-    }, {})
-
-    const winCountMap = (winCounts || []).reduce((acc: any, curr: any) => {
-      acc[curr.stock_id] = (acc[curr.stock_id] || 0) + 1
-      return acc
-    }, {})
 
     return (stocksData as any[]).map(s => ({
       id: s.id,
@@ -494,8 +473,8 @@ export const useStock = () => {
       change_rate: s.change_rate || 0,
       market_cap_rank: s.market_cap_rank,
       summary: s.summary || '',
-      wishlist_count: wishCountMap[s.id] || 0,
-      win_count: winCountMap[s.id] || 0
+      wishlist_count: s.wishlist_count || 0,
+      win_count: s.win_count || 0
     }))
   }
   const fetchNews = async (limitNum = 20) => {

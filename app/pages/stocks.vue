@@ -99,7 +99,7 @@
           <!-- 액션 버튼 -->
           <div class="flex items-center gap-2 shrink-0">
             <button
-              @click.stop="toggleHeart(stock.id)"
+              @click.stop="handleToggleHeart(stock.id)"
               class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
               :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
             >
@@ -126,9 +126,23 @@ const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
   { key: 'wishlist', label: '찜 많은 순' },
   { key: 'prediction', label: '예측 성공 순' }
-]
+] as const
 
 const isHearted = (id: number) => hearts.value.includes(id)
+
+const handleToggleHeart = async (stockId: number) => {
+  const wasHearted = isHearted(stockId)
+  await toggleHeart(stockId)
+  const nowHearted = isHearted(stockId)
+  
+  // 성공적으로 토글된 경우 로컬 카운트 업데이트
+  if (wasHearted !== nowHearted) {
+    const stock = allStocks.value.find(s => s.id === stockId)
+    if (stock) {
+      stock.wishlist_count = Math.max(0, (stock.wishlist_count || 0) + (nowHearted ? 1 : -1))
+    }
+  }
+}
 
 const filteredStocks = computed(() => {
   let list = [...allStocks.value]

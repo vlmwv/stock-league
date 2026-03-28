@@ -58,7 +58,7 @@
               <span class="text-[9px] text-slate-600 font-medium">{{ formatDate(item.published_at) }}</span>
             </div>
             <a 
-              :href="item.url" 
+              :href="item.url || `https://m.stock.naver.com/item/${item.stockCode}/news`" 
               target="_blank"
               class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300"
             >
