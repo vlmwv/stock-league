@@ -48,6 +48,7 @@ export default defineNuxtConfig({
   supabase: {
     url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL,
     key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY,
+    serviceKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
     redirect: false // 인증 없이 메인화면 접근 가능하도록 설정
   },
   pwa: {
