@@ -1,4 +1,4 @@
-import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
@@ -35,7 +35,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabase = await serverSupabaseServiceRole(event)
+  const supabaseUrl = config.public.supabase.url as string
+  if (!supabaseUrl) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Supabase URL is missing from runtime config',
+    })
+  }
+
+  // Nuxt Supabase 모듈의 유틸리티 에러를 우회하기 위해 안전하게 직접 클라이언트를 생성합니다.
+  const supabase = createClient(supabaseUrl, SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  })
 
   try {
     console.log('[PrepareDaily] Selecting daily stocks triggered...')
