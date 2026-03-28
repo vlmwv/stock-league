@@ -12,7 +12,9 @@
         <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
           오늘의 <span class="text-brand-primary">예측 리그</span>
         </h2>
-        <p class="text-sm text-slate-500 font-medium mt-1">오늘의 5종목을 예측해 보세요.</p>
+        <p class="text-sm text-slate-500 font-medium mt-1">
+          {{ isLeagueOpen ? '오늘의 5종목을 예측해 보세요.' : '오늘의 예측이 08:00에 마감되었습니다.' }}
+        </p>
       </header>
 
       <!-- Stock List -->
@@ -20,8 +22,17 @@
         <div 
           v-for="stock in dailyStocks" 
           :key="stock.id"
-          class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group"
+          class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300"
+          :class="getPrediction(stock.id) === 'up' ? 'border-rose-500/30' : getPrediction(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
+          <!-- 예측 완료 배지 -->
+          <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest"
+            :class="getPrediction(stock.id) === 'up' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'"
+          >
+            <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3" />
+            {{ getPrediction(stock.id) === 'up' ? '상승 선택됨' : '하락 선택됨' }}
+          </div>
+
           <div class="flex justify-between items-start mb-4">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
@@ -30,7 +41,7 @@
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
             </div>
-            <div class="text-right">
+            <div class="text-right" :class="getPrediction(stock.id) ? 'mt-5' : ''">
               <div class="text-lg font-black text-slate-100">
                 {{ stock.last_price.toLocaleString() }}
               </div>
@@ -52,28 +63,61 @@
           <div class="flex items-center gap-3 mt-auto">
             <button 
               @click="onPredict(stock.id, 'up')"
-              class="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2 transition-all border border-rose-500/20"
-              :class="getPrediction(stock.id) === 'up' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-slate-800/50 text-rose-500/80 hover:bg-rose-500/10'"
+              :disabled="!isLeagueOpen"
+              class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
+              :class="[
+                getPrediction(stock.id) === 'up'
+                  ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/40 ring-2 ring-rose-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
+                  : getPrediction(stock.id) === 'down'
+                    ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
+                    : 'bg-slate-800/50 text-rose-500/80 border border-rose-500/20 hover:bg-rose-500/10 active:scale-95',
+                !isLeagueOpen && getPrediction(stock.id) !== 'up' ? 'opacity-20 grayscale cursor-not-allowed' : '',
+                !isLeagueOpen && getPrediction(stock.id) === 'up' ? 'opacity-90 cursor-default' : ''
+              ]"
             >
-              <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-5 h-5" />
-              <span class="text-xs font-black uppercase tracking-widest">상승</span>
+              <UIcon 
+                :name="getPrediction(stock.id) === 'up' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-up-20-solid'" 
+                class="w-5 h-5" 
+              />
+              <span class="text-xs font-black uppercase tracking-widest">
+                {{ getPrediction(stock.id) === 'up' ? '상승 ✓' : '상승' }}
+              </span>
             </button>
             <button 
               @click="onPredict(stock.id, 'down')"
-              class="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2 transition-all border border-indigo-500/20"
-              :class="getPrediction(stock.id) === 'down' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-800/50 text-indigo-500/80 hover:bg-indigo-500/10'"
+              :disabled="!isLeagueOpen"
+              class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
+              :class="[
+                getPrediction(stock.id) === 'down'
+                  ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
+                  : getPrediction(stock.id) === 'up'
+                    ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
+                    : 'bg-slate-800/50 text-indigo-500/80 border border-indigo-500/20 hover:bg-indigo-500/10 active:scale-95',
+                !isLeagueOpen && getPrediction(stock.id) !== 'down' ? 'opacity-20 grayscale cursor-not-allowed' : '',
+                !isLeagueOpen && getPrediction(stock.id) === 'down' ? 'opacity-90 cursor-default' : ''
+              ]"
             >
-              <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-5 h-5" />
-              <span class="text-xs font-black uppercase tracking-widest">하락</span>
+              <UIcon 
+                :name="getPrediction(stock.id) === 'down' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
+                class="w-5 h-5" 
+              />
+              <span class="text-xs font-black uppercase tracking-widest">
+                {{ getPrediction(stock.id) === 'down' ? '하락 ✓' : '하락' }}
+              </span>
             </button>
             <button 
               @click="toggleHeart(stock.id)"
-              class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
+              class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
               :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
             >
               <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
             </button>
           </div>
+
+          <!-- 변경 힌트 -->
+          <p v-if="getPrediction(stock.id)" class="text-center text-[10px] text-slate-600 mt-3 font-medium">
+            {{ isLeagueOpen ? '탭해서 예측을 변경할 수 있어요' : '마감되어 예측을 변경할 수 없습니다' }}
+          </p>
         </div>
       </section>
 
@@ -105,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict } = useStock()
+const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen } = useStock()
 const isGuideOpen = ref(false)
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
@@ -120,6 +164,8 @@ const allPredicted = computed(() => {
 })
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
+  if (!isLeagueOpen.value) return
+  
   const stock = dailyStocks.value.find(s => s.id === id)
   if (stock) {
     predict(id, prediction)

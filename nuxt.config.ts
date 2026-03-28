@@ -12,8 +12,28 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@vite-pwa/nuxt'
   ],
+  app: {
+    head: {
+      title: '주식 예측 리그',
+      meta: [
+        { name: 'description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:title', content: '주식 예측 리그' },
+        { property: 'og:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app'}/og-image.png` },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:url', content: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: '주식 예측 리그' },
+        { name: 'twitter:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { name: 'twitter:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app'}/og-image.png` }
+      ]
+    }
+  },
   runtimeConfig: {
     public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app',
       supabase: {
         url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL,
         key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY

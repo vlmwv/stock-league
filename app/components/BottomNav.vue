@@ -24,8 +24,10 @@
 <script setup lang="ts">
 const navItems = [
   { id: 'market', label: '홈', icon: 'i-heroicons-chart-bar-20-solid', to: '/' },
+  { id: 'stocks', label: '종목', icon: 'i-heroicons-list-bullet-20-solid', to: '/stocks' },
+  { id: 'news', label: '뉴스', icon: 'i-heroicons-newspaper-20-solid', to: '/news' },
   { id: 'daily', label: '예측', icon: 'i-heroicons-calendar-days-20-solid', to: '/daily' },
-  { id: 'ranking', label: '랭킹', icon: 'i-heroicons-trophy-20-solid', to: '/ranking' },
+  { id: 'wishlist', label: '찜하기', icon: 'i-heroicons-heart-20-solid', to: '/wishlist' },
   { id: 'mypage', label: '마이', icon: 'i-heroicons-user-20-solid', to: '/mypage' }
 ]
 </script>

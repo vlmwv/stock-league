@@ -80,17 +80,22 @@
       <!-- Swipe Suggestion (New) -->
       <Transition name="fade">
         <div v-if="!prediction" class="mt-6 flex items-center justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
-          <div class="flex flex-col items-center gap-1">
-            <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
-            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
-          </div>
-          <div class="h-px w-8 bg-slate-800"></div>
-          <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
-          <div class="h-px w-8 bg-slate-800"></div>
-          <div class="flex flex-col items-center gap-1">
-            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
-            <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
-          </div>
+          <template v-if="isLeagueOpen">
+            <div class="flex flex-col items-center gap-1">
+              <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
+              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
+            </div>
+            <div class="h-px w-8 bg-slate-800"></div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
+            <div class="h-px w-8 bg-slate-800"></div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
+              <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
+            </div>
+          </template>
+          <template v-else>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">오늘의 예측이 마감되었습니다</p>
+          </template>
         </div>
       </Transition>
 
@@ -114,11 +119,15 @@
             {{ prediction === 'up' ? '상승 예측 ↑' : '하락 예측 ↓' }}
           </span>
           <button 
+            v-if="isLeagueOpen"
             @click.stop="$emit('cancelPrediction', stock.id)"
             class="mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors py-2 px-4 rounded-full border border-slate-700/50"
           >
             취소하기
           </button>
+          <p v-else class="mt-6 text-[9px] font-bold text-slate-600 uppercase tracking-widest">
+            마감되었습니다
+          </p>
         </div>
       </Transition>
     </div>
@@ -130,6 +139,7 @@ const props = defineProps<{
   stock: any
   isHearted: boolean
   prediction: 'up' | 'down' | null
+  isLeagueOpen: boolean
   isTop?: boolean
   index?: number
 }>()
@@ -155,7 +165,7 @@ onMounted(() => {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
       threshold: 30, // Reduced threshold for better responsiveness
       onSwipe: () => {
-        if (!props.isTop || props.prediction || isFlying.value) return
+        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
         
         // Follow finger with slight resistance
         translateY.value = lengthY.value * 0.8
@@ -170,7 +180,7 @@ onMounted(() => {
         }
       },
       onSwipeEnd: (e, direction) => {
-        if (!props.isTop || props.prediction || isFlying.value) return
+        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
 
         const threshold = 120 // Distance needed to trigger prediction
         
@@ -191,7 +201,7 @@ onMounted(() => {
 
   // Keyboard support for the top card
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (!props.isTop || props.prediction || isFlying.value) return
+    if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
     
     if (e.key === 'ArrowUp') {
       triggerPrediction('up')
@@ -207,7 +217,7 @@ onMounted(() => {
 })
 
 const onMaskClick = (type: 'up' | 'down') => {
-  if (!props.isTop || props.prediction || isFlying.value) return
+  if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
   triggerPrediction(type)
 }
 

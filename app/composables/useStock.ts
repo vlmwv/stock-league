@@ -164,6 +164,24 @@ export const useStock = () => {
   const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
+  
+  // 4. League Status (Closed after 08:00 KST)
+  const isLeagueOpen = computed(() => {
+    // 서버/클라이언트 모두에서 KST 시각 기준 08:00 이전인지 확인
+    const kstDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+    const hour = kstDate.getHours()
+    
+    // 만약 현재 종목들이 오늘 날짜가 아니라면 (fallback 데이터라면) 이미 마감된 것임
+    const today = getKstDate()
+    if (stocks.value && stocks.value.length > 0) {
+      const firstStockDate = (stocks.value as any)[0].game_date
+      if (firstStockDate && firstStockDate !== today) {
+        return false // 이전 날짜 데이터면 마감된 상태
+      }
+    }
+
+    return hour < 8
+  })
 
   const fetchPredictions = async () => {
     const { data: user } = await client.auth.getUser()
@@ -263,6 +281,11 @@ export const useStock = () => {
   }
 
   const predict = async (stockId: number, prediction: 'up' | 'down') => {
+    if (!isLeagueOpen.value) {
+      alert('오늘의 예측은 08:00에 마감되었습니다.')
+      return
+    }
+
     const { data: user } = await client.auth.getUser()
     if (!user.user) return
 
@@ -430,6 +453,89 @@ export const useStock = () => {
     }))
   }
 
+  const fetchStocksWithStats = async () => {
+    // 1. 모든 종목 정보 (또는 상위 100개)
+    const { data: stocksData, error: stocksError } = await client
+      .from('stocks')
+      .select('*')
+      .order('market_cap_rank', { ascending: true })
+      .limit(100)
+    
+    if (stocksError || !stocksData) return []
+
+    // 2. 찜 합계 (wishlists 집계)
+    const { data: wishlistCounts } = await client
+      .from('wishlists')
+      .select('stock_id')
+    
+    // 3. 예측 성공 합계 (predictions 집계)
+    const { data: winCounts } = await client
+      .from('predictions')
+      .select('stock_id')
+      .eq('result', 'win')
+
+    // 클라이언트 사이드 집계 (소규모 데이터셋이므로 효율적임)
+    const wishCountMap = (wishlistCounts || []).reduce((acc: any, curr: any) => {
+      acc[curr.stock_id] = (acc[curr.stock_id] || 0) + 1
+      return acc
+    }, {})
+
+    const winCountMap = (winCounts || []).reduce((acc: any, curr: any) => {
+      acc[curr.stock_id] = (acc[curr.stock_id] || 0) + 1
+      return acc
+    }, {})
+
+    return (stocksData as any[]).map(s => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      last_price: s.last_price || 0,
+      change_amount: s.change_amount || 0,
+      change_rate: s.change_rate || 0,
+      market_cap_rank: s.market_cap_rank,
+      summary: s.summary || '',
+      wishlist_count: wishCountMap[s.id] || 0,
+      win_count: winCountMap[s.id] || 0
+    }))
+  }
+  const fetchNews = async (limitNum = 20) => {
+    const { data, error } = await client
+      .from('news')
+      .select(`
+        id,
+        title,
+        content,
+        url,
+        source,
+        published_at,
+        llm_summary,
+        stocks (
+          id,
+          name,
+          code
+        )
+      `)
+      .order('published_at', { ascending: false })
+      .limit(limitNum)
+    
+    if (error) {
+      console.error('Error fetching news:', error)
+      return []
+    }
+
+    return (data || []).map((n: any) => ({
+      id: n.id,
+      title: n.title,
+      content: n.content,
+      url: n.url,
+      source: n.source,
+      published_at: n.published_at,
+      llm_summary: n.llm_summary,
+      stockName: (n.stocks as any)?.name,
+      stockCode: (n.stocks as any)?.code
+    }))
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
@@ -446,10 +552,13 @@ export const useStock = () => {
     refreshMarketCap,
     refreshRecommended,
     fetchParticipantCount,
+    fetchNews,
     toggleHeart,
     predict,
     fetchRankings,
     fetchUserStats,
-    fetchUserHistory
+    fetchUserHistory,
+    fetchStocksWithStats,
+    isLeagueOpen
   }
 }
