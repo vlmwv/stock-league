@@ -21,10 +21,11 @@ Deno.serve(async (req) => {
     const currentDateStr = kstDate.toISOString().split('T')[0];
 
     // 1. 오늘의 daily_stocks 조회 (상태가 pending이거나 closing인 경우만)
+    // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
     const { data: dailyStocks, error: fetchDailyError } = await supabase
       .from('daily_stocks')
       .select('*, stocks:stock_id (code, name)')
-      .eq('game_date', currentDateStr)
+      .lte('game_date', currentDateStr)
       .in('status', ['pending', 'closing'])
 
     if (fetchDailyError) throw fetchDailyError
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
       // (선택) stock_price_history에 기록 (upsert 방식으로 당일 데이터 중복 방지)
       const { error: historyError } = await supabase.from('stock_price_history').upsert({
         stock_id,
-        price_date: currentDateStr,
+        price_date: dailyStock.game_date,
         close_price: last_price,
         change_amount,
         change_rate
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
         .from('predictions')
         .select('*')
         .eq('stock_id', stock_id)
-        .eq('game_date', currentDateStr)
+        .eq('game_date', dailyStock.game_date)
         .eq('result', 'pending');
 
       if (!predError && predictions && predictions.length > 0) {

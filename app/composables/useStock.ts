@@ -515,6 +515,35 @@ export const useStock = () => {
     }))
   }
 
+  const fetchStockById = async (id: number) => {
+    const { data, error } = await client
+      .from('stocks')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      console.error('Error fetching stock by id:', error)
+      return null
+    }
+    return data
+  }
+
+  const fetchPriceHistory = async (stockId: number, days = 30) => {
+    const { data, error } = await client
+      .from('stock_price_history')
+      .select('*')
+      .eq('stock_id', stockId)
+      .order('price_date', { ascending: true })
+      .limit(days)
+    
+    if (error) {
+      console.error('Error fetching price history:', error)
+      return []
+    }
+    return data
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
@@ -532,6 +561,8 @@ export const useStock = () => {
     refreshRecommended,
     fetchParticipantCount,
     fetchNews,
+    fetchStockById,
+    fetchPriceHistory,
     toggleHeart,
     predict,
     fetchRankings,

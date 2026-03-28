@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     // 1. stocks 테이블에서 모든 종목 코드 조회
     const { data: stocks, error: fetchError } = await supabase
       .from('stocks')
-      .select('code, name')
+      .select('id, code, name')
 
     if (fetchError) throw fetchError
     if (!stocks || stocks.length === 0) {
@@ -22,7 +22,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    console.log(`Found ${stocks.length} stocks. Fetching real-time prices from Naver...`)
+    // 한국 시간 기준 현재 날짜(YYYY-MM-DD) 구하기
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstDate = new Date(now.getTime() + kstOffset);
+    const currentDateStr = kstDate.toISOString().split('T')[0];
+
+    console.log(`Found ${stocks.length} stocks. Fetching real-time prices for ${currentDateStr} from Naver...`)
 
     // 네이버 API는 한번에 너무 많은 요청을 보내면 실패할 수 있으므로, 50개씩 나눠서 요청
     const chunkSize = 50
@@ -90,10 +96,21 @@ Deno.serve(async (req) => {
           .eq('code', item.code)
       )
 
-      await Promise.all(updatePromises)
+      const historyPromises = mergedUpsertData.map((item: any) => {
+        const original = chunk.find((s: any) => s.code === item.code)
+        return supabase.from('stock_price_history').upsert({
+          stock_id: original.id,
+          price_date: currentDateStr,
+          close_price: item.last_price,
+          change_amount: item.change_amount,
+          change_rate: item.change_rate
+        }, { onConflict: 'stock_id, price_date' })
+      })
+
+      await Promise.all([...updatePromises, ...historyPromises])
       
       totalUpdated += mergedUpsertData.length
-      console.log(`Updated ${mergedUpsertData.length} stocks in chunk ${i / chunkSize + 1}`)
+      console.log(`Updated ${mergedUpsertData.length} stocks and history in chunk ${i / chunkSize + 1}`)
     }
 
     return new Response(JSON.stringify({ message: 'Successfully updated real-time prices from Naver', count: totalUpdated }), {

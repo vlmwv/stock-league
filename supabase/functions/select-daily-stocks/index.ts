@@ -86,9 +86,17 @@ Deno.serve(async (req) => {
     const kstOffset = 9 * 60 * 60 * 1000
     const kstNow = new Date(now.getTime() + kstOffset)
     
-    // 내일 날짜 계산
+    // 내일 날짜 계산 (주말 건너뛰기)
     const kstTomorrow = new Date(kstNow)
-    kstTomorrow.setDate(kstTomorrow.getDate() + 1)
+    const dayOfWeek = kstNow.getDay() // 0(일) ~ 6(토)
+    
+    let daysToAdd = 1
+    if (dayOfWeek === 5) { // 금요일 -> 월요일 (+3)
+      daysToAdd = 3
+    } else if (dayOfWeek === 6) { // 토요일 -> 월요일 (+2)
+      daysToAdd = 2
+    }
+    kstTomorrow.setDate(kstNow.getDate() + daysToAdd)
     
     const tomorrowStr = kstTomorrow.toISOString().split('T')[0]
     console.log(`Target game_date (KST Tomorrow): ${tomorrowStr}`)
