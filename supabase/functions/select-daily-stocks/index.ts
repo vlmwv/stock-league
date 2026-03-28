@@ -31,7 +31,7 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     prompt += `(최근 특징적인 뉴스나 공시가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
