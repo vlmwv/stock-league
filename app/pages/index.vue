@@ -105,6 +105,47 @@
           </div>
         </div>
       </section>
+
+      <!-- 실시간 랭킹 Top 3 -->
+      <section v-if="topRankers.length > 0" class="px-6 mb-12">
+        <div class="flex justify-between items-end mb-6 px-2">
+          <div>
+            <h3 class="text-xl font-black text-slate-200 tracking-tight">실시간 리더보드</h3>
+            <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Top Traders</p>
+          </div>
+          <NuxtLink to="/ranking" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+            전체 랭킹
+            <UIcon name="i-heroicons-chevron-right-20-solid" class="w-3.5 h-3.5" />
+          </NuxtLink>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+          <div 
+            v-for="(user, index) in topRankers.slice(0, 3)" 
+            :key="user.username"
+            class="glass-dark rounded-3xl p-4 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-all"
+          >
+            <div class="relative">
+              <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/10 p-0.5 overflow-hidden">
+                <img :src="user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.username}`" alt="user" class="w-full h-full rounded-xl object-cover" />
+              </div>
+              <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full border-2 border-slate-900 flex items-center justify-center font-black text-white text-[9px] shadow-lg"
+                :class="index === 0 ? 'bg-brand-primary' : index === 1 ? 'bg-slate-400' : 'bg-amber-700'"
+              >
+                {{ index + 1 }}
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+               <h4 class="font-bold text-slate-200 text-sm truncate">{{ user.username }}</h4>
+               <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{{ user.win_count }}승 · {{ user.prediction_count }}회 참여</p>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-black text-brand-primary">{{ user.points.toLocaleString() }}</span>
+              <span class="text-[9px] font-bold text-slate-600 ml-1">P</span>
+            </div>
+          </div>
+        </div>
+      </section>
  
 
       <!-- 최근 뉴스 & 공시 -->
@@ -154,9 +195,10 @@
 </template>
  
 <script setup lang="ts">
-const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
+const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchRankings } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
+const topRankers = ref<any[]>([])
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
@@ -189,8 +231,13 @@ onMounted(async () => {
     (async () => {
       const news = await fetchNews(5)
       recentNews.value = news
+    })(),
+    (async () => {
+      const ranks = await fetchRankings(3)
+      topRankers.value = ranks
     })()
   ])
+
   
   const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
   if (!hasSeenGuide) {

@@ -11,7 +11,6 @@ interface Stock {
 export const useStock = () => {
   const client = useSupabaseClient()
 
-  // KST (UTC+9) 날짜 구하기 헬퍼
   const getKstDate = () => {
     const now = new Date()
     const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
@@ -23,7 +22,17 @@ export const useStock = () => {
     // KST (UTC+9) 기준으로 오늘 날짜 구하기
     const today = getKstDate()
     
-    console.log(`[useStock] Fetching stocks for KST today: ${today}`)
+    // 1. 오늘 혹은 그 이후의 가장 가까운 활성화된 게임 종목 5개를 가져옵니다.
+    const { data: nextGameDateData } = await client
+      .from('daily_stocks')
+      .select('game_date')
+      .gte('game_date', today)
+      .order('game_date', { ascending: true })
+      .limit(1)
+
+    const targetDate = (nextGameDateData as any)?.[0]?.game_date || today
+
+    console.log(`[useStock] Fetching stocks for target date: ${targetDate}`)
     
     // Join daily_stocks with stocks and news (latest summary)
     let { data, error } = await client
@@ -41,9 +50,9 @@ export const useStock = () => {
           change_rate
         )
       `)
-      .eq('game_date', today as any)
+      .eq('game_date', targetDate as any)
     
-    // Fallback: If no data for today, fetch latest available stock data
+    // Fallback: If no future data, fetch latest available stock data
     if (!error && (!data || data.length === 0)) {
       console.log(`No daily stocks found for ${today}, fetching latest available...`)
       const { data: latestDateData } = await client
@@ -172,12 +181,12 @@ export const useStock = () => {
     const kstDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
     const hour = kstDate.getHours()
     
-    // 만약 현재 종목들이 오늘 날짜가 아니라면 (fallback 데이터라면) 이미 마감된 것임
+    // 만약 현재 종목이 과거의 데이터라면 마감된 것임 (미래 데이터면 오픈)
     const today = getKstDate()
-    if (stocks.value && stocks.value.length > 0) {
+    if (stocks.value && (stocks.value as any).length > 0) {
       const firstStockDate = (stocks.value as any)[0].game_date
-      if (firstStockDate && firstStockDate !== today) {
-        return false // 이전 날짜 데이터면 마감된 상태
+      if (firstStockDate && firstStockDate < today) {
+        return false // 과거 데이터면 마감
       }
     }
 

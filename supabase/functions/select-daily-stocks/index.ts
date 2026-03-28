@@ -86,20 +86,20 @@ Deno.serve(async (req) => {
     const kstOffset = 9 * 60 * 60 * 1000
     const kstNow = new Date(now.getTime() + kstOffset)
     
-    // 내일 날짜 계산 (주말 건너뛰기)
-    const kstTomorrow = new Date(kstNow)
-    const dayOfWeek = kstNow.getDay() // 0(일) ~ 6(토)
+    // 타겟 날짜 계산: 오늘이 아니라 '다음 영업일'을 찾습니다.
+    const targetDate = new Date(kstNow)
+    const currentDay = kstNow.getDay() // 0(일) ~ 6(토)
     
     let daysToAdd = 1
-    if (dayOfWeek === 5) { // 금요일 -> 월요일 (+3)
+    if (currentDay === 5) { // 금요일 -> 월요일 (+3)
       daysToAdd = 3
-    } else if (dayOfWeek === 6) { // 토요일 -> 월요일 (+2)
+    } else if (currentDay === 6) { // 토요일 -> 월요일 (+2)
       daysToAdd = 2
     }
-    kstTomorrow.setDate(kstNow.getDate() + daysToAdd)
+    targetDate.setDate(kstNow.getDate() + daysToAdd)
     
-    const tomorrowStr = kstTomorrow.toISOString().split('T')[0]
-    console.log(`Target game_date (KST Tomorrow): ${tomorrowStr}`)
+    const targetDateStr = targetDate.toISOString().split('T')[0]
+    console.log(`Target game_date (Next Business Day): ${targetDateStr}`)
     
     let processedCount = 0
     let errors = []
@@ -111,21 +111,27 @@ Deno.serve(async (req) => {
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
         const disclosureUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
         
-        const [newsRes, discRes] = await Promise.all([
-          fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-          fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-        ])
-        
         let newsItems = []
-        if (newsRes.ok) {
-          const newsData = await newsRes.json()
-          newsItems = newsData?.items || []
-        }
-        
         let disclosureItems = []
-        if (discRes.ok) {
-          const discData = await discRes.json()
-          disclosureItems = Array.isArray(discData) ? discData : (discData?.items || [])
+
+        try {
+          const [newsRes, discRes] = await Promise.all([
+            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) }),
+            fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
+          ])
+          
+          if (newsRes.ok) {
+            const newsData = await newsRes.json()
+            newsItems = newsData?.items || []
+          }
+          
+          if (discRes.ok) {
+            const discData = await discRes.json()
+            disclosureItems = Array.isArray(discData) ? discData : (discData?.items || [])
+          }
+        } catch (fetchErr: any) {
+          console.warn(`External API fetch failed for ${stock.name}: ${fetchErr.message}`)
+          // API 호출 실패해도 계속 진행 (Gemini가 일반 시장 상황으로 요약 생성)
         }
         
         console.log(`Generating summary with Gemini for ${stock.name}...`)
@@ -135,7 +141,7 @@ Deno.serve(async (req) => {
         const { data: existing, error: checkError } = await supabase
           .from('daily_stocks')
           .select('id')
-          .eq('game_date', tomorrowStr)
+          .eq('game_date', targetDateStr)
           .eq('stock_id', stock.id)
           .maybeSingle()
           
@@ -146,16 +152,16 @@ Deno.serve(async (req) => {
             .from('daily_stocks')
             .insert({
               stock_id: stock.id,
-              game_date: tomorrowStr,
+              game_date: targetDateStr,
               llm_summary: summary,
               status: 'pending'
             })
             
           if (insertError) throw insertError
           processedCount++
-          console.log(`Successfully saved daily_stock for ${stock.name}`)
+          console.log(`Successfully saved daily_stock for ${stock.name} on ${targetDateStr}`)
         } else {
-          console.log(`${stock.name} is already selected for ${tomorrowStr}`)
+          console.log(`${stock.name} is already selected for ${targetDateStr}`)
         }
         
       } catch (err: any) {
@@ -165,8 +171,8 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ 
-      message: `Successfully selected and summarized ${processedCount} stocks for ${tomorrowStr}`, 
-      game_date: tomorrowStr,
+      message: `Successfully selected and summarized ${processedCount} stocks for ${targetDateStr}`, 
+      game_date: targetDateStr,
       errors: errors.length > 0 ? errors : undefined
     }), {
       headers: { 'Content-Type': 'application/json' },

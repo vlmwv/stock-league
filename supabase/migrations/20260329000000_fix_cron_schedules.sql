@@ -10,12 +10,13 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- 2) 종목 선정 (select-daily-stocks)
--- 일, 월, 화, 수, 목요일 밤(21:20 KST / 12:20 UTC)에 실행하여
--- 월, 화, 수, 목, 금요일 게임을 준비함
--- 금, 토요일 밤에는 실행하지 않음
+-- 일, 월, 화, 수, 목, 금요일 밤(21:20 KST / 12:20 UTC)에 실행하여
+-- 다음 영업일(월~금) 게임을 준비함
+-- 금요일 밤 실행분은 월요일 게임이 됨
+-- 토요일 밤에는 실행하지 않음
 SELECT cron.schedule(
   'select-daily-stocks',
-  '20 12 * * 0-4',
+  '20 12 * * 0-5',
   $$
   SELECT net.http_post(
     url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/select-daily-stocks',

@@ -28,6 +28,27 @@ const getAvatar = (user: any) => {
         <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">글로벌 예측 리더보드</p>
       </div>
 
+      <!-- Hall of Fame Shortcut Banner -->
+      <section class="mb-10 group cursor-pointer" @click="navigateTo('/hall-of-fame')">
+        <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500/20 via-slate-800/40 to-slate-900/40 border border-amber-500/20 p-6 shadow-2xl transition-all hover:scale-[1.02] active:scale-95">
+          <div class="relative z-10 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-amber-500 animate-pulse" />
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-amber-200 tracking-tight">명예의 전당</h3>
+                <p class="text-[10px] text-amber-500/60 font-black uppercase tracking-widest">Legends of the Season</p>
+              </div>
+            </div>
+            <UIcon name="i-heroicons-arrow-right-20-solid" class="w-5 h-5 text-amber-500/50 group-hover:text-amber-500 transition-colors" />
+          </div>
+          <!-- Background decoration -->
+          <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full"></div>
+        </div>
+      </section>
+
+
       <div v-if="pending" class="flex justify-center py-20">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-brand-primary animate-spin" />
       </div>
