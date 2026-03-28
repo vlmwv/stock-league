@@ -38,17 +38,10 @@ export default defineNuxtConfig({
     // Railway에서 NUXT_SUPABASE_SERVICE_ROLE_KEY 로 값을 덮어씁니다.
     supabaseServiceRoleKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app',
-      supabase: {
-        url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL,
-        key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY
-      }
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app'
     }
   },
   supabase: {
-    url: process.env.SUPABASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL,
-    key: process.env.SUPABASE_KEY || process.env.NUXT_PUBLIC_SUPABASE_KEY,
-    serviceKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
     redirect: false // 인증 없이 메인화면 접근 가능하도록 설정
   },
   pwa: {

@@ -35,11 +35,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const supabaseUrl = config.public.supabase.url as string
+  // Nuxt Supabase 모듈 설정과 관계없이 process.env 에서 직접 읽어옵니다. (Railway 에서는 SUPABASE_URL 변수가 NUXT_ 없이 주입됩니다)
+  const supabaseUrl = process.env.SUPABASE_URL || config.public.supabase?.url
   if (!supabaseUrl) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Supabase URL is missing from runtime config',
+      statusMessage: 'Supabase URL is missing. Ensure SUPABASE_URL exists in Railway env vars.',
     })
   }
 
