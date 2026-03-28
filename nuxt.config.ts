@@ -32,6 +32,9 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    // 런타임에 서버에서만 사용할 수 있는 비공개 환경 변수 추가
+    geminiApiKey: process.env.GEMINI_API_KEY,
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY,
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app',
       supabase: {

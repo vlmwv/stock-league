@@ -1,10 +1,13 @@
 import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig(event)
+  
   // 1. 보안 검증 (Service Role Key 체크)
   const authHeader = getHeader(event, 'Authorization')
-  const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+  // runtimeConfig 사용
+  const SERVICE_ROLE_KEY = config.supabaseServiceRoleKey
+  const GEMINI_API_KEY = config.geminiApiKey
 
   if (!SERVICE_ROLE_KEY || authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) {
     throw createError({
