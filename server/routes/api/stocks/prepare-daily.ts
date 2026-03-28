@@ -5,21 +5,29 @@ export default defineEventHandler(async (event) => {
   
   // 1. 보안 검증 (Service Role Key 체크)
   const authHeader = getHeader(event, 'Authorization')
-  // runtimeConfig 사용
+  
+  // runtimeConfig 사용 (Railway 변수는 NUXT_ 프리픽스 필수)
   const SERVICE_ROLE_KEY = config.supabaseServiceRoleKey
   const GEMINI_API_KEY = config.geminiApiKey
 
-  if (!SERVICE_ROLE_KEY || authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) {
+  if (!SERVICE_ROLE_KEY) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'NUXT_SUPABASE_SERVICE_ROLE_KEY environment variable is missing on Railway',
+    })
+  }
+
+  if (authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Unauthorized: Service Role Key is required',
+      statusMessage: 'Unauthorized: Invalid Service Role Key provided',
     })
   }
 
   if (!GEMINI_API_KEY) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'GEMINI_API_KEY is not set in Railway environment variables',
+      statusMessage: 'NUXT_GEMINI_API_KEY environment variable is missing on Railway',
     })
   }
 

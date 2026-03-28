@@ -17,7 +17,7 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<str
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 `
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
 
     let processedCount = 0
     
-    // 2. 각 종목별 최신 뉴스/공시 확인 (성능상 50개 수준으로 제한하거나 배치 처리 권장)
-    // 여기서는 간단히 상위 30개만 우선 테스트용으로 처리하거나 루프를 돌림
-    const targetStocks = stocks.slice(0, 30); // 과도한 API 호출 방지 위해 상위 30개 우선
+    // 2. 각 종목별 최신 뉴스/공시 확인
+    // Gemini API Rate Limit (분당 5~15회) 방지를 위해 한 번 실행할 때마다 3개 종목만 무작위로 처리
+    const targetStocks = stocks.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
