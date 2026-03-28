@@ -164,6 +164,7 @@ export const useStock = () => {
   const hearts = useState<number[]>('wishlist', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
+  const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
@@ -206,8 +207,7 @@ export const useStock = () => {
   const fetchParticipantCount = async () => {
     const today = getKstDate()
     
-    // Get unique user_ids who made predictions today
-    // Note: In a production app with many users, this should be done via a dedicated RPC or daily_stats table
+    // 1. 오늘 참여자 수 (unique user_ids who made predictions today)
     const { data, error } = await client
       .from('predictions')
       .select('user_id')
@@ -216,6 +216,15 @@ export const useStock = () => {
     if (!error && data) {
       const uniqueUsers = new Set(data.map((p: any) => p.user_id)).size
       participantCount.value = uniqueUsers
+    }
+
+    // 2. 전체 회원 수 (total profiles count)
+    const { count, error: countError } = await client
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+    
+    if (!countError && count !== null) {
+      totalMemberCount.value = count
     }
   }
 
@@ -552,6 +561,7 @@ export const useStock = () => {
     myPredictions,
     wishlistStocks,
     participantCount,
+    totalMemberCount,
     refresh,
     fetchError,
     fetchWishlist,

@@ -16,14 +16,31 @@
               오늘의 차트를 <br/>
               <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
             </h2>
-            <div class="flex justify-between items-center mt-8">
-                <p class="text-xs text-slate-400 font-medium flex items-center">
-                  <span class="text-brand-primary font-bold mr-1">{{ participantCount.toLocaleString() }}명</span> 참여 중
+            <div class="flex flex-col gap-3 mt-8">
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-2">
+                  <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
+                    <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
+                  </div>
+                  <div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
+                </div>
+                <p class="text-xs text-slate-400 font-bold tracking-tight">
+                  <span class="text-slate-100">{{ totalMemberCount.toLocaleString() }}명</span>의 투자자가 참여 중
                 </p>
+              </div>
+              
+              <div v-if="participantCount > 0" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-primary/10 border border-brand-primary/20 w-fit">
+                <span class="flex h-2 w-2 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
+                </span>
+                <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest">오늘 {{ participantCount.toLocaleString() }}명 예측 완료</p>
+              </div>
+            </div>
               
               <button 
                 @click="navigateTo('/daily')"
-                class="group relative px-6 py-3 rounded-2xl bg-brand-primary text-slate-900 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all overflow-hidden"
+                class="group relative px-6 py-4 rounded-2xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-6 w-full text-center"
               >
                 참여하기
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -137,7 +154,7 @@
 </template>
  
 <script setup lang="ts">
-const { recommendedStocks, hearts, myPredictions, participantCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
+const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
 
