@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const authHeader = getHeader(event, 'Authorization')
   
   // runtimeConfig 사용 (Railway 변수는 NUXT_ 프리픽스 필수)
-  const SERVICE_ROLE_KEY = config.supabaseServiceRoleKey
+  let SERVICE_ROLE_KEY = config.supabaseServiceRoleKey
   const GEMINI_API_KEY = config.geminiApiKey
 
   if (!SERVICE_ROLE_KEY) {
@@ -17,10 +17,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) {
+  // 따옴표나 공백이 실수로 포함되었을 수 있으므로 정리합니다
+  SERVICE_ROLE_KEY = SERVICE_ROLE_KEY.trim().replace(/^["']|["']$/g, '')
+  const providedToken = authHeader?.replace('Bearer ', '').trim()
+
+  if (providedToken !== SERVICE_ROLE_KEY) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Unauthorized: Invalid Service Role Key provided',
+      statusMessage: `Unauthorized: Invalid Service Role Key provided (Server key length: ${SERVICE_ROLE_KEY.length}, Provided key length: ${providedToken?.length || 0})`,
     })
   }
 
