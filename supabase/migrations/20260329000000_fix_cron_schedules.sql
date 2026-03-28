@@ -9,17 +9,16 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
 END $$;
 
--- 2) 종목 선정 (select-daily-stocks)
+-- 2) 종목 선정 (prepare-daily)
 -- 일, 월, 화, 수, 목, 금요일 밤(21:20 KST / 12:20 UTC)에 실행하여
 -- 다음 영업일(월~금) 게임을 준비함
--- 금요일 밤 실행분은 월요일 게임이 됨
--- 토요일 밤에는 실행하지 않음
+-- [주의] url 부분을 본인의 Railway 배포 주소로 변경하세요.
 SELECT cron.schedule(
   'select-daily-stocks',
   '20 12 * * 0-5',
   $$
   SELECT net.http_post(
-    url := 'https://zmqjooidmibqrigziipq.supabase.co/functions/v1/select-daily-stocks',
+    url := 'https://stock-league-production.up.railway.app/api/stocks/prepare-daily',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
