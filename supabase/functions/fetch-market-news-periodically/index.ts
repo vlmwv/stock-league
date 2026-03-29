@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
           stock_id: stock.id,
           title: `[실시간 요약] ${stock.name} 주요 이슈`,
           llm_summary: summary,
-          url: `https://m.stock.naver.com/item/${stock.code}/news`,
+          url: `https://m.stock.naver.com/domestic/stock/${stock.code}/news`,
           source: 'Naver Finance (AI Summary)',
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' }) // 예시 목적의 제약조건

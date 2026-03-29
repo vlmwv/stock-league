@@ -190,6 +190,7 @@
 </template>
  
 <script setup lang="ts">
+import { repairNewsUrl } from '~/utils/stock'
 const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
@@ -206,8 +207,9 @@ const formatDate = (dateStr: string) => {
 }
 
 const navigateToNews = (item: any) => {
-  if (item && item.url) {
-    window.open(item.url, '_blank')
+  const url = repairNewsUrl(item.url, item.stockCode)
+  if (url) {
+    window.open(url, '_blank')
   } else {
     navigateTo('/news')
   }

@@ -26,7 +26,7 @@
           </button>
 
           <template #content>
-            <div class="w-80 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            <div class="w-80 bg-slate-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
               <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-white/5">
                 <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
                 <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">New</span>
@@ -67,7 +67,6 @@
         
         <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50">
           <div class="text-right hidden xs:block">
-            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">레벨 1</p>
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
           <UPopover :popper="{ placement: 'bottom-end' }">

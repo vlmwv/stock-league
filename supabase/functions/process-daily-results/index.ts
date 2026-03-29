@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         .from('predictions')
         .select('*')
         .eq('stock_id', stock_id)
-        .eq('game_date', dailyStock.game_date)
+        .lte('game_date', dailyStock.game_date as any)
         .eq('result', 'pending');
 
       if (!predError && predictions && predictions.length > 0) {
