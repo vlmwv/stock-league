@@ -46,68 +46,75 @@
 
       <!-- 종목 목록 -->
       <section class="px-6 space-y-3 animate-fade-in">
-        <div v-if="isLoading" class="flex items-center justify-center py-20">
+        <div v-if="isLoading && allStocks.length === 0" class="flex items-center justify-center py-20">
           <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
 
-        <div v-else-if="filteredStocks.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+        <div v-else-if="allStocks.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
           <UIcon name="i-heroicons-magnifying-glass-20-solid" class="w-12 h-12 text-slate-700 mb-4" />
           <p class="text-sm text-slate-500 font-medium">
             {{ searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : '종목 데이터가 없습니다.' }}
           </p>
         </div>
 
-        <div
-          v-else
-          v-for="(stock, index) in filteredStocks"
-          :key="stock.id"
-          @click="navigateTo('/stocks/' + stock.id)"
-          class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
-        >
-          <!-- 순위 -->
-          <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
-            :class="index < 3 ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
+        <template v-else>
+          <div
+            v-for="(stock, index) in allStocks"
+            :key="stock.id"
+            @click="navigateTo('/stocks/' + stock.id)"
+            class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
           >
-            {{ index + 1 }}
-          </div>
-
-          <!-- 종목 정보 -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
-              <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
-            </div>
-            <div class="flex items-center gap-3 mt-1">
-              <span class="text-xs font-bold text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
-              <span
-                class="text-[10px] font-black"
-                :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-              >
-                {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
-              </span>
-              <!-- 정렬 기준별 보조 정보 -->
-              <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
-                <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
-                {{ stock.wishlist_count ?? 0 }}
-              </span>
-              <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
-                <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
-                {{ stock.win_count ?? 0 }}
-              </span>
-            </div>
-          </div>
-
-          <!-- 액션 버튼 -->
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              @click.stop="handleToggleHeart(stock.id)"
-              class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
-              :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
+            <!-- 순위 -->
+            <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
+              :class="index < 3 && currentSort === 'marketCap' ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
             >
-              <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-            </button>
+              {{ index + 1 }}
+            </div>
+
+            <!-- 종목 정보 -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
+                <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
+              </div>
+              <div class="flex items-center gap-3 mt-1">
+                <span class="text-xs font-bold text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
+                <span
+                  class="text-[10px] font-black"
+                  :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                >
+                  {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
+                </span>
+                <!-- 정렬 기준별 보조 정보 -->
+                <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+                  <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
+                  {{ stock.wishlist_count ?? 0 }}
+                </span>
+                <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+                  <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
+                  {{ stock.win_count ?? 0 }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 액션 버튼 -->
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                @click.stop="handleToggleHeart(stock.id)"
+                class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
+                :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
+              >
+                <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </div>
+
+          <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
+          <div ref="sentinel" class="py-10 flex justify-center items-center">
+            <div v-if="isFetchingMore" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+            <p v-else-if="!hasMore && allStocks.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 종목입니다</p>
+          </div>
+        </template>
       </section>
     </main>
 
@@ -123,6 +130,13 @@ const currentSort = ref<'marketCap' | 'wishlist' | 'prediction'>('marketCap')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
+// 페이징 상태
+const page = ref(1)
+const pageSize = 10
+const hasMore = ref(true)
+const isFetchingMore = ref(false)
+const sentinel = ref<HTMLElement | null>(null)
+
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
   { key: 'wishlist', label: '찜 많은 순' },
@@ -136,7 +150,6 @@ const handleToggleHeart = async (stockId: number) => {
   await toggleHeart(stockId)
   const nowHearted = isHearted(stockId)
   
-  // 성공적으로 토글된 경우 로컬 카운트 업데이트
   if (wasHearted !== nowHearted) {
     const stock = allStocks.value.find(s => s.id === stockId)
     if (stock) {
@@ -145,47 +158,87 @@ const handleToggleHeart = async (stockId: number) => {
   }
 }
 
-const loadStocks = async () => {
+const loadStocks = async (isAppend = false) => {
   try {
-    isLoading.value = true
+    if (!isAppend) {
+      isLoading.value = true
+      page.value = 1
+      hasMore.value = true
+    } else {
+      isFetchingMore.value = true
+    }
+
     const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count'> = {
       marketCap: 'market_cap_rank',
       wishlist: 'wishlist_count',
       prediction: 'win_count'
     }
-    const data = await fetchStocksWithStats(sortMap[currentSort.value])
-    allStocks.value = data || []
+    
+    const data = await fetchStocksWithStats(
+      sortMap[currentSort.value], 
+      page.value, 
+      pageSize, 
+      searchQuery.value
+    )
+    
+    if (isAppend) {
+      allStocks.value = [...allStocks.value, ...data]
+    } else {
+      allStocks.value = data || []
+    }
+
+    // 더 가져올 데이터가 있는지 확인
+    if (data.length < pageSize) {
+      hasMore.value = false
+    }
   } catch (err) {
     console.error('[Stocks] Failed to load stocks:', err)
   } finally {
     isLoading.value = false
+    isFetchingMore.value = false
   }
 }
+
+const loadMore = () => {
+  if (!hasMore.value || isFetchingMore.value || isLoading.value) return
+  page.value++
+  loadStocks(true)
+}
+
+// 검색어 변경 감지 (Debounce)
+let searchTimeout: any = null
+watch(searchQuery, () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    loadStocks()
+  }, 400)
+})
 
 // 정렬 탭 변경 시 데이터 다시 불러오기
 watch(currentSort, () => {
   loadStocks()
 })
 
-const filteredStocks = computed(() => {
-  let list = [...allStocks.value]
-
-  // 검색 필터
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.trim().toLowerCase()
-    list = list.filter(s =>
-      s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    )
-  }
-
-  // 서버에서 정렬된 상태로 가져오므로, 검색 필터링 후 별도 정렬은 불필요하거나 
-  // 기존 순서를 유지하면 됩니다. (검색 시에도 현재 정렬 기준 유지)
-  return list
-})
+let observer: IntersectionObserver | null = null
 
 onMounted(async () => {
   await fetchWishlist()
   await loadStocks()
+
+  // Intersection Observer 설정
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0] && entries[0].isIntersecting) {
+      loadMore()
+    }
+  }, { rootMargin: '200px' })
+
+  if (sentinel.value) {
+    observer.observe(sentinel.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
 })
 </script>
 
