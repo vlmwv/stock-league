@@ -53,16 +53,18 @@
         </div>
 
         <div class="text-right shrink-0">
-          <div class="text-xl font-black text-slate-100 tabular-nums">
-            {{ stock.last_price.toLocaleString() }}
+          <div class="flex items-baseline justify-end gap-0.5">
+            <span class="text-2xl font-black text-slate-100 tabular-nums tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
+            <span class="text-[10px] font-bold text-slate-400">원</span>
           </div>
           <div 
-            class="text-xs font-bold flex items-center justify-end gap-1 mt-1 transition-colors"
+            class="text-xs font-black flex items-center justify-end gap-1 mt-0.5 transition-colors"
             :class="[stock.change_amount > 0 ? 'text-rose-400' : stock.change_amount < 0 ? 'text-indigo-400' : 'text-slate-500']"
           >
-            <span v-if="stock.change_amount > 0">▲</span>
-            <span v-else-if="stock.change_amount < 0">▼</span>
-            <span>{{ Math.abs(stock.change_amount).toLocaleString() }} ({{ stock.change_rate }}%)</span>
+            <span v-if="stock.change_amount > 0" class="text-[10px]">▲</span>
+            <span v-else-if="stock.change_amount < 0" class="text-[10px]">▼</span>
+            <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
+            <span class="opacity-60 text-[10px]">({{ stock.change_rate }}%)</span>
           </div>
         </div>
       </div>

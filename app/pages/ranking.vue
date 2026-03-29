@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const { fetchRankings } = useStock()
 
-const selectedYear = ref('전체')
-const selectedMonth = ref('전체')
+const selectedYear = ref('2026')
+const selectedMonth = ref('3월')
 const years = ['전체', '2026', '2025']
 const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 

@@ -28,9 +28,9 @@
           <p class="text-sm text-slate-400 font-medium opacity-80 mt-1">{{ stock.sector || '주요 종목' }}</p>
           
           <div class="mt-6 flex flex-col gap-1">
-            <div class="text-4xl font-black text-slate-100 flex items-baseline gap-2">
+            <div class="text-4xl font-black text-slate-100 flex items-baseline gap-1">
               {{ stock.last_price?.toLocaleString() }}
-              <span class="text-sm font-bold text-slate-500">KRW</span>
+              <span class="text-base font-bold text-slate-500">원</span>
             </div>
             <div class="flex items-center gap-2 font-black text-sm" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
               <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>

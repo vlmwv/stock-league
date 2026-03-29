@@ -74,8 +74,11 @@
               <div class="flex justify-between items-start mb-4">
                 <div class="flex flex-col">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class="px-2 py-0.5 rounded-lg bg-brand-primary text-slate-900 text-[9px] font-black uppercase tracking-tighter shadow-lg shadow-brand-primary/20">HOT PICK</span>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ stock.code }}</span>
+                    <span class="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-rose-500 text-white text-[10px] font-black uppercase tracking-wider shadow-lg shadow-rose-500/30">
+                      <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5" />
+                      HOT PICK
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50 uppercase tracking-tighter">{{ stock.code }}</span>
                   </div>
                   <h4 class="font-black text-slate-100 text-xl tracking-tight">{{ stock.name }}</h4>
                 </div>
@@ -98,21 +101,22 @@
 
               <div class="flex justify-between items-end">
                 <div class="flex flex-col">
-                  <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 leading-none">Price Indicator</span>
-                  <div class="flex items-baseline gap-1.5">
-                    <span class="text-2xl font-black text-slate-50">{{ stock.last_price.toLocaleString() }}</span>
-                    <span class="text-[10px] font-bold text-slate-500">KRW</span>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-3xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
+                    <span class="text-[14px] font-bold text-slate-400">원</span>
                   </div>
                 </div>
                 <div 
-                  class="flex flex-col items-end gap-1 px-4 py-2.5 rounded-2xl font-black text-sm shadow-inner"
+                  class="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-2xl font-black shadow-inner"
                   :class="stock.change_amount >= 0 ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'"
                 >
                    <div class="flex items-center gap-1">
                      <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-4 h-4" />
-                     <span class="text-lg leading-none">{{ stock.change_rate }}%</span>
+                     <span class="text-xl leading-none font-black">{{ stock.change_rate }}%</span>
                    </div>
-                   <span class="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}</span>
+                   <span class="text-[10px] font-bold opacity-60 uppercase tracking-tighter">
+                     {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
+                   </span>
                 </div>
               </div>
             </div>

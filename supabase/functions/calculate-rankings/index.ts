@@ -60,6 +60,29 @@ Deno.serve(async (req) => {
     // 3. Calculate Win Rates and Prepare Records
     const records = Object.values(stats).map(s => {
       const winRate = s.total > 0 ? (s.win / s.total) * 100 : 0
+      
+      // Calculate min required predictions (3 per day in period)
+      let minRequired = 0
+      const date = new Date()
+      if (s.type === 'monthly') {
+        // Current day of month * 3
+        minRequired = date.getDate() * 3
+      } else if (s.type === 'yearly') {
+        // Approximate: Months passed * 30 * 3
+        minRequired = (date.getMonth() * 30 + date.getDate()) * 3
+      } else if (s.type === 'weekly') {
+        // Day of week (0=Sun, 6=Sat) * 3
+        const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay()
+        minRequired = dayOfWeek * 3
+      }
+
+      // Filter out those who don't meet the requirement for active rankings
+      // (Keep them in DB but maybe mark them or just filter them here)
+      // The user said "포함하며", implying others are excluded from the ranking list.
+      if (s.total < minRequired && s.type !== 'all_time') {
+        return null
+      }
+
       return {
         user_id: s.user_id,
         ranking_type: s.type,
@@ -67,13 +90,11 @@ Deno.serve(async (req) => {
         win_rate: parseFloat(winRate.toFixed(2)),
         prediction_count: s.total,
         updated_at: new Date().toISOString(),
-        rank: 0 // Will rank after insertion or via SQL logic
+        rank: 0 
       }
-    })
+    }).filter(r => r !== null)
 
     // 4. Update Rankings Table
-    // Note: To handle Ranks correctly, we would usually do this in a single SQL query or a loop.
-    // Here we'll upsert and then use a RPC or separate query to set positions.
     for (const record of records) {
       await supabase
         .from('rankings')
