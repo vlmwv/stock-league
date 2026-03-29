@@ -105,17 +105,4 @@ SELECT cron.schedule(
   $$
 );
 
--- 6) 매월 초 명예의 전당 데이터 이관
-SELECT cron.schedule(
-  'transfer-hall-of-fame',
-  '5 0 1 * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/transfer-hall-of-fame',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
-    )
-  )
-  $$
 );

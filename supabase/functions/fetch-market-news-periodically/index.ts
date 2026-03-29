@@ -58,23 +58,37 @@ Deno.serve(async (req) => {
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
       const discUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
+      const irUrl = `https://m.stock.naver.com/api/stock/${stock.code}/irInfo?pageSize=3&page=1`
 
-      const [newsRes, discRes] = await Promise.all([
+      const [newsRes, discRes, irRes] = await Promise.all([
         fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+        fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+        fetch(irUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
       ])
 
       const newsData = await newsRes.json()
       const discData = await discRes.json()
+      const irData = await irRes.json()
 
       const newsItems = newsData?.items || []
       const discItems = Array.isArray(discData) ? discData : (discData?.items || [])
-      const allItems = [...newsItems, ...discItems]
+      const irItems = irData?.items || []
+      const allItems = [...newsItems, ...discItems, ...irItems]
 
       if (allItems.length === 0) continue
 
-      // TODO: 기존에 수집된 뉴스인지 체크 (URL 등으로)
-      // 여기서는 최신 요약을 news 테이블에 업데이트하거나 삽입
+      // 타입 결정: IR > 공공시 > 뉴스 순으로 우선순위 부여
+      let type: 'news' | 'notice' | 'ir' = 'news'
+      let targetPath = 'news'
+      
+      if (irItems.length > 0) {
+        type = 'ir'
+        targetPath = 'ir'
+      } else if (discItems.length > 0) {
+        type = 'notice'
+        targetPath = 'notice'
+      }
+
       const summary = await summarizeWithGemini(allItems, stock.name)
 
       const { error: insertError } = await supabase
@@ -83,10 +97,11 @@ Deno.serve(async (req) => {
           stock_id: stock.id,
           title: `[실시간 요약] ${stock.name} 주요 이슈`,
           llm_summary: summary,
-          url: `https://m.stock.naver.com/domestic/stock/${stock.code}/news`,
+          url: `https://m.stock.naver.com/domestic/stock/${stock.code}/${targetPath}`,
+          type: type,
           source: 'Naver Finance (AI Summary)',
           published_at: new Date().toISOString()
-        }, { onConflict: 'stock_id, title' }) // 예시 목적의 제약조건
+        }, { onConflict: 'stock_id, title' })
 
       if (!insertError) processedCount++
     }

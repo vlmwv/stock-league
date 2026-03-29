@@ -4,10 +4,6 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/select-daily-stocks/index.ts"
 
-[functions.transfer-hall-of-fame]
-enabled = true
-verify_jwt = true
-entrypoint = "./functions/transfer-hall-of-fame/index.ts"
 
 [functions.calculate-rankings]
 enabled = true

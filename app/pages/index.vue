@@ -151,7 +151,19 @@
                   </div>
                   <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
-                <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
+                <div class="flex items-center gap-2">
+                  <span 
+                    class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter shadow-sm"
+                    :class="{
+                      'bg-brand-secondary/20 text-brand-secondary border border-brand-secondary/30': item.type === 'notice',
+                      'bg-purple-500/10 text-purple-400 border border-purple-500/20': item.type === 'ir',
+                      'bg-brand-primary/10 text-brand-primary border border-brand-primary/20': item.type === 'news' || !item.type
+                    }"
+                  >
+                    {{ item.type === 'notice' ? '공시' : (item.type === 'ir' ? 'IR' : '뉴스') }}
+                  </span>
+                  <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
+                </div>
               </div>
               
               <div>
@@ -207,7 +219,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const navigateToNews = (item: any) => {
-  const url = repairNewsUrl(item.url, item.stockCode)
+  const url = repairNewsUrl(item.url, item.stockCode, item.type)
   if (url) {
     window.open(url, '_blank')
   } else {

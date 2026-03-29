@@ -53,12 +53,24 @@
 
           <!-- 메타 정보 -->
           <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
-            <div class="flex flex-col">
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{{ item.source }}</span>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span 
+                  class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter"
+                  :class="{
+                    'bg-brand-secondary/20 text-brand-secondary': item.type === 'notice',
+                    'bg-purple-500/10 text-purple-400': item.type === 'ir',
+                    'bg-brand-primary/10 text-brand-primary': item.type === 'news' || !item.type
+                  }"
+                >
+                  {{ item.type === 'notice' ? '공시' : (item.type === 'ir' ? 'IR' : '뉴스') }}
+                </span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{{ item.source }}</span>
+              </div>
               <span class="text-[9px] text-slate-600 font-medium">{{ formatDate(item.published_at) }}</span>
             </div>
             <a 
-              :href="repairNewsUrl(item.url, item.stockCode)" 
+              :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
               target="_blank"
               class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300"
             >

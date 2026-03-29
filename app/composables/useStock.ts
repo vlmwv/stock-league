@@ -545,6 +545,7 @@ export const useStock = () => {
         source,
         published_at,
         llm_summary,
+        type,
         stocks (
           id,
           name,
@@ -567,6 +568,7 @@ export const useStock = () => {
       source: n.source,
       published_at: n.published_at,
       llm_summary: n.llm_summary,
+      type: n.type || 'news',
       stockName: (n.stocks as any)?.name,
       stockCode: (n.stocks as any)?.code
     }))
