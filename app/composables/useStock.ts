@@ -6,6 +6,8 @@ interface Stock {
   change_amount: number
   change_rate: number
   summary: string
+  game_date?: string
+  daily_id?: number
 }
 
 export const useStock = () => {
@@ -96,6 +98,7 @@ export const useStock = () => {
     return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
       id: ds.stocks.id,
       daily_id: ds.id,
+      game_date: ds.game_date,
       name: ds.stocks.name,
       code: ds.stocks.code,
       last_price: ds.stocks.last_price || 0,
@@ -161,12 +164,13 @@ export const useStock = () => {
     if (stocks.value && stocks.value.length > 0) {
       return stocks.value
     }
+    const today = getKstDate()
     return [
-      { id: 1, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 2, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 3, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 4, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 5, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, summary: 'DB 데이터가 없거나 로드 전입니다.' }
+      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, summary: 'DB 데이터가 없거나 로드 전입니다.' }
     ]
   })
 
@@ -298,7 +302,7 @@ export const useStock = () => {
     }
   }
 
-  const predict = async (stockId: number, prediction: 'up' | 'down') => {
+  const predict = async (stockId: number, prediction: 'up' | 'down', gameDate?: string) => {
     if (!isLeagueOpen.value) {
       alert('오늘의 예측은 08:00에 마감되었습니다.')
       return
@@ -307,14 +311,14 @@ export const useStock = () => {
     const { data: user } = await client.auth.getUser()
     if (!user.user) return
 
-    const today = getKstDate()
+    const targetDate = gameDate || getKstDate()
     
     const { error } = await (client
       .from('predictions')
       .upsert({
         user_id: user.user.id,
         stock_id: stockId,
-        game_date: today,
+        game_date: targetDate,
         prediction_type: prediction,
         result: 'pending'
       } as any, { onConflict: 'user_id, stock_id, game_date' } as any) as any)
@@ -472,28 +476,63 @@ export const useStock = () => {
   }
 
   const fetchStocksWithStats = async () => {
-    // 1. 모든 종목 정보 (또는 상위 100개)
-    // wishlist_count, win_count는 이제 DB 컬럼에서 직접 가져옵니다.
-    const { data: stocksData, error: stocksError } = await client
-      .from('stocks')
-      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count')
-      .order('market_cap_rank', { ascending: true })
-      .limit(100)
-    
-    if (stocksError || !stocksData) return []
+    try {
+      // 1. 모든 종목 정보 (또는 상위 100개)
+      // wishlist_count, win_count는 이제 DB 컬럼에서 직접 가져옵니다.
+      const { data: stocksData, error: stocksError } = await client
+        .from('stocks')
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count')
+        .order('market_cap_rank', { ascending: true })
+        .limit(100)
+      
+      if (stocksError) {
+        console.error('[useStock] Error fetching stocks with stats:', stocksError.message)
+        
+        // Fallback: wishlist_count, win_count가 없어서 실패했을 수 있으므로 기본 정보만 다시 시도
+        console.log('[useStock] Attempting fallback fetch without stats columns...')
+        const { data: fallbackData, error: fallbackError } = await client
+          .from('stocks')
+          .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary')
+          .order('market_cap_rank', { ascending: true })
+          .limit(100)
+        
+        if (fallbackError) {
+          console.error('[useStock] Fallback fetch also failed:', fallbackError.message)
+          return []
+        }
+        
+        return (fallbackData as any[]).map(s => ({
+          id: s.id,
+          name: s.name,
+          code: s.code,
+          last_price: s.last_price || 0,
+          change_amount: s.change_amount || 0,
+          change_rate: s.change_rate || 0,
+          market_cap_rank: s.market_cap_rank,
+          summary: s.summary || '',
+          wishlist_count: 0,
+          win_count: 0
+        }))
+      }
 
-    return (stocksData as any[]).map(s => ({
-      id: s.id,
-      name: s.name,
-      code: s.code,
-      last_price: s.last_price || 0,
-      change_amount: s.change_amount || 0,
-      change_rate: s.change_rate || 0,
-      market_cap_rank: s.market_cap_rank,
-      summary: s.summary || '',
-      wishlist_count: s.wishlist_count || 0,
-      win_count: s.win_count || 0
-    }))
+      if (!stocksData) return []
+
+      return (stocksData as any[]).map(s => ({
+        id: s.id,
+        name: s.name,
+        code: s.code,
+        last_price: s.last_price || 0,
+        change_amount: s.change_amount || 0,
+        change_rate: s.change_rate || 0,
+        market_cap_rank: s.market_cap_rank,
+        summary: s.summary || '',
+        wishlist_count: s.wishlist_count || 0,
+        win_count: s.win_count || 0
+      }))
+    } catch (err: any) {
+      console.error('[useStock] Unexpected error in fetchStocksWithStats:', err.message)
+      return []
+    }
   }
   const fetchNews = async (limitNum = 20) => {
     const { data, error } = await client

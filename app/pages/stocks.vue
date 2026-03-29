@@ -169,10 +169,16 @@ const filteredStocks = computed(() => {
 })
 
 onMounted(async () => {
-  await fetchWishlist()
-  const data = await fetchStocksWithStats()
-  allStocks.value = data
-  isLoading.value = false
+  try {
+    isLoading.value = true
+    await fetchWishlist()
+    const data = await fetchStocksWithStats()
+    allStocks.value = data || []
+  } catch (err) {
+    console.error('[Stocks] Failed to load stocks:', err)
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 

@@ -168,7 +168,7 @@ const onPredict = (id: number, prediction: 'up' | 'down') => {
   
   const stock = dailyStocks.value.find(s => s.id === id)
   if (stock) {
-    predict(id, prediction)
+    predict(id, prediction, stock.game_date)
     selectedStockName.value = stock.name
     selectedPrediction.value = prediction
     isResultOpen.value = true
