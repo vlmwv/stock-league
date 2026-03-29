@@ -53,133 +53,129 @@
       </section>
  
       <!-- AI 추천 종목 -->
-      <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-6 mb-10">
-        <div class="flex justify-between items-end mb-4 px-2">
+      <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-6 mb-12">
+        <div class="flex justify-between items-end mb-6 px-2">
           <div>
-            <h3 class="text-xl font-black text-slate-200 tracking-tight">AI 추천 종목</h3>
-            <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">실시간 AI 인사이트</p>
+            <h3 class="text-2xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
+            <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest mt-1">Exclusive Expert Insights</p>
           </div>
         </div>
         
-        <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
+        <div class="flex gap-5 overflow-x-auto pb-6 no-scrollbar -mx-6 px-6">
           <div 
             v-for="stock in recommendedStocks" 
             :key="stock.id"
-            class="min-w-[280px] glass-dark rounded-3xl p-5 border border-white/5 relative overflow-hidden group"
+            class="min-w-[300px] bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[2.5rem] p-6 border border-white/10 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300"
           >
-            <div class="flex justify-between items-start mb-3">
-              <div class="flex flex-col">
-                <div class="flex items-center gap-1.5 mb-1">
-                  <span class="px-1.5 py-0.5 rounded-md bg-brand-primary/20 text-brand-primary text-[8px] font-black uppercase tracking-tighter">AI 추천</span>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ stock.code }}</span>
+            <!-- Premium Background Glow -->
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary/10 blur-[60px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
+            
+            <div class="relative z-10">
+              <div class="flex justify-between items-start mb-4">
+                <div class="flex flex-col">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2 py-0.5 rounded-lg bg-brand-primary text-slate-900 text-[9px] font-black uppercase tracking-tighter shadow-lg shadow-brand-primary/20">HOT PICK</span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ stock.code }}</span>
+                  </div>
+                  <h4 class="font-black text-slate-100 text-xl tracking-tight">{{ stock.name }}</h4>
                 </div>
-                <h4 class="font-bold text-slate-200 text-lg">{{ stock.name }}</h4>
+                <button 
+                  @click.stop="toggleHeart(stock.id)"
+                  class="w-11 h-11 rounded-[1.25rem] flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 group-active:scale-90"
+                  :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-400'"
+                >
+                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                </button>
               </div>
-              <button 
-                @click.stop="toggleHeart(stock.id)"
-                class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors hover:bg-white/5"
-                :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
-              >
-                <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-              </button>
-            </div>
-            <p class="text-xs text-slate-400 line-clamp-2 italic mb-5 leading-relaxed">"{{ stock.summary }}"</p>
-            <div class="flex justify-between items-center">
-              <div class="flex flex-col">
-                <span class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">현재가</span>
-                <span class="text-lg font-black text-slate-100">{{ stock.last_price.toLocaleString() }}</span>
+
+              <div class="bg-white/5 rounded-2xl p-4 mb-6 border border-white/5 min-h-[72px] flex items-center">
+                <p class="text-[13px] text-slate-300 font-medium leading-[1.6] line-clamp-2">
+                  <span class="text-brand-primary font-black mr-1">"</span>
+                  {{ stock.summary }}
+                  <span class="text-brand-primary font-black ml-1">"</span>
+                </p>
               </div>
-              <div class="text-right">
+
+              <div class="flex justify-between items-end">
+                <div class="flex flex-col">
+                  <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 leading-none">Price Indicator</span>
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-2xl font-black text-slate-50">{{ stock.last_price.toLocaleString() }}</span>
+                    <span class="text-[10px] font-bold text-slate-500">KRW</span>
+                  </div>
+                </div>
                 <div 
-                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl font-black text-xs"
+                  class="flex flex-col items-end gap-1 px-4 py-2.5 rounded-2xl font-black text-sm shadow-inner"
                   :class="stock.change_amount >= 0 ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'"
                 >
-                  <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-3.5 h-3.5" />
-                  {{ stock.change_rate }}%
+                   <div class="flex items-center gap-1">
+                     <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-4 h-4" />
+                     <span class="text-lg leading-none">{{ stock.change_rate }}%</span>
+                   </div>
+                   <span class="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}</span>
                 </div>
               </div>
             </div>
-            <!-- Decorative gradient -->
-            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-brand-primary/5 blur-3xl rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
           </div>
         </div>
       </section>
 
-      <!-- 실시간 랭킹 Top 3 -->
-      <section v-if="topRankers.length > 0" class="px-6 mb-12">
-        <div class="flex justify-between items-end mb-6 px-2">
-          <div>
-            <h3 class="text-xl font-black text-slate-200 tracking-tight">실시간 리더보드</h3>
-            <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Top Traders</p>
-          </div>
-          <NuxtLink to="/ranking" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1">
-            전체 랭킹
-            <UIcon name="i-heroicons-chevron-right-20-solid" class="w-3.5 h-3.5" />
-          </NuxtLink>
-        </div>
 
-        <div class="grid grid-cols-1 gap-3">
-          <div 
-            v-for="(user, index) in topRankers.slice(0, 3)" 
-            :key="user.username"
-            class="glass-dark rounded-3xl p-4 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-all"
-          >
-            <div class="relative">
-              <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/10 p-0.5 overflow-hidden">
-                <img :src="user.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.username}`" alt="user" class="w-full h-full rounded-xl object-cover" />
-              </div>
-              <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full border-2 border-slate-900 flex items-center justify-center font-black text-white text-[9px] shadow-lg"
-                :class="index === 0 ? 'bg-brand-primary' : index === 1 ? 'bg-slate-400' : 'bg-amber-700'"
-              >
-                {{ index + 1 }}
-              </div>
-            </div>
-            <div class="flex-1 min-w-0">
-               <h4 class="font-bold text-slate-200 text-sm truncate">{{ user.username }}</h4>
-               <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{{ user.win_count }}승 · {{ user.prediction_count }}회 참여</p>
-            </div>
-            <div class="text-right">
-              <span class="text-sm font-black text-brand-primary">{{ user.points.toLocaleString() }}</span>
-              <span class="text-[9px] font-bold text-slate-600 ml-1">P</span>
-            </div>
-          </div>
-        </div>
-      </section>
  
 
       <!-- 최근 뉴스 & 공시 -->
       <section class="px-6 mb-12">
         <div class="flex justify-between items-end mb-6 px-2">
           <div>
-            <h3 class="text-xl font-black text-slate-200 tracking-tight">최근 주요 이슈</h3>
-            <p class="text-[10px] text-brand-secondary font-bold uppercase tracking-widest mt-0.5">Real-time Feed</p>
+            <h3 class="text-2xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
+            <p class="text-[10px] text-brand-secondary font-black uppercase tracking-widest mt-1">Real-time Stock Feed</p>
           </div>
-          <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+          <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
             전체보기
-            <UIcon name="i-heroicons-chevron-right-20-solid" class="w-3.5 h-3.5" />
+            <UIcon name="i-heroicons-arrow-right-20-solid" class="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
           </NuxtLink>
         </div>
 
-        <div class="space-y-4">
+        <div class="flex flex-col gap-4">
           <div 
             v-for="item in recentNews" 
             :key="item.id"
             @click="navigateToNews(item)"
-            class="glass-dark rounded-3xl p-5 border border-white/5 group hover:bg-white/5 transition-all cursor-pointer"
+            class="bg-white/5 rounded-[2rem] p-6 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
           >
-            <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-brand-primary/10 flex items-center justify-center shrink-0 border border-brand-primary/20">
-                <UIcon name="i-heroicons-newspaper" class="w-5 h-5 text-brand-primary" />
+            <div class="flex flex-col gap-4 relative z-10">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-9 h-9 rounded-xl bg-brand-secondary/10 flex items-center justify-center border border-brand-secondary/20">
+                    <UIcon name="i-heroicons-bolt text-brand-secondary" class="w-5 h-5" />
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
               </div>
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-slate-200 text-sm line-clamp-1 group-hover:text-brand-primary transition-colors">{{ item.title }}</h4>
-                <p class="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-tighter">{{ item.source }} • {{ formatDate(item.published_at) }}</p>
+              
+              <div>
+                <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors mb-2 line-clamp-2">{{ item.title }}</h4>
+                <p v-if="item.llm_summary" class="text-xs text-slate-400 leading-relaxed line-clamp-2 font-medium">
+                  {{ item.llm_summary }}
+                </p>
+              </div>
+
+              <div v-if="item.stockName" class="flex items-center gap-2 pt-2 border-t border-white/5">
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                  <span class="text-[10px] font-bold text-slate-300">{{ item.stockName }}</span>
+                  <span class="text-[9px] font-bold text-slate-600 tracking-tighter">{{ item.stockCode }}</span>
+                </div>
               </div>
             </div>
+            <!-- Subtitle glow effect -->
+            <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
           </div>
           
-          <div v-if="!recentNews.length" class="text-center py-8 bg-white/5 rounded-3xl border border-dashed border-white/10">
-            <p class="text-xs text-slate-600 font-medium">로딩 중이거나 데이터가 없습니다.</p>
+          <div v-if="!recentNews.length" class="text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
+            <UIcon name="i-heroicons-cloud-slash" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />
+            <p class="text-xs text-slate-600 font-black uppercase tracking-widest">데이터를 불러오는 중입니다</p>
           </div>
         </div>
       </section>
@@ -194,10 +190,9 @@
 </template>
  
 <script setup lang="ts">
-const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchRankings } = useStock()
+const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
-const topRankers = ref<any[]>([])
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
@@ -230,10 +225,6 @@ onMounted(async () => {
     (async () => {
       const news = await fetchNews(5)
       recentNews.value = news
-    })(),
-    (async () => {
-      const ranks = await fetchRankings(3)
-      topRankers.value = ranks
     })()
   ])
 
