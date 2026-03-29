@@ -1,8 +1,47 @@
 <script setup lang="ts">
 const { fetchRankings } = useStock()
 
+const selectedYear = ref('전체')
+const selectedMonth = ref('전체')
+const years = ['전체', '2026', '2025']
+const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+
 const displayLimit = ref(20)
-const { data: rankings, pending, refresh } = useAsyncData('userRankings', () => fetchRankings(100))
+
+const { data: rankings, pending, refresh } = useAsyncData('userRankings', async () => {
+  let type = 'all_time'
+  let period_key = 'global'
+
+  if (selectedYear.value !== '전체') {
+    if (selectedMonth.value === '전체') {
+      type = 'yearly'
+      period_key = selectedYear.value
+    } else {
+      type = 'monthly'
+      const monthNum = selectedMonth.value.replace('월', '').padStart(2, '0')
+      period_key = `${selectedYear.value}-${monthNum}`
+    }
+  }
+
+  // Use the API directly for filtered rankings
+  if (type === 'all_time' && period_key === 'global') {
+     return await fetchRankings(100)
+  } else {
+    const data = await $fetch('/api/rankings', {
+      query: { type, period_key }
+    })
+    
+    return (data as any[]).map((r, index) => ({
+      username: r.profiles.username,
+      avatar_url: r.profiles.avatar_url,
+      points: 0, // Points are not period-specific in current DB
+      prediction_count: r.prediction_count,
+      win_rate: r.win_rate,
+      win_count: Math.round(r.prediction_count * (r.win_rate / 100)),
+      rank: r.rank || index + 1
+    }))
+  }
+}, { watch: [selectedYear, selectedMonth] })
 
 const topThree = computed(() => (rankings.value as any[])?.slice(0, 3) || [])
 const others = computed(() => (rankings.value as any[])?.slice(3, displayLimit.value) || [])
@@ -28,26 +67,27 @@ const getAvatar = (user: any) => {
         <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">글로벌 예측 리더보드</p>
       </div>
 
-      <!-- Hall of Fame Shortcut Banner -->
-      <section class="mb-10 group cursor-pointer" @click="navigateTo('/hall-of-fame')">
-        <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500/20 via-slate-800/40 to-slate-900/40 border border-amber-500/20 p-6 shadow-2xl transition-all hover:scale-[1.02] active:scale-95">
-          <div class="relative z-10 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-amber-500 animate-pulse" />
-              </div>
-              <div>
-                <h3 class="text-lg font-black text-amber-200 tracking-tight">명예의 전당</h3>
-                <p class="text-[10px] text-amber-500/60 font-black uppercase tracking-widest">Legends of the Season</p>
-              </div>
-            </div>
-            <UIcon name="i-heroicons-arrow-right-20-solid" class="w-5 h-5 text-amber-500/50 group-hover:text-amber-500 transition-colors" />
+      <!-- Filters -->
+      <div class="flex gap-3 mb-8">
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">연도</label>
+          <div class="relative">
+            <select v-model="selectedYear" class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer">
+              <option v-for="year in years" :key="year" :value="year">{{ year === '전체' ? '전체 연도' : `${year}년` }}</option>
+            </select>
+            <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
           </div>
-          <!-- Background decoration -->
-          <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full"></div>
         </div>
-      </section>
-
+        <div class="flex-1">
+          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">월</label>
+          <div class="relative" :class="{ 'opacity-50 pointer-events-none': selectedYear === '전체' }">
+            <select v-model="selectedMonth" class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer">
+              <option v-for="month in months" :key="month" :value="month">{{ month }}</option>
+            </select>
+            <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          </div>
+        </div>
+      </div>
 
       <div v-if="pending" class="flex justify-center py-20">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-brand-primary animate-spin" />
@@ -66,7 +106,9 @@ const getAvatar = (user: any) => {
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].username }}</p>
             <div class="h-20 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
-              <span class="text-xs font-black text-slate-400">{{ topThree[1].points.toLocaleString() }}p</span>
+              <span class="text-xs font-black" :class="selectedYear === '전체' ? 'text-slate-400' : 'text-brand-primary'">
+                {{ selectedYear === '전체' ? `${topThree[1].points.toLocaleString()}p` : `${topThree[1].win_rate}%` }}
+              </span>
             </div>
           </div>
 
@@ -81,7 +123,9 @@ const getAvatar = (user: any) => {
             </div>
             <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].username }}</p>
             <div class="h-28 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
-              <span class="text-sm font-black text-brand-primary">{{ topThree[0].points.toLocaleString() }}p</span>
+              <span class="text-sm font-black text-brand-primary">
+                {{ selectedYear === '전체' ? `${topThree[0].points.toLocaleString()}p` : `${topThree[0].win_rate}%` }}
+              </span>
             </div>
           </div>
 
@@ -95,7 +139,9 @@ const getAvatar = (user: any) => {
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].username }}</p>
             <div class="h-16 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
-              <span class="text-xs font-black text-slate-400">{{ topThree[2].points.toLocaleString() }}p</span>
+              <span class="text-xs font-black" :class="selectedYear === '전체' ? 'text-slate-400' : 'text-brand-primary'">
+                {{ selectedYear === '전체' ? `${topThree[2].points.toLocaleString()}p` : `${topThree[2].win_rate}%` }}
+              </span>
             </div>
           </div>
         </div>
@@ -105,7 +151,7 @@ const getAvatar = (user: any) => {
           <div class="w-8 text-center">순위</div>
           <div class="flex-1 ml-4">사용자</div>
           <div class="w-16 text-center">참여/성공</div>
-          <div class="w-20 text-right">총 포인트</div>
+          <div class="w-20 text-right">{{ selectedYear === '전체' ? '총 포인트' : '승률' }}</div>
         </div>
 
         <!-- Leaderboard List -->
@@ -134,9 +180,10 @@ const getAvatar = (user: any) => {
               <p class="text-[10px] font-bold text-rose-500">{{ user.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
             </div>
 
-            <!-- Points -->
+            <!-- Score (Points or Win Rate) -->
             <div class="w-20 text-right">
-              <p class="text-sm font-black text-slate-100">{{ user.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
+              <p v-if="selectedYear === '전체'" class="text-sm font-black text-slate-100">{{ user.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
+              <p v-else class="text-sm font-black text-brand-primary">{{ user.win_rate }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">%</span></p>
             </div>
           </div>
         </div>

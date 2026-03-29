@@ -475,14 +475,14 @@ export const useStock = () => {
     }))
   }
 
-  const fetchStocksWithStats = async () => {
+  const fetchStocksWithStats = async (orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' = 'market_cap_rank') => {
     try {
       // 1. 모든 종목 정보 (또는 상위 100개)
-      // wishlist_count, win_count는 이제 DB 컬럼에서 직접 가져옵니다.
+      // 정렬 기준에 따라 서버에서 직접 정렬된 데이터를 가져와 상위 100개를 노출합니다.
       const { data: stocksData, error: stocksError } = await client
         .from('stocks')
         .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count')
-        .order('market_cap_rank', { ascending: true })
+        .order(orderBy, { ascending: orderBy === 'market_cap_rank' })
         .limit(100)
       
       if (stocksError) {

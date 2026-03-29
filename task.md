@@ -61,11 +61,13 @@
         - [x] 첫 방문 시 자동 가이드 표시 로직 구현
         - [x] 주식 카드 스와이프 힌트 UI 강화
     - [x] DB 마이그레이션 파일 작성 (`wishlist_count`, `win_count` 추가 및 트리거 설정)
-    - [x] `useStock.ts` 컴포저블 수정 (집계 로직 단순화)
-    - [x] `stocks.vue` 수정 (UI 표시 확인 및 즉각적인 피드백 추가)
-    - [x] 기능 동작 확인 및 검증
-    - [x] 카드 스택 방식의 스와이프 UX 고도화
-        - [x] `StockCard` 던지기 애니메이션 구현
+    - [x] `supabase/functions/calculate-rankings/index.ts`에 연도별(yearly) 랭킹 계산 로직 추가
+    - [x] `app/pages/ranking.vue` UI 및 데이터 로딩 로직 수정
+        - [x] 명예의 전당 배너 삭제
+        - [x] 연도/월 선택 콤보박스 추가
+        - [x] 선택된 필터에 따른 API 호출 및 데이터 매핑 로직 구현
+    - [x] 전체 기능 동작 확인 및 검증
+    - [x] `StockCard` 던지기 애니메이션 구현
         - [x] `index.vue`에서 실시간 리더보드 섹션 및 관련 로직 제거
     - [x] `index.vue`의 AI 추천 종목 섹션 디자인 강화
     - [x] `index.vue`의 최근 주요 이슈(뉴스) 섹션 디자인 및 정보성 강화

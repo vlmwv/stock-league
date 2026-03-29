@@ -145,6 +145,28 @@ const handleToggleHeart = async (stockId: number) => {
   }
 }
 
+const loadStocks = async () => {
+  try {
+    isLoading.value = true
+    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count'> = {
+      marketCap: 'market_cap_rank',
+      wishlist: 'wishlist_count',
+      prediction: 'win_count'
+    }
+    const data = await fetchStocksWithStats(sortMap[currentSort.value])
+    allStocks.value = data || []
+  } catch (err) {
+    console.error('[Stocks] Failed to load stocks:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 정렬 탭 변경 시 데이터 다시 불러오기
+watch(currentSort, () => {
+  loadStocks()
+})
+
 const filteredStocks = computed(() => {
   let list = [...allStocks.value]
 
@@ -156,29 +178,14 @@ const filteredStocks = computed(() => {
     )
   }
 
-  // 정렬
-  if (currentSort.value === 'marketCap') {
-    list.sort((a, b) => (a.market_cap_rank ?? 9999) - (b.market_cap_rank ?? 9999))
-  } else if (currentSort.value === 'wishlist') {
-    list.sort((a, b) => (b.wishlist_count ?? 0) - (a.wishlist_count ?? 0))
-  } else if (currentSort.value === 'prediction') {
-    list.sort((a, b) => (b.win_count ?? 0) - (a.win_count ?? 0))
-  }
-
+  // 서버에서 정렬된 상태로 가져오므로, 검색 필터링 후 별도 정렬은 불필요하거나 
+  // 기존 순서를 유지하면 됩니다. (검색 시에도 현재 정렬 기준 유지)
   return list
 })
 
 onMounted(async () => {
-  try {
-    isLoading.value = true
-    await fetchWishlist()
-    const data = await fetchStocksWithStats()
-    allStocks.value = data || []
-  } catch (err) {
-    console.error('[Stocks] Failed to load stocks:', err)
-  } finally {
-    isLoading.value = false
-  }
+  await fetchWishlist()
+  await loadStocks()
 })
 </script>
 

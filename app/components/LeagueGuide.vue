@@ -56,7 +56,7 @@
               </div>
               <div class="space-y-1">
                 <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">3단계. 결과 및 랭킹</h4>
-                <p class="text-xs text-slate-400 leading-relaxed">다음날 결과가 발표됩니다. 정확한 예측으로 포인트와 명예의 전당 입성 기회를 잡으세요!</p>
+                <p class="text-xs text-slate-400 leading-relaxed">다음날 결과가 발표됩니다. 정확한 예측으로 포인트와 상위 랭킹에 도전하세요!</p>
               </div>
             </div>
           </div>

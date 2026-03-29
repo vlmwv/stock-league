@@ -40,6 +40,8 @@ Deno.serve(async (req) => {
       const pWeek = getWeekNumber(date)
       const pMonth = getMonthKey(date)
 
+      const pYear = String(date.getUTCFullYear())
+
       const updateStat = (type: string, key: string) => {
         const id = `${p.user_id}_${type}_${key}`
         if (!stats[id]) {
@@ -51,6 +53,7 @@ Deno.serve(async (req) => {
 
       updateStat('weekly', pWeek)
       updateStat('monthly', pMonth)
+      updateStat('yearly', pYear)
       updateStat('all_time', 'global')
     })
 
