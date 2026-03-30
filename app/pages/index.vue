@@ -218,7 +218,7 @@
  
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, isLeagueOpen } = useStock()
+const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, isLeagueOpen } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
 

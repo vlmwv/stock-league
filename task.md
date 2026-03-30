@@ -1,5 +1,5 @@
-- [ ] `useStock.ts`: `fetchPredictions` 날짜 파라미터 추가 및 내부 로직 개선
-- [ ] `useStock.ts`: `predict` 함수 로컬 상태 업데이트 반응성 보장 (배열 재할당 및 Number 변환)
-- [ ] `daily.vue`: 종목 로드 후 해당 리그 날짜로 예측 데이터 재조회 로직 추가
-- [ ] `index.vue`: 메인 페이지 예측 데이터 조회 날짜 보정
-- [ ] 최종 확인 및 테스트
+- [x] `useStock.ts`: `fetchPredictions` 날짜 파라미터 추가 및 내부 로직 개선
+- [x] `useStock.ts`: `predict` 함수 로컬 상태 업데이트 반응성 보장 (배열 재할당 및 Number 변환)
+- [x] `daily.vue`: 종목 로드 후 해당 리그 날짜로 예측 데이터 재조회 로직 추가
+- [x] `index.vue`: 메인 페이지 예측 데이터 조회 날짜 보정
+- [x] 최종 확인 및 테스트

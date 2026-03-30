@@ -39,8 +39,8 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { 
         temperature: 0.3, 
-        maxOutputTokens: 250,
-        responseMimeType: "application/json"
+        max_output_tokens: 250,
+        response_mime_type: "application/json"
       }
     })
   })

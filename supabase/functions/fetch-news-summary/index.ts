@@ -62,8 +62,8 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
       contents: [{ parts: [{ text: fullPrompt }] }],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 500,
-        responseMimeType: "application/json"
+        max_output_tokens: 500,
+        response_mime_type: "application/json"
       }
     })
   })
