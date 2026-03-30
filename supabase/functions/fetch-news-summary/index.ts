@@ -62,7 +62,8 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
       contents: [{ parts: [{ text: fullPrompt }] }],
       generationConfig: {
         temperature: 0.3,
-        max_output_tokens: 500
+        max_output_tokens: 500,
+        response_mime_type: "application/json"
       }
     })
   })
@@ -147,10 +148,22 @@ Deno.serve(async (req) => {
           fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
         ])
         
+        // 뉴스 API 새 스펙: 최상단 배열 내 객체의 items 속성, total 값을 통한 클러스터 우선순위 파악
         let newsItems = []
         if (newsRes.ok) {
           const newsData = await newsRes.json()
-          newsItems = newsData?.items || []
+          if (Array.isArray(newsData)) {
+            newsData.forEach((group: any) => {
+              if (group.items && Array.isArray(group.items)) {
+                let groupItems = group.items.map((item: any) => ({...item, clusterSize: group.total || 1}));
+                newsItems.push(...groupItems)
+              }
+            })
+            newsItems.sort((a, b) => b.clusterSize - a.clusterSize || b.datetime?.localeCompare(a.datetime) || 0)
+            newsItems = newsItems.slice(0, 5)
+          } else {
+            newsItems = newsData?.items || []
+          }
         }
         
         let disclosureItems = []
@@ -163,16 +176,13 @@ Deno.serve(async (req) => {
           console.warn(`No news or disclosures found for ${stock.name}`)
           continue
         }
-
-        // 3-2. 뉴스 항목 정렬 및 주요 뉴스 선정
-        const sortedNewsItems = [...newsItems].sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
         
-        // 3-3. Gemini를 사용해 통합 요약 생성
+        // 3-2. Gemini를 사용해 통합 요약 생성
         console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(sortedNewsItems, disclosureItems, stock.name)
+        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, stock.name)
         
-        // 3-4. DB에 요약 결과 저장 (news 테이블)
-        const topNews = sortedNewsItems[0] || {}
+        // 3-3. DB에 요약 결과 저장 (news 테이블)
+        const topNews = newsItems[0] || {}
         const topDisc = disclosureItems[0] || {}
         const publishedDate = topNews.dt ? `${topNews.dt.substring(0, 4)}-${topNews.dt.substring(4, 6)}-${topNews.dt.substring(6, 8)}T${topNews.dt.substring(8, 10)}:${topNews.dt.substring(10, 12)}:00Z` : new Date().toISOString()
         
@@ -183,19 +193,21 @@ Deno.serve(async (req) => {
           type = 'notice'
           const articleId = topDisc.articleId || topDisc.id
           finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
-        } else if (sortedNewsItems.length > 0) {
+        } else if (newsItems.length > 0) {
           type = 'news'
-          const oid = topNews.oid
-          const aid = topNews.aid
-          if (oid && aid) {
-            finalUrl = `https://n.news.naver.com/article/${oid}/${aid}`
+          const officeId = topNews.officeId || topNews.oid
+          const articleId = topNews.articleId || topNews.aid
+          if (officeId && articleId) {
+            finalUrl = `https://n.news.naver.com/article/${officeId}/${articleId}`
+          } else if (topNews.mobileNewsUrl) {
+            finalUrl = topNews.mobileNewsUrl
           } else {
             finalUrl = topNews.originLink || finalUrl
           }
         }
 
         const contentLines = [
-          ...sortedNewsItems.map((n: any) => `[뉴스] ${n.tit}`),
+          ...newsItems.map((n: any) => `[뉴스] ${n.tit}`),
           ...disclosureItems.map((d: any) => `[공시] ${d.title}`)
         ]
 

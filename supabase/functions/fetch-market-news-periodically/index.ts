@@ -39,7 +39,8 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { 
         temperature: 0.3, 
-        max_output_tokens: 250
+        max_output_tokens: 250,
+        response_mime_type: "application/json"
       }
     })
   })
@@ -121,12 +122,27 @@ Deno.serve(async (req) => {
       const discData = await discRes.json()
       const irData = await irRes.json()
 
-      const newsItems = newsData?.items || []
+      // 최신 API 스펙: 여러 언론사가 모인 묶음(Cluster) 뉴스는 배열 요소 안의 items 배열에 들어있음
+      let newsItems = []
+      if (Array.isArray(newsData)) {
+        // [{ items: [...] }, ...] 형태 평탄화. 만약 total > 1 인 주요 뉴스 묶음이 있으면 전체 요약 품질을 높일 수 있음.
+        newsData.forEach((group: any) => {
+          if (group.items && Array.isArray(group.items)) {
+            // total(묶인 기사 수)가 큰 것을 앞으로 당기도록 가중치 정렬 시도 가능
+            let groupItems = group.items.map((item: any) => ({...item, clusterSize: group.total || 1}));
+            newsItems.push(...groupItems)
+          }
+        })
+        // 클러스터 크기가 큰 주요 뉴스를 상단으로 배치 후 최신순 정렬 보정
+        newsItems.sort((a, b) => b.clusterSize - a.clusterSize || b.datetime?.localeCompare(a.datetime) || 0)
+        // 5개로 제한
+        newsItems = newsItems.slice(0, 5)
+      } else {
+        newsItems = newsData?.items || []
+      }
+
       const discItems = Array.isArray(discData) ? discData : (discData?.items || [])
       const irItems = irData?.items || []
-
-      // 2-1. 뉴스 항목 정렬: 묶음 기사 수(total)가 많은 순서대로 정렬 (주요 뉴스 우선)
-      const sortedNewsItems = [...newsItems].sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
       
       // 개별 상세 URL 생성을 위한 헬퍼 로직
       let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
@@ -143,17 +159,21 @@ Deno.serve(async (req) => {
         primaryItem = discItems[0]
         const articleId = primaryItem.articleId || primaryItem.id
         finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
-      } else if (sortedNewsItems.length > 0) {
+      } else if (newsItems.length > 0) {
         type = 'news'
-        primaryItem = sortedNewsItems[0]
-        const oid = primaryItem.oid
-        const aid = primaryItem.aid
-        if (oid && aid) {
-          finalUrl = `https://n.news.naver.com/article/${oid}/${aid}`
+        // 클러스터링된 주요 뉴스가 있다면 그것을 우선시 (배열 내 객체의 total 값이 영향을 주지만 이미 평탄화되었으므로)
+        // items 속성 내부 객체 사용 시 officeId, articleId 사용 (최신 API 스펙 반영)
+        primaryItem = newsItems[0]
+        const officeId = primaryItem.officeId || primaryItem.oid
+        const articleId = primaryItem.articleId || primaryItem.aid
+        if (officeId && articleId) {
+          finalUrl = `https://n.news.naver.com/article/${officeId}/${articleId}`
+        } else if (primaryItem.mobileNewsUrl) {
+          finalUrl = primaryItem.mobileNewsUrl
         }
       }
 
-      const allItems = [...irItems, ...discItems, ...sortedNewsItems]
+      const allItems = [...newsItems, ...discItems, ...irItems]
       if (allItems.length === 0) continue
 
       const { title, summary } = await summarizeWithGemini(allItems, stock.name)
