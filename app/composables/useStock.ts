@@ -127,7 +127,7 @@ export const useStock = () => {
 
     // Map to local Stock interface
     return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
-      id: ds.stocks.id,
+      id: Number(ds.stocks.id),
       daily_id: ds.id,
       game_date: ds.game_date,
       name: ds.stocks.name,
@@ -160,7 +160,7 @@ export const useStock = () => {
     
     if (error) return []
     return (data || []).filter((n: any) => n.stocks).map((n: any) => ({
-      id: n.stocks.id,
+      id: Number(n.stocks.id),
       name: n.stocks.name,
       code: n.stocks.code,
       last_price: n.stocks.last_price || 0,
@@ -290,7 +290,7 @@ export const useStock = () => {
       .eq('user_id', user.value.id)
     
     if (!error && data) {
-      hearts.value = data.map((w: any) => w.stock_id)
+      hearts.value = data.map((w: any) => Number(w.stock_id))
     }
   }
 
@@ -315,27 +315,34 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
-    if (!user.value) return
+    if (!user.value) {
+      if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+        navigateTo('/login')
+      }
+      return
+    }
 
-    const isHearted = hearts.value.includes(stockId)
+    const id = Number(stockId)
+    const isHearted = hearts.value.includes(id)
     
     if (isHearted) {
       const { error } = await (client
         .from('wishlists')
         .delete() as any)
         .eq('user_id', user.value.id)
-        .eq('stock_id', stockId)
+        .eq('stock_id', id)
       
       if (!error) {
-        hearts.value = hearts.value.filter(id => id !== stockId)
+        hearts.value = hearts.value.filter(hId => Number(hId) !== id)
       }
     } else {
       const { error } = await (client
         .from('wishlists')
-        .insert({ user_id: user.value.id, stock_id: stockId } as any) as any)
+        .insert({ user_id: user.value.id, stock_id: id } as any) as any)
       
       if (!error) {
-        hearts.value.push(stockId)
+        // 반응성을 위해 새 배열 할당
+        hearts.value = [...hearts.value, id]
       }
     }
   }

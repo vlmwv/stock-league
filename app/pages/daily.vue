@@ -119,7 +119,7 @@
             </button>
           </div>
 
-          <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center z-20 pointer-events-none">
+          <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
             <span class="px-4 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-black text-slate-400 uppercase tracking-widest shadow-2xl">
               응모 마감
             </span>

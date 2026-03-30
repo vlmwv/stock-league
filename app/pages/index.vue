@@ -242,7 +242,7 @@ const navigateToNews = (item: any) => {
   }
 }
 
-const isHearted = (id: number) => hearts.value.includes(id)
+const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 onMounted(async () => {
   await Promise.all([

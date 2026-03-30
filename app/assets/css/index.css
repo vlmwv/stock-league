@@ -28,7 +28,7 @@ body {
 }
 
 .glass-dark {
-  @apply backdrop-blur-xl bg-slate-900/95 border border-slate-700/50;
+  @apply backdrop-blur-2xl bg-slate-900/98 border border-white/10;
 }
 
 /* Animations */

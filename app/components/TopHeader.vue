@@ -74,7 +74,7 @@
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>
-              <div class="p-2 w-48 bg-slate-900/90 border border-slate-700/50 rounded-xl glass-dark">
+              <div class="p-2 w-48 bg-slate-900/98 border border-white/10 rounded-xl glass-dark">
                 <div class="px-3 py-2 border-b border-slate-700/50 mb-1">
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
