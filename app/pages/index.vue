@@ -248,7 +248,6 @@ onMounted(async () => {
   await Promise.all([
     refresh(),
     fetchWishlist(),
-    fetchPredictions(),
     refreshMarketCap(),
     fetchParticipantCount(),
     (async () => {
@@ -256,8 +255,11 @@ onMounted(async () => {
       recentNews.value = news
     })()
   ])
-
   
+  // 종목 데이터가 로드된 후, 해당 종목들의 game_date를 기준으로 예측 데이터를 조회합니다.
+  const targetDate = dailyStocks.value?.[0]?.game_date
+  await fetchPredictions(targetDate)
+
   const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
   if (!hasSeenGuide) {
     isGuideOpen.value = true

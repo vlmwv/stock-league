@@ -236,20 +236,22 @@ export const useStock = () => {
     return hour < 8
   })
 
-  const fetchPredictions = async () => {
+  const fetchPredictions = async (date?: string) => {
     if (!user.value) return
 
-    const today = getKstDate()
+    // 인자로 받은 날짜가 있으면 사용, 없으면 오늘 날짜 사용
+    const targetDate = date || getKstDate()
     
+    console.log(`[useStock] Fetching predictions for date: ${targetDate}`)
     const { data, error } = await client
       .from('predictions')
       .select('stock_id, prediction_type')
       .eq('user_id', user.value.id)
-      .eq('game_date', today as any)
+      .eq('game_date', targetDate as any)
     
-    if (!error && (data as any)) {
+    if (!error && data) {
       myPredictions.value = (data as any).map((p: any) => ({
-        stockId: p.stock_id,
+        stockId: Number(p.stock_id),
         prediction: p.prediction_type
       }))
     }
@@ -358,13 +360,18 @@ export const useStock = () => {
         result: 'pending'
       } as any, { onConflict: 'user_id, stock_id, game_date' } as any) as any)
 
-    if (!error && myPredictions.value) {
-      const index = myPredictions.value.findIndex(p => p.stockId === stockId)
-      if (index > -1 && myPredictions.value[index]) {
-        myPredictions.value[index].prediction = prediction
+    if (!error) {
+      const current = myPredictions.value || []
+      const index = current.findIndex(p => Number(p.stockId) === Number(stockId))
+      
+      const next = [...current]
+      if (index > -1 && next[index]) {
+        next[index] = { stockId: next[index].stockId, prediction }
       } else {
-        myPredictions.value.push({ stockId, prediction })
+        next.push({ stockId: Number(stockId), prediction })
       }
+      // 배열 자체를 교체하여 Vue의 반응성(Reactivity)을 트리거함
+      myPredictions.value = next
     }
   }
 

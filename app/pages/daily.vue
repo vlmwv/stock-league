@@ -226,9 +226,13 @@ const onPredict = (id: number, prediction: 'up' | 'down') => {
 onMounted(async () => {
   await Promise.all([
     refresh(),
-    fetchWishlist(),
-    fetchPredictions()
+    fetchWishlist()
   ])
+  
+  // 종목 데이터가 로드된 후, 해당 종목들의 game_date를 기준으로 예측 데이터를 조회합니다.
+  // 21:20 이후 '내일의 리그'인 경우 내일 날짜의 예측을 가져오기 위함입니다.
+  const targetDate = dailyStocks.value?.[0]?.game_date
+  await fetchPredictions(targetDate)
 })
 </script>
 
