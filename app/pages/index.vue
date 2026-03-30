@@ -12,9 +12,8 @@
               <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
             </div>
-            <h2 class="text-3xl font-black mb-4 leading-[1.1] tracking-tighter text-slate-100">
-              오늘의 차트를 <br/>
-              <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
+            <h2 class="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tighter text-slate-100">
+              오늘의 차트를 <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
             </h2>
             <div class="flex flex-col gap-2 mt-4">
               <div class="flex items-center gap-2">
@@ -89,55 +88,47 @@
             class="min-w-[300px] bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[1.5rem] p-5 border border-white/10 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300"
           >
             <!-- Premium Background Glow -->
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary/10 blur-[60px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 blur-[50px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
             
-            <div class="relative z-10">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex flex-col">
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-rose-500 text-white text-[10px] font-black uppercase tracking-wider shadow-lg shadow-rose-500/30">
-                      <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5" />
-                      HOT PICK
-                    </span>
-                    <span class="text-[10px] font-mono text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50 uppercase tracking-tighter">{{ stock.code }}</span>
+            <div class="relative z-10 flex flex-col gap-3">
+              <!-- Row 1: Icon, Name, Code, Heart -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
+                    <UIcon name="i-heroicons-sparkles-20-solid" class="w-5 h-5 text-brand-primary" />
                   </div>
-                  <h4 class="font-black text-slate-100 text-xl tracking-tight">{{ stock.name }}</h4>
+                  <div class="flex flex-col gap-0.5">
+                    <h4 class="font-black text-slate-100 text-sm tracking-tight leading-none">{{ stock.name }}</h4>
+                    <span class="text-[9px] font-mono text-slate-500 uppercase tracking-tighter bg-slate-800/50 px-1.5 py-0.5 rounded-md border border-slate-700/50 w-fit">{{ stock.code }}</span>
+                  </div>
                 </div>
                 <button 
                   @click.stop="toggleHeart(stock.id)"
-                  class="w-11 h-11 rounded-[1.25rem] flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 group-active:scale-90"
-                  :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-400'"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95"
+                  :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-500'"
                 >
-                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
                 </button>
               </div>
 
-              <div class="bg-white/5 rounded-2xl p-4 mb-6 border border-white/5 min-h-[72px] flex items-center">
-                <p class="text-[13px] text-slate-300 font-medium leading-[1.6] line-clamp-2">
-                  <span class="text-brand-primary font-black mr-1">"</span>
-                  {{ stock.summary }}
-                  <span class="text-brand-primary font-black ml-1">"</span>
-                </p>
+              <!-- Row 2: AI Summary (Marquee) -->
+              <div class="relative overflow-hidden bg-white/5 rounded-xl h-8 flex items-center border border-white/5 group/marquee">
+                <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
+                  <p class="text-[11px] text-slate-400 font-medium">
+                    {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
+                  </p>
+                </div>
               </div>
 
-              <div class="flex justify-between items-end">
-                <div class="flex flex-col">
-                  <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
-                    <span class="text-[12px] font-bold text-slate-400">원</span>
-                  </div>
-                </div>
+              <!-- Row 3: Current Price + Change Info -->
+              <div class="flex items-baseline gap-2 px-1">
+                <span class="text-xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
                 <div 
-                  class="flex flex-col items-end gap-0.5 px-3 py-1.5 rounded-2xl font-black shadow-inner"
-                  :class="stock.change_amount >= 0 ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'"
+                  class="flex items-center gap-1 text-[11px] font-black"
+                  :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                 >
-                   <div class="flex items-center gap-1">
-                     <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-3.5 h-3.5" />
-                     <span class="text-lg leading-none font-black">{{ stock.change_rate }}%</span>
-                   </div>
-                   <span class="text-[9px] font-bold opacity-60 uppercase tracking-tighter">
-                     {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
-                   </span>
+                  <span>{{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}</span>
+                  <span class="opacity-80">({{ stock.change_rate }}%)</span>
                 </div>
               </div>
             </div>
@@ -298,5 +289,16 @@ onMounted(async () => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes marquee-slow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee-slow {
+  animation: marquee-slow 15s linear infinite;
+}
+.animate-marquee-paused {
+  animation-play-state: paused;
 }
 </style>
