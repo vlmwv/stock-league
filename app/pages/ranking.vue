@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const { fetchRankings } = useStock()
+const user = useSupabaseUser()
+const { fetchRankings, fetchUserStats, totalMemberCount, fetchParticipantCount } = useStock()
+
+const { data: myStats } = useAsyncData('myStats', () => fetchUserStats(), { watch: [user] })
 
 const selectedYear = ref('2026')
 const selectedMonth = ref('3월')
@@ -55,6 +58,30 @@ const getAvatar = (user: any) => {
   if (user.avatar_url) return user.avatar_url
   return `https://api.dicebear.com/7.x/notionists/svg?seed=${user.username}`
 }
+
+const myRankingInfo = computed(() => {
+  if (!user.value || !rankings.value) return null
+  // 리스트 내에 내가 있는지 확인
+  const found = (rankings.value as any[]).find(r => r.username === (user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0]))
+  if (found) return found
+  
+  // 리스트에 없으면 전체 스태츠에서 가져옴 (단, 필터가 '전체'일 때만 의미 있음)
+  if (selectedYear.value === '전체' && myStats.value) {
+    return {
+      username: user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0],
+      avatar_url: user.value?.user_metadata?.avatar_url,
+      points: myStats.value.points,
+      prediction_count: myStats.value.totalGames,
+      win_rate: myStats.value.winRate,
+      win_count: Math.round(myStats.value.totalGames * (myStats.value.winRate / 100)),
+      rank: myStats.value.rank
+    }
+  }
+  return null
+})
+onMounted(async () => {
+  await fetchParticipantCount()
+})
 </script>
 
 <template>
@@ -62,11 +89,34 @@ const getAvatar = (user: any) => {
     <TopHeader />
 
     <main class="max-w-md mx-auto px-6 py-8">
-      <div class="mb-8">
-        <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-1">실시간 랭킹</h2>
-        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">글로벌 예측 리더보드</p>
       </div>
-
+  
+      <!-- My Rank (Sticky/Top) -->
+      <div v-if="user && myRankingInfo" class="mb-10 animate-fade-in">
+        <p class="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
+          나의 현재 순위
+        </p>
+        <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/10 rounded-3xl p-4 border border-brand-primary/30 flex items-center shadow-lg shadow-brand-primary/5">
+          <div class="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white font-black text-sm shadow-lg shrink-0">
+            {{ myRankingInfo.rank }}
+          </div>
+          <div class="flex-1 flex items-center gap-3 ml-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-brand-primary/30 overflow-hidden shrink-0">
+               <img :src="getAvatar(myRankingInfo)" alt="me" class="w-full h-full object-cover" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.username }}</p>
+              <p class="text-[10px] font-bold text-brand-primary/80 uppercase">상위 {{ Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-black text-slate-100">{{ selectedYear === '전체' ? `${myRankingInfo.points.toLocaleString()}P` : `${myRankingInfo.win_rate}%` }}</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{{ myRankingInfo.win_count }}승 / {{ myRankingInfo.prediction_count }}회</p>
+          </div>
+        </div>
+      </div>
+  
       <!-- Filters -->
       <div class="flex gap-3 mb-8">
         <div class="flex-1">
@@ -156,34 +206,34 @@ const getAvatar = (user: any) => {
 
         <!-- Leaderboard List -->
         <div class="space-y-2">
-          <div v-for="(user, index) in others" :key="user.username" 
+          <div v-for="(rankingUser, index) in others" :key="rankingUser.username" 
                class="glass-dark rounded-2xl p-3 flex items-center hover:bg-slate-800/50 transition-colors border border-white/5 group"
           >
             <!-- Rank -->
             <div class="w-8 flex justify-center">
-              <span class="text-xs font-black" :class="index + 4 <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ index + 4 }}</span>
+              <span class="text-xs font-black" :class="rankingUser.rank <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ rankingUser.rank }}</span>
             </div>
 
             <!-- Profile & Name -->
             <div class="flex-1 flex items-center gap-3 ml-4">
               <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0">
-                 <img :src="getAvatar(user)" alt="user" class="w-full h-full object-cover" />
+                 <img :src="getAvatar(rankingUser)" alt="user" class="w-full h-full object-cover" />
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-200 truncate">{{ user.username }}</p>
+                <p class="text-sm font-bold text-slate-200 truncate">{{ rankingUser.username }}</p>
               </div>
             </div>
 
             <!-- Stats: Participated / Successful -->
             <div class="w-16 text-center">
-              <p class="text-[11px] font-black text-slate-400">{{ user.prediction_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">회</span></p>
-              <p class="text-[10px] font-bold text-rose-500">{{ user.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
+              <p class="text-[11px] font-black text-slate-400">{{ rankingUser.prediction_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">회</span></p>
+              <p class="text-[10px] font-bold text-rose-500">{{ rankingUser.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
             </div>
 
             <!-- Score (Points or Win Rate) -->
             <div class="w-20 text-right">
-              <p v-if="selectedYear === '전체'" class="text-sm font-black text-slate-100">{{ user.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
-              <p v-else class="text-sm font-black text-brand-primary">{{ user.win_rate }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">%</span></p>
+              <p v-if="selectedYear === '전체'" class="text-sm font-black text-slate-100">{{ rankingUser.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
+              <p v-else class="text-sm font-black text-brand-primary">{{ rankingUser.win_rate }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">%</span></p>
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 // Gemini API를 이용한 뉴스 및 공시 요약 함수
-async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosureItems: any[], stockName: string): Promise<string> {
+async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosureItems: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not set')
   }
@@ -16,7 +16,14 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   // 프롬프트 작성 (뉴스 및 공시 텍스트를 기반으로 통합 요약 요청)
   let prompt = `다음은 '${stockName}' 주식에 대한 최근 주요 뉴스 및 전자공시 내용입니다. 
 뉴스 ${newsItems.length}건과 공시 ${disclosureItems.length}건을 종합하여, 현재 이 종목의 핵심 쟁점과 시장 분위기를 3~4문장으로 아주 명확하고 간결하게 요약해 주세요.
-불필요한 수식어는 배제하고 투자자가 참고할 만한 실질적인 정보(호재, 악재, 주요 일정 등) 위주로 작성해 주세요.\n\n`
+불필요한 수식어는 배제하고 투자자가 참고할 만한 실질적인 정보(호재, 악재, 주요 일정 등) 위주로 작성해 주세요.
+또한 이 모든 내용을 포괄하는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
+
+응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
+{
+  "title": "{통합된 뉴스 제목 같은 헤드라인} (요약)",
+  "summary": "{종합 요약 내용}"
+}\n\n`
   
   if (newsItems.length > 0) {
     prompt += `[주요 뉴스]\n`
@@ -42,7 +49,8 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 400,
+        maxOutputTokens: 500,
+        responseMimeType: "application/json"
       }
     })
   })
@@ -54,9 +62,21 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   }
  
   const data = await response.json()
-  const summaryText = data.candidates?.[0]?.content?.parts?.[0]?.text
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
   
-  return summaryText?.trim() || '요약 내용을 생성하지 못했습니다.'
+  try {
+    const parsed = JSON.parse(text)
+    return {
+      title: parsed.title || `[요약] ${stockName} 주요 이슈 및 공시`,
+      summary: parsed.summary || '요약 내용을 생성하지 못했습니다.'
+    }
+  } catch (e) {
+    console.error('Failed to parse Gemini response as JSON:', text)
+    return {
+      title: `[요약] ${stockName} 주요 이슈 및 공시`,
+      summary: text || '요약 내용을 생성하지 못했습니다.'
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -134,7 +154,7 @@ Deno.serve(async (req) => {
         
         // 3-2. Gemini를 사용해 통합 요약 생성
         console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const summary = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, stock.name)
+        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, stock.name)
         
         // 3-3. DB에 요약 결과 저장 (news 테이블)
         const topNews = newsItems[0] || {}
@@ -147,7 +167,7 @@ Deno.serve(async (req) => {
 
         const newsRecord = {
           stock_id: stock.id,
-          title: `[요약] ${stock.name} 주요 이슈 및 공시 (뉴스 ${newsItems.length}건, 공시 ${disclosureItems.length}건 기반)`,
+          title: title,
           content: contentLines.join('\n'),
           url: topNews.originLink || `https://m.stock.naver.com/domestic/stock/${stock.code}/news`,
           source: '네이버 시황/뉴스/공시 (Gemini 1.5 Flash 요약)',

@@ -12,6 +12,7 @@ interface Stock {
 
 export const useStock = () => {
   const client = useSupabaseClient()
+  const user = useSupabaseUser()
 
   const getKstDate = () => {
     const now = new Date()
@@ -186,10 +187,10 @@ export const useStock = () => {
     const hour = kstDate.getHours()
     
     // 만약 현재 종목이 과거의 데이터라면 마감된 것임 (미래 데이터면 오픈)
-    const today = getKstDate()
+    const todayStr = getKstDate()
     if (stocks.value && (stocks.value as any).length > 0) {
       const firstStockDate = (stocks.value as any)[0].game_date
-      if (firstStockDate && firstStockDate < today) {
+      if (firstStockDate && firstStockDate < todayStr) {
         return false // 과거 데이터면 마감
       }
     }
@@ -198,15 +199,14 @@ export const useStock = () => {
   })
 
   const fetchPredictions = async () => {
-    const { data: user } = await client.auth.getUser()
-    if (!user.user) return
+    if (!user.value) return
 
     const today = getKstDate()
     
     const { data, error } = await client
       .from('predictions')
       .select('stock_id, prediction_type')
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.value.id)
       .eq('game_date', today as any)
     
     if (!error && (data as any)) {
@@ -242,13 +242,12 @@ export const useStock = () => {
   }
 
   const fetchWishlist = async () => {
-    const { data: user } = await client.auth.getUser()
-    if (!user.user) return
+    if (!user.value) return
 
     const { data, error } = await client
       .from('wishlists')
       .select('stock_id')
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.value.id)
     
     if (!error && data) {
       hearts.value = data.map((w: any) => w.stock_id)
@@ -276,8 +275,7 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
-    const { data: user } = await client.auth.getUser()
-    if (!user.user) return
+    if (!user.value) return
 
     const isHearted = hearts.value.includes(stockId)
     
@@ -285,7 +283,7 @@ export const useStock = () => {
       const { error } = await (client
         .from('wishlists')
         .delete() as any)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.value.id)
         .eq('stock_id', stockId)
       
       if (!error) {
@@ -294,7 +292,7 @@ export const useStock = () => {
     } else {
       const { error } = await (client
         .from('wishlists')
-        .insert({ user_id: user.user.id, stock_id: stockId } as any) as any)
+        .insert({ user_id: user.value.id, stock_id: stockId } as any) as any)
       
       if (!error) {
         hearts.value.push(stockId)
@@ -308,15 +306,14 @@ export const useStock = () => {
       return
     }
 
-    const { data: user } = await client.auth.getUser()
-    if (!user.user) return
+    if (!user.value) return
 
     const targetDate = gameDate || getKstDate()
     
     const { error } = await (client
       .from('predictions')
       .upsert({
-        user_id: user.user.id,
+        user_id: user.value.id,
         stock_id: stockId,
         game_date: targetDate,
         prediction_type: prediction,
@@ -350,23 +347,23 @@ export const useStock = () => {
       return []
     }
 
-    return ((data as any[]) || []).map(p => {
+    return ((data as any[]) || []).map((p, index) => {
       const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0 }
       return {
         username: p.username,
         avatar_url: p.avatar_url,
         points: p.points,
         prediction_count: stats.prediction_count,
-        win_count: Math.round(stats.prediction_count * (stats.win_rate / 100))
+        win_count: Math.round(stats.prediction_count * (stats.win_rate / 100)),
+        rank: index + 1
       }
     })
   }
 
   const fetchUserStats = async () => {
-    const { data: userData } = await client.auth.getUser()
-    if (!userData.user) return null
+    if (!user.value) return null
 
-    const userId = userData.user.id
+    const userId = user.value.id
 
     // 1. Get points and profile
     const { data: profile } = await client
@@ -441,8 +438,7 @@ export const useStock = () => {
   }
 
   const fetchUserHistory = async () => {
-    const { data: userData } = await client.auth.getUser()
-    if (!userData.user) return []
+    if (!user.value) return []
 
     const { data, error } = await client
       .from('predictions')
@@ -456,7 +452,7 @@ export const useStock = () => {
           name
         )
       `)
-      .eq('user_id', userData.user.id)
+      .eq('user_id', user.value.id)
       .order('game_date', { ascending: false })
       .limit(10)
 

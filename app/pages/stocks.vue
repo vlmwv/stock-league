@@ -221,9 +221,12 @@ watch(currentSort, () => {
 
 let observer: IntersectionObserver | null = null
 
-onMounted(async () => {
-  await fetchWishlist()
-  await loadStocks()
+onMounted(() => {
+  // 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
+  Promise.all([
+    fetchWishlist(),
+    loadStocks()
+  ])
 
   // Intersection Observer 설정
   observer = new IntersectionObserver((entries) => {

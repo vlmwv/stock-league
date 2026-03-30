@@ -6,12 +6,18 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-async function summarizeWithGemini(items: any[], stockName: string): Promise<string> {
+async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
 
   const prompt = `다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
 가장 중요한 핵심 내용 1가지를 골라 1~2문장으로 아주 짧고 강렬하게 요약해 주세요. 
-사용자가 이 정보를 보고 '찜'하거나 '예측'에 참고할 수 있도록 흥미를 유발하는 문체로 작성해 주세요.
+또한 이 내용을 잘 나타내는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
+
+응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
+{
+  "title": "{실제 뉴스 제목 같은 헤드라인} (요약)",
+  "summary": "{핵심 요약 내용}"
+}
 
 [목록]
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
@@ -22,18 +28,35 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 200 }
+      generationConfig: { 
+        temperature: 0.7, 
+        maxOutputTokens: 250,
+        responseMimeType: "application/json"
+      }
     })
   })
 
   if (!response.ok) {
     const errBody = await response.text()
     console.error(`Gemini API Error (${response.status}):`, errBody)
-    // 디버깅을 위해 에러 본문을 포함한 에러 던지기
     throw new Error(`Gemini API failed (${response.status}): ${errBody}`)
   }
   const data = await response.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '요약을 생성할 수 없습니다.'
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+  
+  try {
+    const parsed = JSON.parse(text)
+    return {
+      title: parsed.title || `[실시간 요약] ${stockName} 주요 이슈`,
+      summary: parsed.summary || '요약을 생성할 수 없습니다.'
+    }
+  } catch (e) {
+    console.error('Failed to parse Gemini response as JSON:', text)
+    return {
+      title: `[실시간 요약] ${stockName} 주요 이슈`,
+      summary: text || '요약을 생성할 수 없습니다.'
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -89,13 +112,13 @@ Deno.serve(async (req) => {
         targetPath = 'notice'
       }
 
-      const summary = await summarizeWithGemini(allItems, stock.name)
+      const { title, summary } = await summarizeWithGemini(allItems, stock.name)
 
       const { error: insertError } = await supabase
         .from('news')
         .upsert({
           stock_id: stock.id,
-          title: `[실시간 요약] ${stock.name} 주요 이슈`,
+          title: title,
           llm_summary: summary,
           url: `https://m.stock.naver.com/domestic/stock/${stock.code}/${targetPath}`,
           type: type,
