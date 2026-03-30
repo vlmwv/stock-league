@@ -36,13 +36,35 @@
                 </span>
                 <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest">오늘 {{ participantCount.toLocaleString() }}명 예측 완료</p>
               </div>
+
+              <!-- League Schedule Info -->
+              <div class="mt-6 flex flex-col gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md relative overflow-hidden group/schedule">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-2xl rounded-full group-hover/schedule:bg-brand-primary/10 transition-colors"></div>
+                <div class="flex justify-between items-center relative z-10">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">참여 가능 시간</span>
+                    <div class="flex items-center gap-1.5">
+                      <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-brand-primary" />
+                      <span class="text-xs font-bold text-slate-200">전일 21:20 ~ 당일 08:00</span>
+                    </div>
+                  </div>
+                  <div class="h-8 w-px bg-white/10"></div>
+                  <div class="flex flex-col gap-1 items-end">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">결과 발표</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-slate-200">당일 20:20</span>
+                      <UIcon name="i-heroicons-megaphone" class="w-3.5 h-3.5 text-brand-secondary" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
               
               <button 
                 @click="navigateTo('/daily')"
                 class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
-                참여하기
+                {{ isLeagueOpen ? '참여하기' : '리그 마감 (결과 대기 중)' }}
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               </button>
             </div>
@@ -207,7 +229,7 @@
  
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap } = useStock()
+const { recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, isLeagueOpen } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
 
