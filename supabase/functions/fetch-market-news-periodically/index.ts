@@ -9,9 +9,18 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
 
-  const prompt = `다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
+  // 첫 번째 항목(가장 임팩트 있는 항목)을 주 대상으로 정보 요약
+  const primaryItem = items[0]
+  const primaryTitle = primaryItem.title || primaryItem.tit || ""
+
+  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
 가장 중요한 핵심 내용 1가지를 골라 1~2문장으로 아주 짧고 강렬하게 요약해 주세요. 
 또한 이 내용을 잘 나타내는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
+
+[중요 제약 조건]
+- "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같이 단순하고 반복적인 제목은 절대 사용하지 마세요.
+- 독자의 시선을 끌 수 있도록 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 제목을 만드세요.
+- 제목은 25자 이내로 작성해 주세요.
 
 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
 {
@@ -29,7 +38,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { 
-        temperature: 0.7, 
+        temperature: 0.3, 
         maxOutputTokens: 250,
         responseMimeType: "application/json"
       }
@@ -47,13 +56,13 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
   try {
     const parsed = JSON.parse(text)
     return {
-      title: parsed.title || `[실시간 요약] ${stockName} 주요 이슈`,
+      title: parsed.title || `[실시간 요약] ${primaryTitle.substring(0, 20)}...`,
       summary: parsed.summary || '요약을 생성할 수 없습니다.'
     }
   } catch (e) {
     console.error('Failed to parse Gemini response as JSON:', text)
     return {
-      title: `[실시간 요약] ${stockName} 주요 이슈`,
+      title: `[실시간 요약] ${primaryTitle.substring(0, 20)}...`,
       summary: text || '요약을 생성할 수 없습니다.'
     }
   }
@@ -96,21 +105,34 @@ Deno.serve(async (req) => {
       const newsItems = newsData?.items || []
       const discItems = Array.isArray(discData) ? discData : (discData?.items || [])
       const irItems = irData?.items || []
-      const allItems = [...newsItems, ...discItems, ...irItems]
-
-      if (allItems.length === 0) continue
-
-      // 타입 결정: IR > 공공시 > 뉴스 순으로 우선순위 부여
-      let type: 'news' | 'notice' | 'ir' = 'news'
-      let targetPath = 'news'
       
+      // 개별 상세 URL 생성을 위한 헬퍼 로직
+      let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
+      let type: 'news' | 'notice' | 'ir' = 'news'
+      let primaryItem: any = null
+
       if (irItems.length > 0) {
         type = 'ir'
-        targetPath = 'ir'
+        primaryItem = irItems[0]
+        const boardId = primaryItem.boardId || primaryItem.id
+        finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
       } else if (discItems.length > 0) {
         type = 'notice'
-        targetPath = 'notice'
+        primaryItem = discItems[0]
+        const articleId = primaryItem.articleId || primaryItem.id
+        finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
+      } else if (newsItems.length > 0) {
+        type = 'news'
+        primaryItem = newsItems[0]
+        const oid = primaryItem.oid
+        const aid = primaryItem.aid
+        if (oid && aid) {
+          finalUrl = `https://n.news.naver.com/article/${oid}/${aid}`
+        }
       }
+
+      const allItems = [...newsItems, ...discItems, ...irItems]
+      if (allItems.length === 0) continue
 
       const { title, summary } = await summarizeWithGemini(allItems, stock.name)
 
@@ -120,7 +142,7 @@ Deno.serve(async (req) => {
           stock_id: stock.id,
           title: title,
           llm_summary: summary,
-          url: `https://m.stock.naver.com/domestic/stock/${stock.code}/${targetPath}`,
+          url: finalUrl,
           type: type,
           source: 'Naver Finance (AI Summary)',
           published_at: new Date().toISOString()

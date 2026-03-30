@@ -13,44 +13,53 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  // 프롬프트 작성 (뉴스 및 공시 텍스트를 기반으로 통합 요약 요청)
-  let prompt = `다음은 '${stockName}' 주식에 대한 최근 주요 뉴스 및 전자공시 내용입니다. 
+  const primaryItem = disclosureItems[0] || newsItems[0]
+  const primaryTitle = primaryItem ? (primaryItem.title || primaryItem.tit || "") : ""
+
+  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식에 대한 최근 주요 뉴스 및 전자공시 내용입니다. 
 뉴스 ${newsItems.length}건과 공시 ${disclosureItems.length}건을 종합하여, 현재 이 종목의 핵심 쟁점과 시장 분위기를 3~4문장으로 아주 명확하고 간결하게 요약해 주세요.
 불필요한 수식어는 배제하고 투자자가 참고할 만한 실질적인 정보(호재, 악재, 주요 일정 등) 위주로 작성해 주세요.
 또한 이 모든 내용을 포괄하는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
 
-[중요 지침]
-1. 요약(summary) 작성 시 '${stockName}' 이라는 종목명을 문장 처음에 넣지 마세요.
-2. '요약:', '결론:' 등의 서두 문구 없이 바로 본론으로 시작하세요.
+[중요 제약 조건]
+- "${stockName} 주요 이슈", "${stockName} 주요 이슈 및 공시" 같이 단순하고 반복적인 제목은 절대 사용하지 마세요.
+- 독자의 시선을 끌 수 있도록 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 제목을 만드세요.
+- 제목은 25자 이내로 작성해 주세요.
+- 요약(summary) 작성 시 '${stockName}' 이라는 종목명을 문장 처음에 넣지 마세요.
+- '요약:', '결론:' 등의 서두 문구 없이 바로 본론으로 시작하세요.
 
 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
 {
   "title": "{통합된 뉴스 제목 같은 헤드라인} (요약)",
   "summary": "{종합 요약 내용}"
-}\n\n`
+}
+`
   
+  let contentList = ""
   if (newsItems.length > 0) {
-    prompt += `[주요 뉴스]\n`
+    contentList += `[주요 뉴스]\n`
     newsItems.slice(0, 5).forEach((n, i) => {
-      prompt += `${i + 1}. ${n.tit}\n`
+      contentList += `${i + 1}. ${n.tit}\n`
     })
-    prompt += `\n`
+    contentList += `\n`
   }
 
   if (disclosureItems.length > 0) {
-    prompt += `[주요 공시]\n`
+    contentList += `[주요 공시]\n`
     disclosureItems.slice(0, 5).forEach((d, i) => {
-      prompt += `${i + 1}. ${d.title} (${d.author})\n`
+      contentList += `${i + 1}. ${d.title} (${d.author})\n`
     })
-    prompt += `\n`
+    contentList += `\n`
   }
+
+  const fullPrompt = `${prompt}\n\n[목록]\n${contentList}`
 
   // Gemini 1.5 Flash 모델 호출
   const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts: [{ text: fullPrompt }] }],
       generationConfig: {
         temperature: 0.3,
         maxOutputTokens: 500,
@@ -58,26 +67,26 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
       }
     })
   })
- 
+  
   if (!response.ok) {
     const errorBody = await response.text()
     console.error(`Gemini API Error (${response.status}):`, errorBody)
     throw new Error(`Gemini API failed: ${response.status}`)
   }
- 
+  
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
   
   try {
     const parsed = JSON.parse(text)
     return {
-      title: parsed.title || `[요약] ${stockName} 주요 이슈 및 공시`,
+      title: parsed.title || `[요약] ${primaryTitle.substring(0, 20)}...`,
       summary: parsed.summary || '요약 내용을 생성하지 못했습니다.'
     }
   } catch (e) {
     console.error('Failed to parse Gemini response as JSON:', text)
     return {
-      title: `[요약] ${stockName} 주요 이슈 및 공시`,
+      title: `[요약] ${primaryTitle.substring(0, 20)}...`,
       summary: text || '요약 내용을 생성하지 못했습니다.'
     }
   }
@@ -162,8 +171,27 @@ Deno.serve(async (req) => {
         
         // 3-3. DB에 요약 결과 저장 (news 테이블)
         const topNews = newsItems[0] || {}
+        const topDisc = disclosureItems[0] || {}
         const publishedDate = topNews.dt ? `${topNews.dt.substring(0, 4)}-${topNews.dt.substring(4, 6)}-${topNews.dt.substring(6, 8)}T${topNews.dt.substring(8, 10)}:${topNews.dt.substring(10, 12)}:00Z` : new Date().toISOString()
         
+        let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
+        let type: 'news' | 'notice' | 'ir' = 'news'
+
+        if (disclosureItems.length > 0) {
+          type = 'notice'
+          const articleId = topDisc.articleId || topDisc.id
+          finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
+        } else if (newsItems.length > 0) {
+          type = 'news'
+          const oid = topNews.oid
+          const aid = topNews.aid
+          if (oid && aid) {
+            finalUrl = `https://n.news.naver.com/article/${oid}/${aid}`
+          } else {
+            finalUrl = topNews.originLink || finalUrl
+          }
+        }
+
         const contentLines = [
           ...newsItems.map((n: any) => `[뉴스] ${n.tit}`),
           ...disclosureItems.map((d: any) => `[공시] ${d.title}`)
@@ -173,10 +201,11 @@ Deno.serve(async (req) => {
           stock_id: stock.id,
           title: title,
           content: contentLines.join('\n'),
-          url: topNews.originLink || `https://m.stock.naver.com/domestic/stock/${stock.code}/news`,
+          url: finalUrl,
           source: '네이버 시황/뉴스/공시 (Gemini 1.5 Flash 요약)',
           published_at: new Date(publishedDate).toISOString(),
           llm_summary: summary,
+          type: type,
           created_at: new Date().toISOString()
         }
         
