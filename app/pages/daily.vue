@@ -10,10 +10,15 @@
           <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Today's League</span>
         </div>
         <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
-          오늘의 <span class="text-brand-primary">예측 리그</span>
+          {{ isTomorrow ? '내일의' : '오늘의' }} <span class="text-brand-primary">예측 리그</span>
         </h2>
-        <p class="text-sm text-slate-500 font-medium mt-1">
-          {{ isLeagueOpen ? '오늘의 5종목을 예측해 보세요.' : '오늘의 예측이 08:00에 마감되었습니다.' }}
+        <div class="mt-2 flex items-center gap-2">
+          <span class="text-[11px] font-bold text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md border border-white/5">
+            League Date: {{ gameDateDisplay }}
+          </span>
+        </div>
+        <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : 'text-slate-500'">
+          {{ statusMessage }}
         </p>
       </header>
 
@@ -114,6 +119,12 @@
             </button>
           </div>
 
+          <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center z-20 pointer-events-none">
+            <span class="px-4 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-black text-slate-400 uppercase tracking-widest shadow-2xl">
+              응모 마감
+            </span>
+          </div>
+
           <!-- 변경 힌트 -->
           <p v-if="getPrediction(stock.id)" class="text-center text-[10px] text-slate-600 mt-3 font-medium">
             {{ isLeagueOpen ? '탭해서 예측을 변경할 수 있어요' : '마감되어 예측을 변경할 수 없습니다' }}
@@ -150,6 +161,43 @@
 
 <script setup lang="ts">
 const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen } = useStock()
+
+const getKstDate = () => {
+  const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+  return new Intl.DateTimeFormat('sv-SE', options).format(new Date())
+}
+
+const isTomorrow = computed(() => {
+  const firstStock = dailyStocks.value?.[0]
+  if (!firstStock) return false
+  return (firstStock as any).game_date > getKstDate()
+})
+
+const gameDateDisplay = computed(() => {
+  const firstStock = dailyStocks.value?.[0]
+  if (!firstStock) return '-'
+  return (firstStock as any).game_date
+})
+
+const statusMessage = computed(() => {
+  const firstStock = dailyStocks.value?.[0]
+  if (!firstStock) return '데이터를 불러오는 중...'
+  
+  const today = getKstDate()
+  const gameDate = (firstStock as any).game_date
+  
+  if (gameDate > today) {
+    return '내일의 종목 응모가 시작되었습니다! 지금 바로 참여해 보세요.'
+  } else if (gameDate === today) {
+    if (isLeagueOpen.value) {
+      return '오늘의 5종목을 예측해 보세요.'
+    } else {
+      return '오늘의 예측이 마감되었습니다. 다음 종목 응모는 21시 20분부터 진행할 수 있습니다.'
+    }
+  } else {
+    return '해당 날짜의 리그가 종료되었습니다.'
+  }
+})
 const isGuideOpen = ref(false)
 const isResultOpen = ref(false)
 const selectedStockName = ref('')

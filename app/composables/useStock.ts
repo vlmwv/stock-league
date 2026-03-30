@@ -15,9 +15,18 @@ export const useStock = () => {
   const user = useSupabaseUser()
 
   const getKstDate = () => {
-    const now = new Date()
-    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000))
-    return kstDate.toISOString().split('T')[0]
+    // Intl.DateTimeFormat을 사용하여 시스템 TZ에 관계없이 항상 KST 날짜 반환
+    const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+    const d = new Intl.DateTimeFormat('sv-SE', options).format(new Date()) // sv-SE는 YYYY-MM-DD 형식
+    return d
+  }
+
+  const getKstHourMinute = () => {
+    const options = { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false } as const
+    const parts = new Intl.DateTimeFormat('en-GB', options).format(new Date()).split(':')
+    const hour = parts[0] || '0'
+    const minute = parts[1] || '0'
+    return { hour: parseInt(hour), minute: parseInt(minute) }
   }
   
   // 1. Fetch today's daily stocks with stock details
@@ -25,17 +34,38 @@ export const useStock = () => {
     // KST (UTC+9) 기준으로 오늘 날짜 구하기
     const today = getKstDate()
     
-    // 1. 오늘 혹은 그 이후의 가장 가까운 활성화된 게임 종목 5개를 가져옵니다.
+    // 1. 참여 가능하거나 최근인 게임 종목을 가져옵니다.
+    const { hour, minute } = getKstHourMinute()
+    const currentTimeVal = hour * 100 + minute // 예: 21:20 -> 2120
+    
+    // 21:20 이후라면 내일 종목을 우선적으로 찾습니다.
+    let searchDate = today
+    if (currentTimeVal >= 2120) {
+      // 내일 날짜 구하기
+      const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
+      const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+      searchDate = new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
+    }
+
     const { data: nextGameDateData } = await client
       .from('daily_stocks')
       .select('game_date')
-      .gte('game_date', today)
+      .gte('game_date', searchDate)
       .order('game_date', { ascending: true })
       .limit(1)
 
-    const targetDate = (nextGameDateData as any)?.[0]?.game_date || today
+    // 만약 21:20 이후인데 내일 데이터가 아직 없다면 오늘 데이터라도 보여줍니다.
+    let targetDate = (nextGameDateData as any)?.[0]?.game_date
+    if (!targetDate) {
+      const { data: todayData } = await client
+        .from('daily_stocks')
+        .select('game_date')
+        .eq('game_date', today)
+        .limit(1)
+      targetDate = (todayData as any)?.[0]?.game_date || today
+    }
 
-    console.log(`[useStock] Fetching stocks for target date: ${targetDate}`)
+    console.log(`[useStock] Fetching stocks for target date: ${targetDate} (today: ${today}, searchDate: ${searchDate})`)
     
     // Join daily_stocks with stocks and news (latest summary)
     let { data, error } = await client
@@ -182,16 +212,24 @@ export const useStock = () => {
   
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
-    // 서버/클라이언트 모두에서 KST 시각 기준 08:00 이전인지 확인
-    const kstDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
-    const hour = kstDate.getHours()
-    
-    // 만약 현재 종목이 과거의 데이터라면 마감된 것임 (미래 데이터면 오픈)
-    const todayStr = getKstDate()
+    // 21:20 이후면 내일 리그가 활성화된 것으로 간주
+    const { hour } = getKstHourMinute()
+    const today = getKstDate()
+
     if (stocks.value && (stocks.value as any).length > 0) {
       const firstStockDate = (stocks.value as any)[0].game_date
-      if (firstStockDate && firstStockDate < todayStr) {
-        return false // 과거 데이터면 마감
+      
+      // 과거 데이터는 마감
+      if (firstStockDate < today) return false
+      
+      // 미래 데이터(내일 등)는 항상 오픈 (단, 해당 날짜 08:00 전까지만)
+      if (firstStockDate > today) {
+        return true // 내일 종목이 미리 올라온 경우 응모 가능
+      }
+      
+      // 오늘 데이터인 경우 08:00 전까지만 오픈
+      if (firstStockDate === today) {
+        return hour < 8
       }
     }
 

@@ -11,7 +11,11 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n`
+  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목의 추천 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요. \n\n`
+  prompt += `[중요 지침]\n`
+  prompt += `1. 응답 시 '${stockName}' 이라는 종목명은 이미 화면에 표시되므로 문장 처음에 넣지 마세요.\n`
+  prompt += `2. '추천 이유:', '관전 포인트:', '요약:' 등의 서두 문구 없이 바로 본론으로 시작하세요.\n`
+  prompt += `3. 친근하면서도 전문적인 톤을 유지하세요.\n\n`
   
   if (newsItems && newsItems.length > 0) {
     prompt += `[최근 뉴스]\n`
@@ -50,9 +54,19 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
   }
 
   const data = await response.json()
-  const summaryText = data.candidates?.[0]?.content?.parts?.[0]?.text
+  let summaryText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
   
-  return summaryText?.trim() || '추천 사유를 생성하지 못했습니다.'
+  // 후처리: 종목명이나 불필요한 서두 제거
+  summaryText = summaryText.trim()
+  
+  // "한화오션, ", "한화오션 : " 등 제거
+  const prefixRegex = new RegExp(`^(${stockName})?\\s*[:,-]?\\s*`, 'i')
+  summaryText = summaryText.replace(prefixRegex, '')
+  
+  // "추천 이유:", "관전 포인트:" 등 일반적 패턴 제거
+  summaryText = summaryText.replace(/^(추천 이유|관전 포인트|요약|핵심)\s*[:,-]?\s*/i, '')
+  
+  return summaryText.trim() || '추천 사유를 생성하지 못했습니다.'
 }
 
 Deno.serve(async (req) => {
@@ -101,6 +115,20 @@ Deno.serve(async (req) => {
     const targetDateStr = targetDate.toISOString().split('T')[0]
     console.log(`Target game_date (Next Business Day): ${targetDateStr}`)
     
+    // 1-1. 해당 날짜에 이미 종목이 있는지 확인 (5개 이상이면 중단)
+    const { count: existingTotalCount, error: countError } = await supabase
+      .from('daily_stocks')
+      .select('*', { count: 'exact', head: true })
+      .eq('game_date', targetDateStr)
+    
+    if (countError) throw countError
+    if (existingTotalCount && existingTotalCount >= 5) {
+      return new Response(JSON.stringify({ 
+        message: `Already have ${existingTotalCount} stocks for ${targetDateStr}. No more stocks needed.`,
+        game_date: targetDateStr
+      }), { headers: { 'Content-Type': 'application/json' }, status: 200 })
+    }
+
     let processedCount = 0
     let errors = []
     

@@ -79,7 +79,6 @@
         <div class="flex justify-between items-end mb-4 px-2">
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
-            <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest mt-1">Exclusive Expert Insights</p>
           </div>
         </div>
         
@@ -124,19 +123,19 @@
               <div class="flex justify-between items-end">
                 <div class="flex flex-col">
                   <div class="flex items-baseline gap-1">
-                    <span class="text-3xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
-                    <span class="text-[14px] font-bold text-slate-400">원</span>
+                    <span class="text-2xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
+                    <span class="text-[12px] font-bold text-slate-400">원</span>
                   </div>
                 </div>
                 <div 
-                  class="flex flex-col items-end gap-0.5 px-4 py-2.5 rounded-2xl font-black shadow-inner"
+                  class="flex flex-col items-end gap-0.5 px-3 py-1.5 rounded-2xl font-black shadow-inner"
                   :class="stock.change_amount >= 0 ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'"
                 >
                    <div class="flex items-center gap-1">
-                     <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-4 h-4" />
-                     <span class="text-xl leading-none font-black">{{ stock.change_rate }}%</span>
+                     <UIcon :name="stock.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" class="w-3.5 h-3.5" />
+                     <span class="text-lg leading-none font-black">{{ stock.change_rate }}%</span>
                    </div>
-                   <span class="text-[10px] font-bold opacity-60 uppercase tracking-tighter">
+                   <span class="text-[9px] font-bold opacity-60 uppercase tracking-tighter">
                      {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
                    </span>
                 </div>
@@ -154,7 +153,6 @@
         <div class="flex justify-between items-end mb-4 px-2">
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
-            <p class="text-[10px] text-brand-secondary font-black uppercase tracking-widest mt-1">Real-time Stock Feed</p>
           </div>
           <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
             전체보기
