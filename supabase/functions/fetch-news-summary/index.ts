@@ -62,8 +62,7 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
       contents: [{ parts: [{ text: fullPrompt }] }],
       generationConfig: {
         temperature: 0.3,
-        max_output_tokens: 500,
-        response_mime_type: "application/json"
+        max_output_tokens: 500
       }
     })
   })
@@ -164,13 +163,16 @@ Deno.serve(async (req) => {
           console.warn(`No news or disclosures found for ${stock.name}`)
           continue
         }
+
+        // 3-2. 뉴스 항목 정렬 및 주요 뉴스 선정
+        const sortedNewsItems = [...newsItems].sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
         
-        // 3-2. Gemini를 사용해 통합 요약 생성
+        // 3-3. Gemini를 사용해 통합 요약 생성
         console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, stock.name)
+        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(sortedNewsItems, disclosureItems, stock.name)
         
-        // 3-3. DB에 요약 결과 저장 (news 테이블)
-        const topNews = newsItems[0] || {}
+        // 3-4. DB에 요약 결과 저장 (news 테이블)
+        const topNews = sortedNewsItems[0] || {}
         const topDisc = disclosureItems[0] || {}
         const publishedDate = topNews.dt ? `${topNews.dt.substring(0, 4)}-${topNews.dt.substring(4, 6)}-${topNews.dt.substring(6, 8)}T${topNews.dt.substring(8, 10)}:${topNews.dt.substring(10, 12)}:00Z` : new Date().toISOString()
         
@@ -181,7 +183,7 @@ Deno.serve(async (req) => {
           type = 'notice'
           const articleId = topDisc.articleId || topDisc.id
           finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
-        } else if (newsItems.length > 0) {
+        } else if (sortedNewsItems.length > 0) {
           type = 'news'
           const oid = topNews.oid
           const aid = topNews.aid
@@ -193,7 +195,7 @@ Deno.serve(async (req) => {
         }
 
         const contentLines = [
-          ...newsItems.map((n: any) => `[뉴스] ${n.tit}`),
+          ...sortedNewsItems.map((n: any) => `[뉴스] ${n.tit}`),
           ...disclosureItems.map((d: any) => `[공시] ${d.title}`)
         ]
 

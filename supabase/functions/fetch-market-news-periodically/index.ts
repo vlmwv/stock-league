@@ -39,8 +39,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { 
         temperature: 0.3, 
-        max_output_tokens: 250,
-        response_mime_type: "application/json"
+        max_output_tokens: 250
       }
     })
   })
@@ -125,6 +124,9 @@ Deno.serve(async (req) => {
       const newsItems = newsData?.items || []
       const discItems = Array.isArray(discData) ? discData : (discData?.items || [])
       const irItems = irData?.items || []
+
+      // 2-1. 뉴스 항목 정렬: 묶음 기사 수(total)가 많은 순서대로 정렬 (주요 뉴스 우선)
+      const sortedNewsItems = [...newsItems].sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
       
       // 개별 상세 URL 생성을 위한 헬퍼 로직
       let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
@@ -141,9 +143,9 @@ Deno.serve(async (req) => {
         primaryItem = discItems[0]
         const articleId = primaryItem.articleId || primaryItem.id
         finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
-      } else if (newsItems.length > 0) {
+      } else if (sortedNewsItems.length > 0) {
         type = 'news'
-        primaryItem = newsItems[0]
+        primaryItem = sortedNewsItems[0]
         const oid = primaryItem.oid
         const aid = primaryItem.aid
         if (oid && aid) {
@@ -151,7 +153,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const allItems = [...newsItems, ...discItems, ...irItems]
+      const allItems = [...irItems, ...discItems, ...sortedNewsItems]
       if (allItems.length === 0) continue
 
       const { title, summary } = await summarizeWithGemini(allItems, stock.name)

@@ -167,6 +167,14 @@
                   <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
                 <div class="flex items-center gap-2">
+                  <button 
+                    v-if="item.stockId"
+                    @click.stop="toggleHeart(item.stockId)"
+                    class="w-8 h-8 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 mr-1"
+                    :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
+                  >
+                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
+                  </button>
                   <span 
                     class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter shadow-sm"
                     :class="{

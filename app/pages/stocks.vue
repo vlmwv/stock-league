@@ -143,7 +143,7 @@ const sortTabs = [
   { key: 'prediction', label: '예측 성공 순' }
 ] as const
 
-const isHearted = (id: number) => hearts.value.includes(id)
+const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const handleToggleHeart = async (stockId: number) => {
   const wasHearted = isHearted(stockId)

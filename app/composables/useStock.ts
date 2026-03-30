@@ -291,6 +291,7 @@ export const useStock = () => {
     
     if (!error && data) {
       hearts.value = data.map((w: any) => Number(w.stock_id))
+      console.log('[useStock] Wishlist fetched:', hearts.value)
     }
   }
 
@@ -315,6 +316,7 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
+    console.log('[useStock] toggleHeart called with stockId:', stockId, typeof stockId)
     if (!user.value) {
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
@@ -324,6 +326,7 @@ export const useStock = () => {
 
     const id = Number(stockId)
     const isHearted = hearts.value.includes(id)
+    console.log('[useStock] isHearted:', isHearted, 'current hearts:', hearts.value)
     
     if (isHearted) {
       const { error } = await (client
@@ -334,6 +337,9 @@ export const useStock = () => {
       
       if (!error) {
         hearts.value = hearts.value.filter(hId => Number(hId) !== id)
+        console.log('[useStock] Successfully removed from wishlist:', id)
+      } else {
+        console.error('[useStock] Error removing from wishlist:', error)
       }
     } else {
       const { error } = await (client
@@ -343,6 +349,9 @@ export const useStock = () => {
       if (!error) {
         // 반응성을 위해 새 배열 할당
         hearts.value = [...hearts.value, id]
+        console.log('[useStock] Successfully added to wishlist:', id)
+      } else {
+        console.error('[useStock] Error adding to wishlist:', error)
       }
     }
   }
@@ -638,6 +647,7 @@ export const useStock = () => {
       published_at: n.published_at,
       llm_summary: n.llm_summary,
       type: n.type || 'news',
+      stockId: (n.stocks as any)?.id ? Number((n.stocks as any).id) : null,
       stockName: (n.stocks as any)?.name,
       stockCode: (n.stocks as any)?.code
     }))
