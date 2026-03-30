@@ -71,21 +71,41 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 Deno.serve(async (req) => {
   try {
     console.log('Periodic market news collection started...')
+    
+    // 0. 특정 종목 코드 요청이 있는지 확인 (수동 트리거 용도)
+    let requestedStockCode: string | null = null;
+    try {
+      if (req.method === 'POST') {
+        const body = await req.json();
+        requestedStockCode = body.stockCode || null;
+      }
+    } catch (e) {
+      console.log('No valid JSON body found or not a POST request. Processing random stocks.');
+    }
 
     // 1. 시가총액 상위 100개 종목 조회
-    const { data: stocks, error: stockError } = await supabase
+    let query = supabase
       .from('stocks')
-      .select('id, code, name')
-      .lte('market_cap_rank', 100)
+      .select('id, code, name');
+    
+    if (requestedStockCode) {
+      query = query.eq('code', requestedStockCode);
+    } else {
+      query = query.lte('market_cap_rank', 100);
+    }
+
+    const { data: stocks, error: stockError } = await query;
 
     if (stockError) throw stockError
-    if (!stocks) throw new Error('No stocks found')
+    if (!stocks || stocks.length === 0) throw new Error('No stocks found')
 
     let processedCount = 0
     
-    // 2. 각 종목별 최신 뉴스/공시 확인
-    // Gemini API Rate Limit (분당 5~15회) 방지를 위해 한 번 실행할 때마다 3개 종목만 무작위로 처리
-    const targetStocks = stocks.sort(() => 0.5 - Math.random()).slice(0, 3);
+    // 2. 종목 선정
+    // 특정 종목 요청 시 해당 종목만 처리, 아닐 시 무작위 3개 처리
+    const targetStocks = requestedStockCode 
+      ? stocks 
+      : stocks.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
