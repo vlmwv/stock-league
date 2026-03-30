@@ -90,37 +90,28 @@
             <!-- Premium Background Glow -->
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 blur-[50px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
             
-            <div class="relative z-10 flex flex-col gap-3">
-              <!-- Row 1: Icon, Name, Code, Heart -->
+            <div class="relative z-10 flex flex-col gap-2.5">
+              <!-- Row 1: Fire Icon, Name (Large), Code, Heart -->
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-9 h-9 rounded-xl bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
-                    <UIcon name="i-heroicons-sparkles-20-solid" class="w-5 h-5 text-brand-primary" />
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/20 to-rose-500/20 flex items-center justify-center border border-rose-500/20 shadow-lg shadow-rose-500/10">
+                    <UIcon name="i-heroicons-fire-20-solid" class="w-6 h-6 text-rose-500" />
                   </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h4 class="font-black text-slate-100 text-sm tracking-tight leading-none">{{ stock.name }}</h4>
-                    <span class="text-[9px] font-mono text-slate-500 uppercase tracking-tighter bg-slate-800/50 px-1.5 py-0.5 rounded-md border border-slate-700/50 w-fit">{{ stock.code }}</span>
+                  <div class="flex flex-col">
+                    <h4 class="font-black text-slate-100 text-lg tracking-tight leading-tight">{{ stock.name }}</h4>
+                    <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter bg-slate-800/50 px-1.5 py-0.5 rounded-md border border-slate-700/50 w-fit">{{ stock.code }}</span>
                   </div>
                 </div>
                 <button 
                   @click.stop="toggleHeart(stock.id)"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95"
-                  :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-500'"
+                  class="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                  :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
                 >
-                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
+                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
                 </button>
               </div>
 
-              <!-- Row 2: AI Summary (Marquee) -->
-              <div class="relative overflow-hidden bg-white/5 rounded-xl h-8 flex items-center border border-white/5 group/marquee">
-                <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
-                  <p class="text-[11px] text-slate-400 font-medium">
-                    {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Row 3: Current Price + Change Info -->
+              <!-- Row 2: Current Price + Change Info (As requested format) -->
               <div class="flex items-baseline gap-2 px-1">
                 <span class="text-xl font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
                 <div 
@@ -129,6 +120,15 @@
                 >
                   <span>{{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}</span>
                   <span class="opacity-80">({{ stock.change_rate }}%)</span>
+                </div>
+              </div>
+
+              <!-- Row 3: AI Summary (Marquee) -->
+              <div class="relative overflow-hidden bg-white/5 rounded-xl h-8 flex items-center border border-white/5 group/marquee">
+                <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
+                  <p class="text-[11px] text-slate-400 font-medium">
+                    {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
+                  </p>
                 </div>
               </div>
             </div>
