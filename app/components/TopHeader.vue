@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-[60] w-full glass-dark px-6 py-4 flex justify-between items-center transition-all duration-300" :class="{ 'py-3 shadow-2xl shadow-indigo-500/10': isScrolled }">
+  <header class="sticky top-0 z-[60] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
         <span class="text-white font-black text-xs leading-none">SL</span>

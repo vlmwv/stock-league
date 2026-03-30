@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed bottom-6 inset-x-6 h-16 glass-dark rounded-3xl z-50 flex justify-around items-center px-6 shadow-2xl shadow-indigo-500/10 border border-white/5 transition-all duration-300">
+  <nav class="fixed bottom-4 inset-x-4 h-14 glass-dark rounded-2xl z-50 flex justify-around items-center px-4 shadow-2xl shadow-indigo-500/10 border border-white/5 transition-all duration-300">
     <NuxtLink 
       v-for="item in navItems" 
       :key="item.id"

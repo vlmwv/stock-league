@@ -5,18 +5,18 @@
  
     <main class="max-w-md mx-auto">
       <!-- Hero Section (Premium Gradient) -->
-      <section class="px-6 py-8">
-        <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-10 shadow-3xl">
+      <section class="px-4 py-4">
+        <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-6 shadow-3xl">
           <div class="relative z-10">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4 animate-pulse-soft">
               <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
             </div>
-            <h2 class="text-4xl font-black mb-6 leading-[1.1] tracking-tighter text-slate-100">
+            <h2 class="text-3xl font-black mb-4 leading-[1.1] tracking-tighter text-slate-100">
               오늘의 차트를 <br/>
               <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
             </h2>
-            <div class="flex flex-col gap-3 mt-8">
+            <div class="flex flex-col gap-2 mt-4">
               <div class="flex items-center gap-2">
                 <div class="flex -space-x-2">
                   <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
@@ -40,7 +40,7 @@
               
               <button 
                 @click="navigateTo('/daily')"
-                class="group relative px-6 py-4 rounded-2xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-6 w-full text-center"
+                class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
                 참여하기
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -53,19 +53,19 @@
       </section>
  
       <!-- AI 추천 종목 -->
-      <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-6 mb-12">
-        <div class="flex justify-between items-end mb-6 px-2">
+      <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-4 mb-8">
+        <div class="flex justify-between items-end mb-4 px-2">
           <div>
-            <h3 class="text-2xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
+            <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
             <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest mt-1">Exclusive Expert Insights</p>
           </div>
         </div>
         
-        <div class="flex gap-5 overflow-x-auto pb-6 no-scrollbar -mx-6 px-6">
+        <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4">
           <div 
             v-for="stock in recommendedStocks" 
             :key="stock.id"
-            class="min-w-[300px] bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[2.5rem] p-6 border border-white/10 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300"
+            class="min-w-[300px] bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[1.5rem] p-5 border border-white/10 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300"
           >
             <!-- Premium Background Glow -->
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary/10 blur-[60px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
@@ -128,10 +128,10 @@
  
 
       <!-- 최근 뉴스 & 공시 -->
-      <section class="px-6 mb-12">
-        <div class="flex justify-between items-end mb-6 px-2">
+      <section class="px-4 mb-8">
+        <div class="flex justify-between items-end mb-4 px-2">
           <div>
-            <h3 class="text-2xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
+            <h3 class="text-xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
             <p class="text-[10px] text-brand-secondary font-black uppercase tracking-widest mt-1">Real-time Stock Feed</p>
           </div>
           <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
@@ -140,14 +140,14 @@
           </NuxtLink>
         </div>
 
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-3">
           <div 
             v-for="item in recentNews" 
             :key="item.id"
             @click="navigateToNews(item)"
-            class="bg-white/5 rounded-[2rem] p-6 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
+            class="bg-white/5 rounded-[1.25rem] p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
           >
-            <div class="flex flex-col gap-4 relative z-10">
+            <div class="flex flex-col gap-3 relative z-10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <div class="w-9 h-9 rounded-xl bg-brand-secondary/10 flex items-center justify-center border border-brand-secondary/20">
@@ -171,7 +171,7 @@
               </div>
               
               <div>
-                <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors mb-2 line-clamp-2">{{ item.title }}</h4>
+                <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors mb-1 line-clamp-2">{{ item.title }}</h4>
                 <p v-if="item.llm_summary" class="text-xs text-slate-400 leading-relaxed line-clamp-2 font-medium">
                   {{ item.llm_summary }}
                 </p>
