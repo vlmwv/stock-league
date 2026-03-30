@@ -89,7 +89,6 @@ onMounted(async () => {
     <TopHeader />
 
     <main class="max-w-md mx-auto px-6 py-8">
-      </div>
   
       <!-- My Rank (Sticky/Top) -->
       <div v-if="user && myRankingInfo" class="mb-10 animate-fade-in">

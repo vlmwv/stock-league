@@ -176,7 +176,7 @@ export const useStock = () => {
       .from('stocks')
       .select('*')
       .order('market_cap_rank', { ascending: true })
-      .limit(50)
+      .limit(100)
     
     if (error) return []
     return (data || []).map((s: any) => ({

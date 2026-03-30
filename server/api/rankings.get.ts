@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     .eq('ranking_type', type)
     .eq('period_key', period_key)
     .order('rank', { ascending: true })
-    .limit(50)
+    .limit(100)
 
   if (error) {
     throw createError({

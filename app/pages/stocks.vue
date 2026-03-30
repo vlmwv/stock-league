@@ -187,8 +187,8 @@ const loadStocks = async (isAppend = false) => {
       allStocks.value = data || []
     }
 
-    // 더 가져올 데이터가 있는지 확인
-    if (data.length < pageSize) {
+    // 더 가져올 데이터가 있는지 확인 (최대 100개로 제한)
+    if (data.length < pageSize || allStocks.value.length >= 100) {
       hasMore.value = false
     }
   } catch (err) {
@@ -200,7 +200,7 @@ const loadStocks = async (isAppend = false) => {
 }
 
 const loadMore = () => {
-  if (!hasMore.value || isFetchingMore.value || isLoading.value) return
+  if (!hasMore.value || isFetchingMore.value || isLoading.value || allStocks.value.length >= 100) return
   page.value++
   loadStocks(true)
 }
