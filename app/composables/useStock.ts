@@ -210,6 +210,24 @@ export const useStock = () => {
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   
+  // Watch user and fetch data once login is complete
+  if (process.client) {
+    watch(user, (newUser) => {
+      if (newUser && newUser.id) {
+        console.log('[useStock] user detected:', newUser.id)
+        fetchWishlist()
+        // 종목 데이터가 이미 있으면 해당 날짜에 대해 예측도 가져옴
+        if (stocks.value && (stocks.value as any).length > 0) {
+          const targetDate = (stocks.value as any)[0].game_date
+          fetchPredictions(targetDate)
+        }
+      } else {
+        hearts.value = []
+        myPredictions.value = []
+      }
+    }, { immediate: true })
+  }
+  
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
     // 21:20 이후면 내일 리그가 활성화된 것으로 간주
@@ -237,7 +255,10 @@ export const useStock = () => {
   })
 
   const fetchPredictions = async (date?: string) => {
-    if (!user.value) return
+    if (!user.value || !user.value.id) {
+      console.warn('[useStock] fetchPredictions: User not logged in, skipping.')
+      return
+    }
 
     // 인자로 받은 날짜가 있으면 사용, 없으면 오늘 날짜 사용
     const targetDate = date || getKstDate()
@@ -282,7 +303,10 @@ export const useStock = () => {
   }
 
   const fetchWishlist = async () => {
-    if (!user.value) return
+    if (!user.value || !user.value.id) {
+      console.warn('[useStock] fetchWishlist: User not logged in, skipping.')
+      return
+    }
 
     const { data, error } = await client
       .from('wishlists')
@@ -317,7 +341,7 @@ export const useStock = () => {
 
   const toggleHeart = async (stockId: number) => {
     console.log('[useStock] toggleHeart called with stockId:', stockId, typeof stockId)
-    if (!user.value) {
+    if (!user.value || !user.value.id) {
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
       }

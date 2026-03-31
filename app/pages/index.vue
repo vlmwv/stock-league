@@ -125,11 +125,10 @@
                 </div>
               </div>
 
-              <!-- Row 3: AI Summary (Marquee) -->
               <div class="relative overflow-hidden bg-white/5 rounded-xl h-8 flex items-center border border-white/5 group/marquee">
                 <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
                   <p class="text-[11px] text-slate-400 font-medium">
-                    {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
+                    {{ stock.summary || '최근 이슈를 분석 중입니다...' }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
                   </p>
                 </div>
               </div>

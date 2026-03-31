@@ -11,11 +11,11 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목의 추천 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요. \n\n`
+  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목의 핵심 이슈를 **딱 1문장(50자 내외)**으로 짧고 강렬하게 작성해주세요. \n\n`
   prompt += `[중요 지침]\n`
   prompt += `1. 응답 시 '${stockName}' 이라는 종목명은 이미 화면에 표시되므로 문장 처음에 넣지 마세요.\n`
   prompt += `2. '추천 이유:', '관전 포인트:', '요약:' 등의 서두 문구 없이 바로 본론으로 시작하세요.\n`
-  prompt += `3. 친근하면서도 전문적인 톤을 유지하세요.\n\n`
+  prompt += `3. 반드시 마침표(.)로 끝나는 완결된 한 문장이어야 합니다.\n\n`
   
   if (newsItems && newsItems.length > 0) {
     prompt += `[최근 뉴스]\n`
@@ -35,7 +35,7 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     prompt += `(최근 특징적인 뉴스나 공시가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -59,8 +59,8 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
   // 후처리: 종목명이나 불필요한 서두 제거
   summaryText = summaryText.trim()
   
-  // "한화오션, ", "한화오션 : " 등 제거
-  const prefixRegex = new RegExp(`^(${stockName})?\\s*[:,-]?\\s*`, 'i')
+  // "한화오션, ", "한화오션 : " 등 제거 (문두에 올 때만)
+  const prefixRegex = new RegExp(`^(${stockName})\\s*[:,-]?\\s*`, 'i')
   summaryText = summaryText.replace(prefixRegex, '')
   
   // "추천 이유:", "관전 포인트:" 등 일반적 패턴 제거
