@@ -8,25 +8,27 @@
       <section class="px-4 py-4">
         <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-6 shadow-3xl">
           <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4 animate-pulse-soft">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-              <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
+            <div class="flex items-center justify-between mb-4">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 animate-pulse-soft">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-1.5">
+                  <div v-for="i in 3" :key="i" class="w-5 h-5 rounded-full border border-slate-900 overflow-hidden shadow-sm">
+                    <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
+                  </div>
+                  <div class="w-5 h-5 rounded-full border border-slate-900 bg-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 shadow-sm">+</div>
+                </div>
+                <p class="text-[10px] text-slate-400 font-bold tracking-tight">
+                  <span class="text-slate-100">{{ totalMemberCount.toLocaleString() }}명</span> 참여 중
+                </p>
+              </div>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tighter text-slate-100">
               오늘의 차트를 <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
             </h2>
             <div class="flex flex-col gap-2 mt-4">
-              <div class="flex items-center gap-2">
-                <div class="flex -space-x-2">
-                  <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
-                    <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
-                  </div>
-                  <div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
-                </div>
-                <p class="text-xs text-slate-400 font-bold tracking-tight">
-                  <span class="text-slate-100">{{ totalMemberCount.toLocaleString() }}명</span>의 투자자가 참여 중
-                </p>
-              </div>
               
               <div v-if="participantCount > 0" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-primary/10 border border-brand-primary/20 w-fit">
                 <span class="flex h-2 w-2 relative">
