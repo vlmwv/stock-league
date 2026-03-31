@@ -4,8 +4,9 @@ const { fetchRankings, fetchUserStats, totalMemberCount, fetchParticipantCount }
 
 const { data: myStats } = useAsyncData('myStats', () => fetchUserStats(), { watch: [user] })
 
-const selectedYear = ref('2026')
-const selectedMonth = ref('3월')
+const now = new Date()
+const selectedYear = ref(now.getFullYear().toString())
+const selectedMonth = ref(`${now.getMonth() + 1}월`)
 const years = ['전체', '2026', '2025']
 const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 

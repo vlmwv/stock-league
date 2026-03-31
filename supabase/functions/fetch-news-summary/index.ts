@@ -7,23 +7,24 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-// Gemini API를 이용한 뉴스 및 공시 요약 함수
-async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosureItems: any[], stockName: string): Promise<{ title: string, summary: string }> {
+// Gemini API를 이용한 뉴스, 공시, IR 통합 요약 함수
+async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosureItems: any[], irItems: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  const primaryItem = disclosureItems[0] || newsItems[0]
+  const primaryItem = irItems[0] || disclosureItems[0] || newsItems[0]
   const primaryTitle = primaryItem ? (primaryItem.title || primaryItem.tit || "") : ""
 
-  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식에 대한 최근 주요 뉴스 및 전자공시 내용입니다. 
-뉴스 ${newsItems.length}건과 공시 ${disclosureItems.length}건을 종합하여, 현재 이 종목의 핵심 쟁점과 시장 분위기를 딱 1문장(최대 50자 내외)으로 아주 명확하고 간결하게 요약해 주세요.
+  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식에 대한 최근 주요 뉴스, 전자공시, IR 정보 내용입니다. 
+뉴스 ${newsItems.length}건, 공시 ${disclosureItems.length}건, IR ${irItems.length}건을 종합하여, 현재 이 종목의 핵심 쟁점과 시장 분위기를 딱 1문장(최대 50자 내외)으로 아주 명확하고 간결하게 요약해 주세요.
 불필요한 수식어는 배제하고 투자자가 참고할 만한 가장 중요한 팩트 위주로 작성해 주세요.
 또한 이 내용을 포괄하는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
 
 [중요 제약 조건]
 - 요약(summary)은 반드시 마침표(.)로 끝나는 완결된 한 문장여야 합니다.
-- "${stockName} 주요 이슈" 같은 식상한 제목은 절대 금지합니다.
+- "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같은 식상하고 반복적인 제목은 절대 금지합니다.
+- 실제 언론사에서 낼 법한 구체적이고 임팩트 있는 헤드라인을 만드세요. 예: "한화오션, 필리조선소 인수로 미 해군 함정 시장 진출 본격화 (요약)"
 - 요약 작성 시 '${stockName}' 이라는 종목명을 문장 처음에 넣지 마세요.
 - '요약:', '결론:' 등의 서두 문구 없이 바로 본론으로 시작하세요.
 - 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
@@ -37,7 +38,7 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   if (newsItems.length > 0) {
     contentList += `[주요 뉴스]\n`
     newsItems.slice(0, 5).forEach((n, i) => {
-      contentList += `${i + 1}. ${n.tit}\n`
+      contentList += `${i + 1}. ${n.title || n.tit}\n`
     })
     contentList += `\n`
   }
@@ -46,6 +47,14 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
     contentList += `[주요 공시]\n`
     disclosureItems.slice(0, 5).forEach((d, i) => {
       contentList += `${i + 1}. ${d.title} (${d.author})\n`
+    })
+    contentList += `\n`
+  }
+
+  if (irItems.length > 0) {
+    contentList += `[IR 정보]\n`
+    irItems.slice(0, 5).forEach((ir, i) => {
+      contentList += `${i + 1}. ${ir.title || ir.tit}\n`
     })
     contentList += `\n`
   }
@@ -71,8 +80,15 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   }
   
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+  let text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
   
+  // JSON 추출을 위한 클리닝 (마크다운 백틱 제거)
+  if (text.includes('```json')) {
+    text = text.split('```json')[1].split('```')[0].trim()
+  } else if (text.includes('```')) {
+    text = text.split('```')[1].split('```')[0].trim()
+  }
+
   try {
     const parsed = JSON.parse(text)
     return {
@@ -93,7 +109,6 @@ Deno.serve(async (req) => {
     console.log('Fetching news summary triggered...')
     
     // 1. 오늘 게임(예측)에 해당하는 5개 종목을 먼저 조회
-    // 한국 시간 기준 현재 날짜(YYYY-MM-DD) 구하기
     const now = new Date();
     const kstOffset = 9 * 60 * 60 * 1000;
     const kstDate = new Date(now.getTime() + kstOffset);
@@ -109,16 +124,14 @@ Deno.serve(async (req) => {
 
     let targetStocks = []
 
-    // 2. 만약 오늘 지정된 일일 종목이 없다면, fallback으로 최상위 5개 종목 선택
+    // 2. 만약 오늘 지정된 일일 종목이 없다면 fallback
     if (!dailyStocks || dailyStocks.length === 0) {
       console.log(`No daily_stocks found for today (${todayStr}). Falling back to top 5 stocks.`)
-      
       const { data: topStocks, error: topError } = await supabase
         .from('stocks')
         .select('id, code, name')
         .order('market_cap_rank', { ascending: true })
         .limit(5)
-        
       if (topError) throw topError
       targetStocks = topStocks || []
     } else {
@@ -130,21 +143,20 @@ Deno.serve(async (req) => {
     let processedCount = 0
     let errors = []
 
-    // 3. 각 주식 종목마다 뉴스 및 공시 조회 -> 요약 -> DB 삽입 반복
     for (const stock of targetStocks) {
       try {
-        console.log(`Fetching News & Disclosures for ${stock.name} (${stock.code})...`)
+        console.log(`Fetching News, Disclosures, IR for ${stock.name} (${stock.code})...`)
         
-        // 3-1. 네이버 금융 모바일 뉴스 API
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=5`
         const disclosureUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=5&page=1`
+        const irUrl = `https://m.stock.naver.com/api/stock/${stock.code}/irInfo?pageSize=5&page=1`
         
-        const [newsRes, discRes] = await Promise.all([
+        const [newsRes, discRes, irRes] = await Promise.all([
           fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-          fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+          fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+          fetch(irUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
         ])
         
-        // 뉴스 API 새 스펙: 최상단 배열 내 객체의 items 속성, total 값을 통한 클러스터 우선순위 파악
         let newsItems = []
         if (newsRes.ok) {
           const newsData = await newsRes.json()
@@ -167,25 +179,34 @@ Deno.serve(async (req) => {
           const discData = await discRes.json()
           disclosureItems = Array.isArray(discData) ? discData : (discData?.items || [])
         }
+
+        let irItems = []
+        if (irRes.ok) {
+          const irData = await irRes.json()
+          irItems = irData?.items || []
+        }
         
-        if (newsItems.length === 0 && disclosureItems.length === 0) {
-          console.warn(`No news or disclosures found for ${stock.name}`)
+        if (newsItems.length === 0 && disclosureItems.length === 0 && irItems.length === 0) {
+          console.warn(`No news, disclosures or IR found for ${stock.name}`)
           continue
         }
         
-        // 3-2. Gemini를 사용해 통합 요약 생성
-        console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, stock.name)
+        console.log(`Generating summary for ${stock.name}...`)
+        const { title, summary } = await summarizeNewsAndDisclosuresWithGemini(newsItems, disclosureItems, irItems, stock.name)
         
-        // 3-3. DB에 요약 결과 저장 (news 테이블)
         const topNews = newsItems[0] || {}
         const topDisc = disclosureItems[0] || {}
+        const topIr = irItems[0] || {}
         const publishedDate = topNews.dt ? `${topNews.dt.substring(0, 4)}-${topNews.dt.substring(4, 6)}-${topNews.dt.substring(6, 8)}T${topNews.dt.substring(8, 10)}:${topNews.dt.substring(10, 12)}:00Z` : new Date().toISOString()
         
         let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
         let type: 'news' | 'notice' | 'ir' = 'news'
 
-        if (disclosureItems.length > 0) {
+        if (irItems.length > 0) {
+          type = 'ir'
+          const boardId = topIr.boardId || topIr.id
+          finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+        } else if (disclosureItems.length > 0) {
           type = 'notice'
           const articleId = topDisc.articleId || topDisc.id
           finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
@@ -197,14 +218,13 @@ Deno.serve(async (req) => {
             finalUrl = `https://n.news.naver.com/article/${officeId}/${articleId}`
           } else if (topNews.mobileNewsUrl) {
             finalUrl = topNews.mobileNewsUrl
-          } else {
-            finalUrl = topNews.originLink || finalUrl
           }
         }
 
         const contentLines = [
-          ...newsItems.map((n: any) => `[뉴스] ${n.tit}`),
-          ...disclosureItems.map((d: any) => `[공시] ${d.title}`)
+          ...newsItems.map((n: any) => `[뉴스] ${n.title || n.tit}`),
+          ...disclosureItems.map((d: any) => `[공시] ${d.title}`),
+          ...irItems.map((ir: any) => `[IR] ${ir.title || ir.tit}`)
         ]
 
         const newsRecord = {
@@ -212,21 +232,19 @@ Deno.serve(async (req) => {
           title: title,
           content: contentLines.join('\n'),
           url: finalUrl,
-          source: '네이버 시황/뉴스/공시 (Gemini 1.5 Flash 요약)',
+          source: '네이버 시황/뉴스/공시/IR (Gemini 1.5 Flash 요약)',
           published_at: new Date(publishedDate).toISOString(),
           llm_summary: summary,
           type: type,
           created_at: new Date().toISOString()
         }
-        
+
         const { error: insertError } = await supabase
           .from('news')
           .insert(newsRecord)
           
         if (insertError) throw insertError
-        
         processedCount++
-        console.log(`Successfully summarized and saved for ${stock.name} (${stock.code})`)
 
       } catch (err: any) {
         console.error(`Error processing stock ${stock.name}:`, err.message)

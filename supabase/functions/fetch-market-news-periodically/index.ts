@@ -19,7 +19,7 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 
 [중요 제약 조건]
 - "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같이 단순하고 반복적인 제목은 절대 사용하지 마세요.
-- 독자의 시선을 끌 수 있도록 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 제목을 만드세요.
+- 독자의 시선을 끌 수 있도록 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 실제 뉴스 제목을 만드세요.
 - 제목은 25자 이내로 작성해 주세요.
 
 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
@@ -49,18 +49,32 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     throw new Error(`Gemini API failed (${response.status}): ${errBody}`)
   }
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+  let text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
   
+  // JSON 추출을 위한 클리닝
+  if (text.includes('```json')) {
+    text = text.split('```json')[1].split('```')[0].trim()
+  } else if (text.includes('```')) {
+    text = text.split('```')[1].split('```')[0].trim()
+  }
+
   try {
     const parsed = JSON.parse(text)
+    let finalTitle = parsed.title || ""
+    
+    // 만약 생성된 제목이 너무 평이하거나 비어있으면 원문 제목 활용
+    if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
+      finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
+    }
+
     return {
-      title: parsed.title || `[실시간 요약] ${primaryTitle.substring(0, 20)}...`,
+      title: finalTitle,
       summary: parsed.summary || '요약을 생성할 수 없습니다.'
     }
   } catch (e) {
     console.error('Failed to parse Gemini response as JSON:', text)
     return {
-      title: `[실시간 요약] ${primaryTitle.substring(0, 20)}...`,
+      title: `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`,
       summary: text || '요약을 생성할 수 없습니다.'
     }
   }
@@ -184,7 +198,7 @@ Deno.serve(async (req) => {
           llm_summary: summary,
           url: finalUrl,
           type: type,
-          source: 'Naver Finance (AI Summary)',
+           source: '네이버 시황/뉴스/공시/IR (Gemini 1.5 Flash 요약)',
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' })
 

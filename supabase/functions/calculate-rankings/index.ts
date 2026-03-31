@@ -61,28 +61,7 @@ Deno.serve(async (req) => {
     const records = Object.values(stats).map(s => {
       const winRate = s.total > 0 ? (s.win / s.total) * 100 : 0
       
-      // Calculate min required predictions (3 per day in period)
-      let minRequired = 0
-      const date = new Date()
-      if (s.type === 'monthly') {
-        // Current day of month * 3
-        minRequired = date.getDate() * 3
-      } else if (s.type === 'yearly') {
-        // Approximate: Months passed * 30 * 3
-        minRequired = (date.getMonth() * 30 + date.getDate()) * 3
-      } else if (s.type === 'weekly') {
-        // Day of week (0=Sun, 6=Sat) * 3
-        const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay()
-        minRequired = dayOfWeek * 3
-      }
-
-      // Filter out those who don't meet the requirement for active rankings
-      // (Keep them in DB but maybe mark them or just filter them here)
-      // The user said "포함하며", implying others are excluded from the ranking list.
-      if (s.total < minRequired && s.type !== 'all_time') {
-        return null
-      }
-
+      // 참여 횟수 제한 없이 모든 참여자를 랭킹에 포함 (사용자 요청 반영)
       return {
         user_id: s.user_id,
         ranking_type: s.type,
@@ -92,19 +71,42 @@ Deno.serve(async (req) => {
         updated_at: new Date().toISOString(),
         rank: 0 
       }
-    }).filter(r => r !== null)
+    })
 
-    // 4. Update Rankings Table
-    for (const record of records) {
-      await supabase
-        .from('rankings')
-        .upsert(record, { onConflict: 'user_id, ranking_type, period_key' })
+    // 4. Group by Type/Key and Assign Ranks (Sort by win_rate DESC, then prediction_count DESC)
+    const grouped: Record<string, any[]> = {}
+    records.forEach(r => {
+      const gKey = `${r.ranking_type}_${r.period_key}`
+      if (!grouped[gKey]) grouped[gKey] = []
+      grouped[gKey].push(r)
+    })
+
+    const finalRecords: any[] = []
+    for (const gKey in grouped) {
+      const group = grouped[gKey]
+      // 승률 -> 참여 횟수 순으로 정렬하여 순위 부여
+      group.sort((a, b) => b.win_rate - a.win_rate || b.prediction_count - a.prediction_count)
+      group.forEach((r, idx) => {
+        r.rank = idx + 1
+        finalRecords.push(r)
+      })
     }
 
-    // 5. Update actual Rank numbers (Simplified logic for now)
-    // In a real scenario, you'd calculate dense_rank() over win_rate descending.
-    
-    return new Response(JSON.stringify({ message: 'Rankings calculated successfully' }), {
+    console.log(`Prepared ${finalRecords.length} ranking records. Upserting...`)
+
+    // 5. Update Rankings Table (Bulk Upsert)
+    if (finalRecords.length > 0) {
+      const { error: upsertError } = await supabase
+        .from('rankings')
+        .upsert(finalRecords, { onConflict: 'user_id, ranking_type, period_key' })
+      
+      if (upsertError) throw upsertError
+    }
+
+    return new Response(JSON.stringify({ 
+      message: 'Rankings calculated successfully', 
+      count: finalRecords.length 
+    }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200
     })
