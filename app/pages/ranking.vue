@@ -2,7 +2,7 @@
 const user = useSupabaseUser()
 const { fetchRankings, fetchUserStats, totalMemberCount, fetchParticipantCount } = useStock()
 
-const { data: myStats } = useAsyncData('myStats', () => fetchUserStats(), { watch: [user] })
+const { data: myStats } = useAsyncData('myStats', () => fetchUserStats(), { watch: [user], immediate: !!user.value })
 
 const getKstInfo = () => {
   const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric' } as const

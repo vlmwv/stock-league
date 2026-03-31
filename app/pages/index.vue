@@ -162,7 +162,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <div class="w-9 h-9 rounded-xl bg-brand-secondary/10 flex items-center justify-center border border-brand-secondary/20">
-                    <UIcon name="i-heroicons-bolt text-brand-secondary" class="w-5 h-5" />
+                    <UIcon name="i-heroicons-bolt" class="w-5 h-5 text-brand-secondary" />
                   </div>
                   <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
@@ -209,7 +209,7 @@
           </div>
           
           <div v-if="!recentNews.length" class="text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
-            <UIcon name="i-heroicons-cloud-slash" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />
+            <UIcon name="i-heroicons-exclamation-circle" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />
             <p class="text-xs text-slate-600 font-black uppercase tracking-widest">데이터를 불러오는 중입니다</p>
           </div>
         </div>

@@ -49,11 +49,10 @@ export default defineEventHandler(async (event) => {
     .limit(100)
 
   if (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: error.message,
-    })
+    console.error(`[API Rankings] Database error for ${type}/${period_key}:`, error.message)
+    // 500 에러를 던지는 대신 빈 결과를 반환하여 프론트엔드에서 처리하도록 함
+    return []
   }
 
-  return data
+  return data || []
 })

@@ -237,7 +237,11 @@ export const useStock = () => {
   })
 
   const fetchPredictions = async (date?: string) => {
-    if (!user.value) return
+    if (!user.value?.id) {
+      console.log('[useStock] Skipping fetchPredictions: No user logged in')
+      myPredictions.value = []
+      return
+    }
 
     // 인자로 받은 날짜가 있으면 사용, 없으면 오늘 날짜 사용
     const targetDate = date || getKstDate()
@@ -282,7 +286,11 @@ export const useStock = () => {
   }
 
   const fetchWishlist = async () => {
-    if (!user.value) return
+    if (!user.value?.id) {
+      console.log('[useStock] Skipping fetchWishlist: No user logged in')
+      hearts.value = []
+      return
+    }
 
     const { data, error } = await client
       .from('wishlists')
@@ -449,7 +457,7 @@ export const useStock = () => {
   }
 
   const fetchUserStats = async () => {
-    if (!user.value) return null
+    if (!user.value?.id) return null
 
     const userId = user.value.id
 
@@ -526,7 +534,7 @@ export const useStock = () => {
   }
 
   const fetchUserHistory = async () => {
-    if (!user.value) return []
+    if (!user.value?.id) return []
 
     const { data, error } = await client
       .from('predictions')
