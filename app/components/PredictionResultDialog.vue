@@ -1,6 +1,6 @@
 <template>
   <Transition name="scale">
-    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
       <div 
         ref="dialogRef"
         class="relative w-full max-w-sm glass-dark rounded-[3rem] p-10 overflow-hidden shadow-[0_0_100px_rgba(99,102,241,0.3)] border border-white/10"

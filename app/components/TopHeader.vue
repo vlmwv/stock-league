@@ -26,10 +26,10 @@
           </button>
 
           <template #content>
-            <div class="w-80 bg-slate-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-              <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
                 <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
-                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">New</span>
+                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/20 px-2 py-0.5 rounded-full border border-brand-primary/30">New</span>
               </div>
               
               <div class="max-h-[320px] overflow-y-auto no-scrollbar">
@@ -56,7 +56,7 @@
                 </div>
               </div>
 
-              <div class="p-2 bg-white/5">
+              <div class="p-2 bg-slate-900/50 border-t border-white/5">
                 <button class="w-full py-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors">
                   모든 알림 보기
                 </button>
@@ -74,7 +74,7 @@
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>
-              <div class="p-2 w-48 bg-slate-950 border border-white/10 rounded-xl glass-dark">
+              <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10">
                 <div class="px-3 py-2 border-b border-slate-700/50 mb-1">
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
