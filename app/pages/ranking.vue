@@ -19,6 +19,12 @@ const years = ['전체', kst.year, (parseInt(kst.year) - 1).toString()]
 const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
 const displayLimit = ref(20)
+const sortBy = ref<'win_rate' | 'prediction_count' | 'win_count' | 'rank'>('rank')
+const sortOptions = [
+  { label: '정답률', value: 'win_rate', icon: 'i-heroicons-chart-bar' },
+  { label: '참여수', value: 'prediction_count', icon: 'i-heroicons-hashtag' },
+  { label: '정답수', value: 'win_count', icon: 'i-heroicons-check-circle' }
+]
 
 const { data: rankings, pending, refresh } = useAsyncData('userRankings', async () => {
   let type = 'all_time'
@@ -37,23 +43,23 @@ const { data: rankings, pending, refresh } = useAsyncData('userRankings', async 
 
   // Use the API directly for filtered rankings
   if (type === 'all_time' && period_key === 'global') {
-     return await fetchRankings(100)
+     return await fetchRankings(100, sortBy.value)
   } else {
     const data = await $fetch('/api/rankings', {
-      query: { type, period_key }
+      query: { type, period_key, sort_by: sortBy.value }
     })
     
     return (data as any[]).map((r, index) => ({
       username: r.profiles.username,
       avatar_url: r.profiles.avatar_url,
-      points: 0, // Points are not period-specific in current DB
+      points: 0, 
       prediction_count: r.prediction_count,
       win_rate: r.win_rate,
-      win_count: Math.round(r.prediction_count * (r.win_rate / 100)),
-      rank: r.rank || index + 1
+      win_count: r.win_count || Math.round(r.prediction_count * (r.win_rate / 100)),
+      rank: index + 1 // Always rank based on current sort
     }))
   }
-}, { watch: [selectedYear, selectedMonth] })
+}, { watch: [selectedYear, selectedMonth, sortBy] })
 
 const topThree = computed(() => (rankings.value as any[])?.slice(0, 3) || [])
 const others = computed(() => (rankings.value as any[])?.slice(3, displayLimit.value) || [])
@@ -147,6 +153,25 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Sorting Criteria -->
+      <div class="mb-8 animate-fade-in" style="animation-delay: 0.1s">
+        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">정렬 기준</label>
+        <div class="flex p-1 bg-slate-800/40 rounded-2xl border border-white/5 backdrop-blur-sm">
+          <button 
+            v-for="opt in sortOptions" 
+            :key="opt.value"
+            @click="sortBy = opt.value as any"
+            class="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
+            :class="sortBy === opt.value 
+              ? 'bg-gradient-to-r from-brand-primary/20 to-brand-secondary/20 text-brand-primary shadow-lg shadow-brand-primary/10 border border-brand-primary/20' 
+              : 'text-slate-500 hover:text-slate-300'"
+          >
+            <UIcon :name="opt.icon" class="w-3.5 h-3.5" />
+            {{ opt.label }}
+          </button>
+        </div>
+      </div>
+
       <div v-if="pending" class="flex justify-center py-20">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-brand-primary animate-spin" />
       </div>
@@ -164,8 +189,11 @@ onMounted(async () => {
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].username }}</p>
             <div class="h-20 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
-              <span class="text-xs font-black" :class="selectedYear === '전체' ? 'text-slate-400' : 'text-brand-primary'">
-                {{ selectedYear === '전체' ? `${topThree[1].points.toLocaleString()}p` : `${topThree[1].win_rate}%` }}
+              <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
+                {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[1].win_rate}%` : 
+                   sortBy === 'prediction_count' ? `${topThree[1].prediction_count}회` :
+                   sortBy === 'win_count' ? `${topThree[1].win_count}승` :
+                   `${topThree[1].points.toLocaleString()}p` }}
               </span>
             </div>
           </div>
@@ -182,7 +210,10 @@ onMounted(async () => {
             <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].username }}</p>
             <div class="h-28 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
               <span class="text-sm font-black text-brand-primary">
-                {{ selectedYear === '전체' ? `${topThree[0].points.toLocaleString()}p` : `${topThree[0].win_rate}%` }}
+                {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[0].win_rate}%` : 
+                   sortBy === 'prediction_count' ? `${topThree[0].prediction_count}회` :
+                   sortBy === 'win_count' ? `${topThree[0].win_count}승` :
+                   `${topThree[0].points.toLocaleString()}p` }}
               </span>
             </div>
           </div>
@@ -197,8 +228,11 @@ onMounted(async () => {
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].username }}</p>
             <div class="h-16 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
-              <span class="text-xs font-black" :class="selectedYear === '전체' ? 'text-slate-400' : 'text-brand-primary'">
-                {{ selectedYear === '전체' ? `${topThree[2].points.toLocaleString()}p` : `${topThree[2].win_rate}%` }}
+              <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
+                {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[2].win_rate}%` : 
+                   sortBy === 'prediction_count' ? `${topThree[2].prediction_count}회` :
+                   sortBy === 'win_count' ? `${topThree[2].win_count}승` :
+                   `${topThree[2].points.toLocaleString()}p` }}
               </span>
             </div>
           </div>
@@ -209,7 +243,12 @@ onMounted(async () => {
           <div class="w-8 text-center">순위</div>
           <div class="flex-1 ml-4">사용자</div>
           <div class="w-16 text-center">참여/성공</div>
-          <div class="w-20 text-right">{{ selectedYear === '전체' ? '총 포인트' : '승률' }}</div>
+          <div class="w-20 text-right">
+            {{ sortBy === 'win_rate' ? '정답률' : 
+               sortBy === 'prediction_count' ? '참여수' :
+               sortBy === 'win_count' ? '정답수' :
+               selectedYear === '전체' ? '총 포인트' : '정답률' }}
+          </div>
         </div>
 
         <!-- Leaderboard List -->
@@ -238,10 +277,20 @@ onMounted(async () => {
               <p class="text-[10px] font-bold text-rose-500">{{ rankingUser.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
             </div>
 
-            <!-- Score (Points or Win Rate) -->
+            <!-- Score (Dynamic Value based on sort) -->
             <div class="w-20 text-right">
-              <p v-if="selectedYear === '전체'" class="text-sm font-black text-slate-100">{{ rankingUser.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span></p>
-              <p v-else class="text-sm font-black text-brand-primary">{{ rankingUser.win_rate }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">%</span></p>
+              <p v-if="sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank')" class="text-sm font-black text-brand-primary">
+                {{ rankingUser.win_rate }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">%</span>
+              </p>
+              <p v-else-if="sortBy === 'prediction_count'" class="text-sm font-black text-slate-100">
+                {{ rankingUser.prediction_count }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">회</span>
+              </p>
+              <p v-else-if="sortBy === 'win_count'" class="text-sm font-black text-rose-500">
+                {{ rankingUser.win_count }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">승</span>
+              </p>
+              <p v-else class="text-sm font-black text-slate-100">
+                {{ rankingUser.points.toLocaleString() }}<span class="text-[10px] font-bold text-slate-500 ml-0.5">P</span>
+              </p>
             </div>
           </div>
         </div>

@@ -210,24 +210,6 @@ export const useStock = () => {
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   
-  // Watch user and fetch data once login is complete
-  if (process.client) {
-    watch(user, (newUser) => {
-      if (newUser && newUser.id) {
-        console.log('[useStock] user detected:', newUser.id)
-        fetchWishlist()
-        // 종목 데이터가 이미 있으면 해당 날짜에 대해 예측도 가져옴
-        if (stocks.value && (stocks.value as any).length > 0) {
-          const targetDate = (stocks.value as any)[0].game_date
-          fetchPredictions(targetDate)
-        }
-      } else {
-        hearts.value = []
-        myPredictions.value = []
-      }
-    }, { immediate: true })
-  }
-  
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
     // 21:20 이후면 내일 리그가 활성화된 것으로 간주
@@ -255,10 +237,7 @@ export const useStock = () => {
   })
 
   const fetchPredictions = async (date?: string) => {
-    if (!user.value || !user.value.id) {
-      console.warn('[useStock] fetchPredictions: User not logged in, skipping.')
-      return
-    }
+    if (!user.value) return
 
     // 인자로 받은 날짜가 있으면 사용, 없으면 오늘 날짜 사용
     const targetDate = date || getKstDate()
@@ -303,10 +282,7 @@ export const useStock = () => {
   }
 
   const fetchWishlist = async () => {
-    if (!user.value || !user.value.id) {
-      console.warn('[useStock] fetchWishlist: User not logged in, skipping.')
-      return
-    }
+    if (!user.value) return
 
     const { data, error } = await client
       .from('wishlists')
@@ -315,7 +291,9 @@ export const useStock = () => {
     
     if (!error && data) {
       hearts.value = data.map((w: any) => Number(w.stock_id))
-      console.log('[useStock] Wishlist fetched:', hearts.value)
+      console.log('[useStock] Wishlist fetched and normalized:', hearts.value)
+    } else if (error) {
+      console.error('[useStock] Wishlist fetch error:', error)
     }
   }
 
@@ -340,8 +318,9 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
-    console.log('[useStock] toggleHeart called with stockId:', stockId, typeof stockId)
-    if (!user.value || !user.value.id) {
+    console.log('[useStock] toggleHeart called with stockId:', stockId, 'Type:', typeof stockId)
+    if (!user.value) {
+      console.warn('[useStock] toggleHeart failed: No user logged in')
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
       }
@@ -349,10 +328,16 @@ export const useStock = () => {
     }
 
     const id = Number(stockId)
+    if (isNaN(id)) {
+      console.error('[useStock] toggleHeart failed: Invalid stockId (NaN)', stockId)
+      return
+    }
+
     const isHearted = hearts.value.includes(id)
-    console.log('[useStock] isHearted:', isHearted, 'current hearts:', hearts.value)
+    console.log('[useStock] Current hearts:', hearts.value, 'isHearted:', isHearted)
     
     if (isHearted) {
+      console.log('[useStock] Removing from wishlist:', id)
       const { error } = await (client
         .from('wishlists')
         .delete() as any)
@@ -361,11 +346,12 @@ export const useStock = () => {
       
       if (!error) {
         hearts.value = hearts.value.filter(hId => Number(hId) !== id)
-        console.log('[useStock] Successfully removed from wishlist:', id)
+        console.log('[useStock] Removed successfully. Updated hearts:', hearts.value)
       } else {
-        console.error('[useStock] Error removing from wishlist:', error)
+        console.error('[useStock] Supabase direct delete error:', error)
       }
     } else {
+      console.log('[useStock] Adding to wishlist:', id)
       const { error } = await (client
         .from('wishlists')
         .insert({ user_id: user.value.id, stock_id: id } as any) as any)
@@ -373,9 +359,9 @@ export const useStock = () => {
       if (!error) {
         // 반응성을 위해 새 배열 할당
         hearts.value = [...hearts.value, id]
-        console.log('[useStock] Successfully added to wishlist:', id)
+        console.log('[useStock] Added successfully. Updated hearts:', hearts.value)
       } else {
-        console.error('[useStock] Error adding to wishlist:', error)
+        console.error('[useStock] Supabase direct insert error:', error)
       }
     }
   }
@@ -415,34 +401,51 @@ export const useStock = () => {
     }
   }
 
-  const fetchRankings = async (limitNum = 100) => {
-    const { data, error } = await client
+  const fetchRankings = async (limitNum = 100, sortBy: 'win_rate' | 'prediction_count' | 'win_count' | 'rank' = 'rank') => {
+    let query = client
       .from('profiles')
       .select(`
         username,
         avatar_url,
         points,
-        rankings(prediction_count, win_rate)
+        rankings(prediction_count, win_rate, win_count)
       `)
-      .order('points', { ascending: false })
-      .limit(limitNum)
+    
+    // global all_time 랭킹의 경우 기본은 points 정렬
+    if (sortBy === 'rank') {
+      query = query.order('points', { ascending: false })
+    }
+    
+    const { data, error } = await query.limit(limitNum)
     
     if (error) {
       console.error('Error fetching rankings:', error)
       return []
     }
 
-    return ((data as any[]) || []).map((p, index) => {
-      const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0 }
+    let results = ((data as any[]) || []).map((p) => {
+      const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0, win_count: 0 }
       return {
         username: p.username,
         avatar_url: p.avatar_url,
         points: p.points,
         prediction_count: stats.prediction_count,
-        win_count: Math.round(stats.prediction_count * (stats.win_rate / 100)),
-        rank: index + 1
+        win_rate: stats.win_rate,
+        win_count: stats.win_count || Math.round(stats.prediction_count * (stats.win_rate / 100)),
+        rank: 0 // Will be set after sorting
       }
     })
+
+    // 클라이언트 측 정렬 (복합 객체 기반이므로)
+    if (sortBy === 'win_rate') {
+      results.sort((a, b) => b.win_rate - a.win_rate || b.prediction_count - a.prediction_count)
+    } else if (sortBy === 'prediction_count') {
+      results.sort((a, b) => b.prediction_count - a.prediction_count || b.win_rate - a.win_rate)
+    } else if (sortBy === 'win_count') {
+      results.sort((a, b) => b.win_count - a.win_count || b.win_rate - a.win_rate)
+    }
+
+    return results.map((r, i) => ({ ...r, rank: i + 1 }))
   }
 
   const fetchUserStats = async () => {
@@ -620,7 +623,7 @@ export const useStock = () => {
       if (!stocksData) return []
 
       return (stocksData as any[]).map(s => ({
-        id: s.id,
+        id: Number(s.id),
         name: s.name,
         code: s.code,
         last_price: s.last_price || 0,

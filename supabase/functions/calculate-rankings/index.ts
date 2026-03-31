@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
         period_key: s.key,
         win_rate: parseFloat(winRate.toFixed(2)),
         prediction_count: s.total,
+        win_count: s.win, // 추가된 컬럼 반영
         updated_at: new Date().toISOString(),
         rank: 0 
       }

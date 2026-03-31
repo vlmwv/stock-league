@@ -32,13 +32,15 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 `
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  // Gemini 1.5 Flash 모델 호출 (최신 버전 명시)
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { 
-        temperature: 0.3
+        temperature: 0.3, 
+        maxOutputTokens: 250
       }
     })
   })
@@ -82,7 +84,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 
 Deno.serve(async (req) => {
   try {
-    console.log('Periodic market news collection started...')
+    console.log('Periodic market news collection started... (v1.0.1)')
     
     // 0. 특정 종목 코드 요청이 있는지 확인 (수동 트리거 용도)
     let requestedStockCode: string | null = null;
