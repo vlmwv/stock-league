@@ -4,10 +4,18 @@ const { fetchRankings, fetchUserStats, totalMemberCount, fetchParticipantCount }
 
 const { data: myStats } = useAsyncData('myStats', () => fetchUserStats(), { watch: [user] })
 
-const now = new Date()
-const selectedYear = ref(now.getFullYear().toString())
-const selectedMonth = ref(`${now.getMonth() + 1}월`)
-const years = ['전체', '2026', '2025']
+const getKstInfo = () => {
+  const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric' } as const
+  const parts = new Intl.DateTimeFormat('ko-KR', options).formatToParts(new Date())
+  const year = parts.find(p => p.type === 'year')?.value || '2026'
+  const month = parts.find(p => p.type === 'month')?.value || '4'
+  return { year, month }
+}
+
+const kst = getKstInfo()
+const selectedYear = ref(kst.year)
+const selectedMonth = ref(`${kst.month}월`)
+const years = ['전체', kst.year, (parseInt(kst.year) - 1).toString()]
 const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
 const displayLimit = ref(20)

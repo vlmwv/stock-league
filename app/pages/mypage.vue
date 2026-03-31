@@ -54,6 +54,24 @@
            <p class="text-xl font-black text-slate-200">{{ stats?.totalGames || 0 }}회</p>
         </div>
       </section>
+      
+      <!-- Wishlist Link -->
+      <section class="mb-10">
+        <NuxtLink to="/wishlist" class="glass-dark rounded-[2rem] p-6 border border-white/5 flex items-center justify-between group hover:bg-white/5 transition-all">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-rose-500/10 flex items-center justify-center transition-transform group-hover:scale-110">
+              <UIcon name="i-heroicons-heart-20-solid" class="w-7 h-7 text-rose-500" />
+            </div>
+            <div>
+              <h3 class="text-lg font-black text-slate-100 tracking-tight">관심 종목</h3>
+              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{{ hearts.length }} Stocks Hearted</p>
+            </div>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
+            <UIcon name="i-heroicons-chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all" />
+          </div>
+        </NuxtLink>
+      </section>
 
       <!-- Prediction History Header -->
       <div class="px-2 mb-6 flex justify-between items-center">
@@ -107,7 +125,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { fetchUserStats, fetchUserHistory } = useStock()
+const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist } = useStock()
 const user = useSupabaseUser()
 
 const stats = ref<any>(null)
@@ -117,7 +135,8 @@ const loading = ref(true)
 onMounted(async () => {
   const [statsData, historyData] = await Promise.all([
     fetchUserStats(),
-    fetchUserHistory()
+    fetchUserHistory(),
+    fetchWishlist()
   ])
   stats.value = statsData
   history.value = historyData

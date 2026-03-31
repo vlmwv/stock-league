@@ -3,14 +3,23 @@
     <TopHeader />
 
     <main class="max-w-md mx-auto px-6 py-8">
-      <div class="mb-4 flex justify-between items-end">
+      <div class="mb-8 flex justify-between items-center sm:items-end gap-4">
         <div>
-          <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-1">관심 종목</h2>
-          <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Your Private Watchlist</p>
+          <div class="flex items-center gap-3 mb-2">
+            <button 
+              @click="router.back()" 
+              class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+            >
+              <UIcon name="i-heroicons-arrow-left-20-solid" class="w-5 h-5" />
+            </button>
+            <h2 class="text-3xl font-black text-slate-100 tracking-tight">관심 종목</h2>
+          </div>
+          <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] pl-13">Your Private Watchlist</p>
         </div>
-        <div class="bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full flex items-center gap-2">
-           <UIcon name="i-heroicons-heart-20-solid" class="w-3.5 h-3.5 text-rose-500" />
-           <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">{{ heartedStocks.length }} Stocks</span>
+        
+        <div class="bg-rose-500/10 border border-rose-500/20 px-4 py-2 rounded-2xl flex items-center gap-2 shrink-0">
+           <UIcon name="i-heroicons-heart-20-solid" class="w-4 h-4 text-rose-500" />
+           <span class="text-[11px] font-black text-rose-500 uppercase tracking-widest">{{ heartedStocks.length }}</span>
         </div>
       </div>
 
@@ -38,6 +47,7 @@
           :key="stock.id"
           :stock="stock"
           :is-hearted="true"
+          :is-league-open="isLeagueOpen"
           :prediction="getPrediction(stock.id)"
           @predict="onPredict"
           @toggle-heart="toggleHeart"
@@ -61,7 +71,8 @@
 definePageMeta({
   middleware: 'auth'
 })
-const { wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions } = useStock()
+const router = useRouter()
+const { wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions, isLeagueOpen } = useStock()
 
 const heartedStocks = computed(() => wishlistStocks.value || [])
 
