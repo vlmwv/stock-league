@@ -124,17 +124,14 @@ Deno.serve(async (req) => {
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
-      const discUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
       const irUrl = `https://m.stock.naver.com/api/stock/${stock.code}/irInfo?pageSize=3&page=1`
 
-      const [newsRes, discRes, irRes] = await Promise.all([
+      const [newsRes, irRes] = await Promise.all([
         fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
         fetch(irUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
       ])
 
       const newsData = await newsRes.json()
-      const discData = await discRes.json()
       const irData = await irRes.json()
 
       // 최신 API 스펙: 여러 언론사가 모인 묶음(Cluster) 뉴스는 배열 요소 안의 items 배열에 들어있음
@@ -156,12 +153,11 @@ Deno.serve(async (req) => {
         newsItems = newsData?.items || []
       }
 
-      const discItems = Array.isArray(discData) ? discData : (discData?.items || [])
       const irItems = irData?.items || []
       
       // 개별 상세 URL 생성을 위한 헬퍼 로직
       let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
-      let type: 'news' | 'notice' | 'ir' = 'news'
+      let type: 'news' | 'ir' = 'news'
       let primaryItem: any = null
 
       if (irItems.length > 0) {
@@ -169,11 +165,6 @@ Deno.serve(async (req) => {
         primaryItem = irItems[0]
         const boardId = primaryItem.boardId || primaryItem.id
         finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
-      } else if (discItems.length > 0) {
-        type = 'notice'
-        primaryItem = discItems[0]
-        const articleId = primaryItem.articleId || primaryItem.id
-        finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/notice/${articleId}`
       } else if (newsItems.length > 0) {
         type = 'news'
         // 클러스터링된 주요 뉴스가 있다면 그것을 우선시 (배열 내 객체의 total 값이 영향을 주지만 이미 평탄화되었으므로)
@@ -188,7 +179,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const allItems = [...newsItems, ...discItems, ...irItems]
+      const allItems = [...newsItems, ...irItems]
       if (allItems.length === 0) continue
 
       let title = ''
@@ -201,7 +192,7 @@ Deno.serve(async (req) => {
         // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
         const fallbackTitle = String(primaryItem?.title || primaryItem?.tit || `${stock.name} 최신 이슈`).trim()
         title = `${fallbackTitle.substring(0, 20)}${fallbackTitle.length > 20 ? '...' : ''} (요약)`
-        summary = `${stock.name} 관련 최신 ${type === 'ir' ? 'IR' : type === 'notice' ? '공시' : '뉴스'}가 등록되었습니다.`
+        summary = `${stock.name} 관련 최신 ${type === 'ir' ? 'IR' : '뉴스'}가 등록되었습니다.`
         console.warn(`Summary fallback applied for ${stock.code}:`, summaryError)
       }
 
