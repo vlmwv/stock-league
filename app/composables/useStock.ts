@@ -383,7 +383,6 @@ export const useStock = () => {
     try {
       if (isCurrentlyHearted) {
         // 제거 요청 (명시적 user_id 필터)
-        console.log('[useStock] Deleting from wishlist:', { stock_id: id, user_id: user.value.id })
         const { error } = await client
           .from('wishlists')
           .delete()
@@ -393,31 +392,31 @@ export const useStock = () => {
           console.error('[useStock] Supabase delete error detail:', error)
           throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
         }
-        console.log('[useStock] Delete request successful')
       } else {
         // 추가 요청 (user_id 생략하여 서버의 auth.uid() 기본값 사용 - RLS 위반 방지)
-        console.log('[useStock] Inserting into wishlist (auto user_id):', { stock_id: id })
         const { error } = await client
           .from('wishlists')
           .insert({ stock_id: id } as any)
         
         if (error) {
-          // 이미 존재하는 경우(중복 제약 조건 위반)는 성공으로 간주
-          if (error.code === '23505') {
-            console.log('[useStock] Already in wishlist, treating as success')
+          // 이미 존재(409 Conflict / 23505)하거나 기타 성공 케이스와 다름없는 오류 처리
+          if (error.code === '23505' || error.message?.includes('Conflict')) {
+            console.log('[useStock] Already in wishlist or Conflict, treating as success')
           } else {
             console.error('[useStock] Supabase insert error detail:', error)
             throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
           }
         }
-        console.log('[useStock] Insert request successful')
       }
+      
+      // 최종적으로 서버와 상태를 조용히 동기화 (레이스 컨디션 방지)
+      setTimeout(() => fetchWishlist(), 500)
+      
     } catch (err: any) {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
       // 에러 발생 시 원래 상태로 복구
       hearts.value = previousHearts
       
-      // UX: 사용자에게 친절한 알림 (옵션)
       if (process.client && err.message.includes('RLS')) {
          console.warn('[useStock] RLS error detected. Session might be stale.')
       }
