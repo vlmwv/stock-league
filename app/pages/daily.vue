@@ -203,7 +203,7 @@ const isResultOpen = ref(false)
 const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
 
-const isHearted = (id: number) => hearts.value.includes(id)
+const isHearted = (id: number) => hearts.value.includes(Number(id))
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 
 const allPredicted = computed(() => {

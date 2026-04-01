@@ -374,6 +374,21 @@ export const useStock = () => {
     }
   }
 
+  // 사용자 상태 감시: 로그인/로그아웃 시 데이터 동기화 (함수 정의 후로 이동)
+  watch(user, async (newUser) => {
+    if (newUser?.id) {
+      console.log('[useStock] User session detected, syncing data...')
+      await Promise.all([
+        fetchWishlist(),
+        fetchPredictions()
+      ])
+    } else if (!newUser) {
+      console.log('[useStock] No user session, clearing heartbeat/predictions')
+      hearts.value = []
+      myPredictions.value = []
+    }
+  }, { immediate: true })
+
   const predict = async (stockId: number, prediction: 'up' | 'down', gameDate?: string) => {
     if (!isLeagueOpen.value) {
       alert('오늘의 예측은 08:00에 마감되었습니다.')

@@ -124,7 +124,7 @@ const formatDate = (dateStr: string) => {
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(d)
 }
 
-const isHearted = (id: number) => hearts.value.includes(id)
+const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const handleToggleHeart = async (stockId: number) => {
   await toggleHeart(stockId)
