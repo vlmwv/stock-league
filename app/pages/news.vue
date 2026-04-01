@@ -29,58 +29,73 @@
           v-else
           v-for="(item, index) in newsItems"
           :key="item.id"
-          class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-500"
+          class="glass-dark rounded-[2.5rem] p-7 border border-white/5 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-500"
         >
-          <!-- 종목 태그 -->
-          <div v-if="item.stockName" class="flex items-center gap-2 mb-4">
-            <span class="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-              {{ item.stockName }}
-            </span>
-            <span class="text-[9px] font-medium text-slate-600 uppercase">{{ item.stockCode }}</span>
-          </div>
-
-          <!-- 제목 -->
-          <h3 class="text-lg font-bold text-slate-100 mb-3 leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
-            {{ item.title }}
-          </h3>
-
-          <!-- LLM 요약 (Premium Card) -->
-          <div v-if="item.llm_summary" class="bg-gradient-to-br from-brand-primary/5 to-transparent border-l-2 border-brand-primary/30 pl-4 py-1 mb-4">
-            <p class="text-xs text-slate-400 leading-relaxed italic">
-              "{{ item.llm_summary }}"
-            </p>
-          </div>
-
-          <!-- 메타 정보 -->
-          <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-2">
-                <span 
-                  class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter"
+          <div class="flex flex-col gap-4 relative z-10">
+            <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div 
+                  class="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
                   :class="{
-                    'bg-brand-secondary/20 text-brand-secondary': item.type === 'notice',
-                    'bg-purple-500/10 text-purple-400': item.type === 'ir',
-                    'bg-brand-primary/10 text-brand-primary': item.type === 'news' || !item.type
+                    'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
+                    'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
+                    'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
                   }"
                 >
-                  {{ item.type === 'notice' ? '공시' : (item.type === 'ir' ? 'IR' : '뉴스') }}
-                </span>
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{{ item.source }}</span>
+                  <UIcon 
+                    :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
+                    class="w-5 h-5" 
+                  />
+                </div>
+                <div v-if="item.stockName" class="flex items-baseline gap-2">
+                  <span class="text-sm font-black text-slate-100 tracking-tight">{{ item.stockName }}</span>
+                  <span class="text-[10px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+                </div>
+                <span v-else class="text-xs text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
               </div>
-              <span class="text-[9px] text-slate-600 font-medium">{{ formatDate(item.published_at) }}</span>
+
+              <div class="flex items-center gap-4">
+                <button 
+                  v-if="item.stockId"
+                  @click.stop="toggleHeart(item.stockId)"
+                  class="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                  :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
+                >
+                  <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                </button>
+                <span class="text-[11px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
+              </div>
             </div>
-            <a 
-              :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
-              target="_blank"
-              class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300"
-            >
-              상세보기
-              <UIcon name="i-heroicons-arrow-top-right-on-square-20-solid" class="w-3.5 h-3.5" />
-            </a>
+
+            <!-- 중간 행: 제목 -->
+            <h3 class="text-xl font-bold text-slate-100 leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
+              {{ item.title }}
+            </h3>
+
+            <!-- 하단 행: AI 요약 -->
+            <div v-if="item.llm_summary" class="bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
+              <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                <span class="text-brand-primary/80 font-black mr-2">AI 요약</span>
+                {{ item.llm_summary }}
+              </p>
+            </div>
+
+            <!-- 상세보기 버튼 -->
+            <div class="flex justify-end mt-2">
+              <a 
+                :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
+                target="_blank"
+                class="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300 shadow-lg"
+              >
+                상세보기
+                <UIcon name="i-heroicons-arrow-top-right-on-square-20-solid" class="w-4 h-4" />
+              </a>
+            </div>
           </div>
 
           <!-- Decorative gradient -->
-          <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-brand-primary/5 blur-[50px] rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
+          <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/5 blur-[60px] rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
         </div>
       </section>
     </main>
@@ -91,10 +106,12 @@
 
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { fetchNews } = useStock()
+const { fetchNews, toggleHeart, hearts, fetchWishlist } = useStock()
 
 const newsItems = ref<any[]>([])
 const isLoading = ref(true)
+
+const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
@@ -117,8 +134,11 @@ const formatDate = (dateStr: string) => {
 
 onMounted(async () => {
   try {
-    const data = await fetchNews(30)
-    newsItems.value = data
+    const [newsData] = await Promise.all([
+      fetchNews(30),
+      fetchWishlist()
+    ])
+    newsItems.value = newsData
   } catch (error) {
     console.error('Failed to load news:', error)
   } finally {

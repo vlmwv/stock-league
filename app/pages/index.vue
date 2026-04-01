@@ -158,15 +158,31 @@
             @click="navigateToNews(item)"
             class="bg-white/5 rounded-[1.25rem] p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
           >
-            <div class="flex flex-col gap-3 relative z-10">
+            <div class="flex flex-col gap-3.5 relative z-10">
+              <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="w-9 h-9 rounded-xl bg-brand-secondary/10 flex items-center justify-center border border-brand-secondary/20">
-                    <UIcon name="i-heroicons-bolt" class="w-5 h-5 text-brand-secondary" />
+                <div class="flex items-center gap-2.5">
+                  <div 
+                    class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
+                    :class="{
+                      'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
+                      'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
+                      'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
+                    }"
+                  >
+                    <UIcon 
+                      :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
+                      class="w-4.5 h-4.5" 
+                    />
                   </div>
-                  <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
+                  <div v-if="item.stockName" class="flex items-baseline gap-1.5">
+                    <span class="text-xs font-black text-slate-200 tracking-tight">{{ item.stockName }}</span>
+                    <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+                  </div>
+                  <span v-else class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
-                <div class="flex items-center gap-2">
+
+                <div class="flex items-center gap-3">
                   <button 
                     v-if="item.stockId"
                     @click.stop="toggleHeart(item.stockId)"
@@ -175,35 +191,26 @@
                   >
                     <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
                   </button>
-                  <span 
-                    class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter shadow-sm"
-                    :class="{
-                      'bg-brand-secondary/20 text-brand-secondary border border-brand-secondary/30': item.type === 'notice',
-                      'bg-purple-500/10 text-purple-400 border border-purple-500/20': item.type === 'ir',
-                      'bg-brand-primary/10 text-brand-primary border border-brand-primary/20': item.type === 'news' || !item.type
-                    }"
-                  >
-                    {{ item.type === 'notice' ? '공시' : (item.type === 'ir' ? 'IR' : '뉴스') }}
-                  </span>
-                  <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
+                  <span class="text-[10px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
                 </div>
               </div>
               
-              <div>
-                <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors mb-1 line-clamp-2">{{ item.title }}</h4>
-                <p v-if="item.llm_summary" class="text-xs text-slate-400 leading-relaxed line-clamp-2 font-medium">
+              <!-- 중간 행: 제목 -->
+              <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
+                {{ item.title }}
+              </h4>
+
+              <!-- 하단 행: AI 요약 -->
+              <div v-if="item.llm_summary" class="bg-white/5 rounded-xl p-3 border border-white/5 backdrop-blur-sm">
+                <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                  <span class="text-brand-primary/80 font-black mr-1.5">AI 요약</span>
                   {{ item.llm_summary }}
                 </p>
               </div>
-
-              <div v-if="item.stockName" class="flex items-center gap-2 pt-2 border-t border-white/5">
-                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/5">
-                  <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
-                  <span class="text-[10px] font-bold text-slate-300">{{ item.stockName }}</span>
-                  <span class="text-[9px] font-bold text-slate-600 tracking-tighter">{{ item.stockCode }}</span>
-                </div>
-              </div>
             </div>
+            <!-- Subtitle glow effect -->
+            <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
+          </div>
             <!-- Subtitle glow effect -->
             <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
           </div>

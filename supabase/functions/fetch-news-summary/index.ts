@@ -22,15 +22,14 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
 또한 이 내용을 포괄하는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
 
 [중요 제약 조건]
-- 요약(summary)은 반드시 마침표(.)로 끝나는 완결된 한 문장여야 합니다.
+- 요약(summary)은 반드시 마침표(.)로 끝나는 완결된 한 문장이어야 합니다.
 - "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같은 식상하고 반복적인 제목은 절대 금지합니다.
-- 실제 언론사에서 낼 법한 구체적이고 임팩트 있는 헤드라인을 만드세요. 예: "한화오션, 필리조선소 인수로 미 해군 함정 시장 진출 본격화 (요약)"
+- 실제 언론사에서 낼 법한 구체적이고 임팩트 있는 헤드라인을 만드세요.
 - 요약 작성 시 '${stockName}' 이라는 종목명을 문장 처음에 넣지 마세요.
-- '요약:', '결론:' 등의 서두 문구 없이 바로 본론으로 시작하세요.
 - 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
 {
-  "title": "{통합된 뉴스 제목} (요약)",
-  "summary": "{수정된 1문장 요약}"
+  "title": "뉴스 제목 (요약)",
+  "summary": "1문장 요약 내용."
 }
 `
   
@@ -61,15 +60,16 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
 
   const fullPrompt = `${prompt}\n\n[목록]\n${contentList}`
 
-  // Gemini 2.5 Flash 모델 호출 (최신 가용 모델 사용)
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  // Gemini 1.5 Flash 모델 호출 (최신 가용 모델 사용 및 JSON 응답 모드 활성화)
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: fullPrompt }] }],
       generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 500
+        temperature: 0.2,
+        maxOutputTokens: 500,
+        response_mime_type: "application/json"
       }
     })
   })
@@ -82,13 +82,6 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   
   const data = await response.json()
   let text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
-  
-  // JSON 추출을 위한 클리닝 (마크다운 백틱 제거)
-  if (text.includes('```json')) {
-    text = text.split('```json')[1].split('```')[0].trim()
-  } else if (text.includes('```')) {
-    text = text.split('```')[1].split('```')[0].trim()
-  }
 
   try {
     const parsed = JSON.parse(text)
@@ -198,7 +191,19 @@ Deno.serve(async (req) => {
         const topNews = newsItems[0] || {}
         const topDisc = disclosureItems[0] || {}
         const topIr = irItems[0] || {}
-        const publishedDate = topNews.dt ? `${topNews.dt.substring(0, 4)}-${topNews.dt.substring(4, 6)}-${topNews.dt.substring(6, 8)}T${topNews.dt.substring(8, 10)}:${topNews.dt.substring(10, 12)}:00Z` : new Date().toISOString()
+        
+        // 날짜 파싱 및 검증 로직 개선
+        let published_at = new Date().toISOString()
+        const dt = topNews.dt || ""
+        if (dt && dt.length >= 10) {
+          try {
+            published_at = `${dt.substring(0, 4)}-${dt.substring(4, 6)}-${dt.substring(6, 8)}T${dt.substring(8, 10)}:${dt.substring(10, 12) || '00'}:00Z`
+            // 유효성 확인
+            new Date(published_at).toISOString()
+          } catch (e) {
+            published_at = new Date().toISOString()
+          }
+        }
         
         let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
         let type: 'news' | 'notice' | 'ir' = 'news'
@@ -234,7 +239,7 @@ Deno.serve(async (req) => {
           content: contentLines.join('\n'),
           url: finalUrl,
           source: '네이버 시황/뉴스/공시/IR (Gemini 1.5 Flash 요약)',
-          published_at: new Date(publishedDate).toISOString(),
+          published_at: published_at,
           llm_summary: summary,
           type: type,
           created_at: new Date().toISOString()

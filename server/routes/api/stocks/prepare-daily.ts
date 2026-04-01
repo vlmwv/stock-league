@@ -123,10 +123,10 @@ export default defineEventHandler(async (event) => {
           console.warn(`[PrepareDaily] External fetch failed for ${s.name}`)
         }
 
-        // Gemini 요약 생성 (2026 스테이블 모델: gemini-2.5-flash)
+        // Gemini 요약 생성 (스테이블 모델: gemini-1.5-flash)
         const prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${s.name}'(${s.sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n[최근 이슈]\n${newsItems.slice(0, 2).map((n:any) => "- " + n.tit).join('\n')}\n${disclosureItems.slice(0, 2).map((d:any) => "- " + d.title).join('\n')}`
 
-        const geminiRes = await $fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const geminiRes = await $fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           body: {
             contents: [{ parts: [{ text: prompt }] }],
