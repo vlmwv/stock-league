@@ -405,17 +405,15 @@ export const useStock = () => {
           throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
         }
       } else {
-        // 추가 요청 (upsert 사용으로 409 Conflict 방지)
+        // 추가 요청: upsert는 RLS UPDATE 정책이 없으면 충돌 시 실패할 수 있어 insert + unique 에러 무시 사용
         const { error } = await client
           .from('wishlists')
-          .upsert(
-            { user_id: user.value.id, stock_id: id } as any, 
-            { onConflict: 'user_id, stock_id' } as any
-          ) as any
+          .insert({ user_id: user.value.id, stock_id: id } as any) as any
         
-        if (error) {
-          console.error('[useStock] Supabase wishlist upsert error:', error)
-          throw new Error(`Upsert failed: ${error.message} (code ${error.code})`)
+        // 이미 존재하는 찜(unique 위반)은 정상 상태이므로 무시
+        if (error && error.code !== '23505') {
+          console.error('[useStock] Supabase wishlist insert error:', error)
+          throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
         }
       }
       
