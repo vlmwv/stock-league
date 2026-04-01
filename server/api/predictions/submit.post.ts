@@ -14,7 +14,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const today = new Date().toISOString().split('T')[0] as string
+  const today = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date()) as string
 
   // 해당 날짜에 동일 종목에 대한 예측이 이미 존재하는지 확인
   const { data: existing } = await (client as any)
