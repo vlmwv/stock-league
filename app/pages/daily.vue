@@ -28,14 +28,25 @@
           v-for="stock in dailyStocks" 
           :key="stock.id"
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300"
-          :class="getPrediction(stock.id) === 'up' ? 'border-rose-500/30' : getPrediction(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
+          :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
           <!-- 예측 완료 배지 -->
-          <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest"
-            :class="getPrediction(stock.id) === 'up' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'"
+          <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm"
+            :class="[
+              getPrediction(stock.id)?.result === 'win' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+              getPrediction(stock.id)?.result === 'lose' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+              getPrediction(stock.id)?.prediction === 'up' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+            ]"
           >
-            <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3" />
-            {{ getPrediction(stock.id) === 'up' ? '상승 선택됨' : '하락 선택됨' }}
+            <UIcon 
+              :name="getPrediction(stock.id)?.result === 'win' ? 'i-heroicons-sparkles' : (getPrediction(stock.id)?.result === 'lose' ? 'i-heroicons-x-circle' : 'i-heroicons-check-circle-20-solid')" 
+              class="w-3.5 h-3.5" 
+            />
+            {{ 
+              getPrediction(stock.id)?.result === 'win' ? '예측 성공' : 
+              getPrediction(stock.id)?.result === 'lose' ? '예측 실패' : 
+              (getPrediction(stock.id)?.prediction === 'up' ? '상승 선택됨' : '하락 선택됨') 
+            }}
           </div>
 
           <div class="flex justify-between items-start mb-4">
@@ -71,21 +82,21 @@
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
-                getPrediction(stock.id) === 'up'
+                getPredictionValue(stock.id) === 'up'
                   ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/40 ring-2 ring-rose-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
-                  : getPrediction(stock.id) === 'down'
+                  : getPredictionValue(stock.id) === 'down'
                     ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
                     : 'bg-slate-800/50 text-rose-500/80 border border-rose-500/20 hover:bg-rose-500/10 active:scale-95',
-                !isLeagueOpen && getPrediction(stock.id) !== 'up' ? 'opacity-20 grayscale cursor-not-allowed' : '',
-                !isLeagueOpen && getPrediction(stock.id) === 'up' ? 'opacity-90 cursor-default' : ''
+                !isLeagueOpen && getPredictionValue(stock.id) !== 'up' ? 'opacity-20 grayscale cursor-not-allowed' : '',
+                !isLeagueOpen && getPredictionValue(stock.id) === 'up' ? 'opacity-90 cursor-default' : ''
               ]"
             >
               <UIcon 
-                :name="getPrediction(stock.id) === 'up' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-up-20-solid'" 
+                :name="getPredictionValue(stock.id) === 'up' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-up-20-solid'" 
                 class="w-5 h-5" 
               />
               <span class="text-xs font-black uppercase tracking-widest">
-                {{ getPrediction(stock.id) === 'up' ? '상승 ✓' : '상승' }}
+                {{ getPredictionValue(stock.id) === 'up' ? '상승 ✓' : '상승' }}
               </span>
             </button>
             <button 
@@ -93,21 +104,21 @@
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
-                getPrediction(stock.id) === 'down'
+                getPredictionValue(stock.id) === 'down'
                   ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
-                  : getPrediction(stock.id) === 'up'
+                  : getPredictionValue(stock.id) === 'up'
                     ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
                     : 'bg-slate-800/50 text-indigo-500/80 border border-indigo-500/20 hover:bg-indigo-500/10 active:scale-95',
-                !isLeagueOpen && getPrediction(stock.id) !== 'down' ? 'opacity-20 grayscale cursor-not-allowed' : '',
-                !isLeagueOpen && getPrediction(stock.id) === 'down' ? 'opacity-90 cursor-default' : ''
+                !isLeagueOpen && getPredictionValue(stock.id) !== 'down' ? 'opacity-20 grayscale cursor-not-allowed' : '',
+                !isLeagueOpen && getPredictionValue(stock.id) === 'down' ? 'opacity-90 cursor-default' : ''
               ]"
             >
               <UIcon 
-                :name="getPrediction(stock.id) === 'down' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
+                :name="getPredictionValue(stock.id) === 'down' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
                 class="w-5 h-5" 
               />
               <span class="text-xs font-black uppercase tracking-widest">
-                {{ getPrediction(stock.id) === 'down' ? '하락 ✓' : '하락' }}
+                {{ getPredictionValue(stock.id) === 'down' ? '하락 ✓' : '하락' }}
               </span>
             </button>
             <button 
@@ -138,7 +149,10 @@
           <UIcon name="i-heroicons-check-circle-20-solid" class="w-8 h-8 text-brand-primary" />
         </div>
         <h3 class="text-xl font-black text-slate-100">예측 완료!</h3>
-        <p class="text-xs text-slate-400">오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>결과는 내일 20:20에 공개됩니다.</p>
+        <p class="text-xs text-slate-400">
+          오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>
+          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : '오늘 20:20에 공개됩니다.' }}
+        </p>
         <NuxtLink 
           to="/ranking"
           class="inline-block mt-4 px-8 py-3 rounded-2xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-primary/20"
@@ -160,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen } = useStock()
+const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished } = useStock()
 
 const getKstDate = () => {
   const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
@@ -204,7 +218,8 @@ const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
-const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
+const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id) || null
+const getPredictionValue = (id: number) => getPrediction(id)?.prediction || null
 
 const allPredicted = computed(() => {
   if (!dailyStocks.value || dailyStocks.value.length === 0) return false

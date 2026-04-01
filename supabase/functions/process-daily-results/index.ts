@@ -13,6 +13,18 @@ const POINTS_FOR_LOSE = 0;
 Deno.serve(async (req) => {
   try {
     console.log('Fetching today\'s daily stocks...')
+    const startTime = new Date().toISOString()
+    
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'process-daily-results',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
     
     // 한국 시간 기준 현재 날짜(YYYY-MM-DD) 구하기
     const now = new Date();
@@ -155,6 +167,19 @@ Deno.serve(async (req) => {
       processedCount++;
     }
 
+    // 로그 종료 기록
+    if (logEntry) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: processedCount,
+          message: `Successfully processed results for ${processedCount} stocks`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntry.id)
+    }
+
     return new Response(JSON.stringify({ 
       message: 'Successfully processed daily results', 
       processed_stocks: processedCount
@@ -165,6 +190,19 @@ Deno.serve(async (req) => {
 
   } catch (err: any) {
     console.error('Error processing daily results:', err.message)
+    try {
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'process-daily-results',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    } catch (e) {
+      console.error('Failed to log error to DB:', e)
+    }
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,

@@ -20,6 +20,19 @@ function getMonthKey(d: Date) {
 Deno.serve(async (req) => {
   try {
     console.log('Calculating rankings...')
+    const startTime = new Date().toISOString()
+    
+    // 로그 시작 기록
+    const { data: logEntry, error: logStartError } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'calculate-rankings',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
+
     const now = new Date()
     const weekKey = getWeekNumber(now)
     const monthKey = getMonthKey(now)
@@ -104,6 +117,19 @@ Deno.serve(async (req) => {
       if (upsertError) throw upsertError
     }
 
+    // 로그 종료 기록
+    if (logEntry) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: finalRecords.length,
+          message: 'Rankings calculated successfully',
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntry.id)
+    }
+
     return new Response(JSON.stringify({ 
       message: 'Rankings calculated successfully', 
       count: finalRecords.length 
@@ -113,6 +139,24 @@ Deno.serve(async (req) => {
     })
 
   } catch (err: any) {
+    console.error('Ranking Calculation Error:', err.message)
+    // 에러 발생 시 로그 업데이트 시도 (함수 실행 중 logEntry가 생성된 경우에만)
+    // 이 시점에서는 supabase 인스턴스가 살아있어야 함
+    try {
+      // logEntry를 찾기 위해 별도의 쿼리가 필요할 수 있지만, 여기서는 최대한 시도
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'calculate-rankings',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    } catch (e) {
+      console.error('Failed to log error to DB:', e)
+    }
+
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500

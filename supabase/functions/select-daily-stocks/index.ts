@@ -35,7 +35,7 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     prompt += `(최근 특징적인 뉴스나 공시가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -72,6 +72,18 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
 Deno.serve(async (req) => {
   try {
     console.log('Selecting daily stocks triggered...')
+    const startTime = new Date().toISOString()
+    
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'select-daily-stocks',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
     
     // 1. 시가총액 상위 100개 종목 가져오기
     const { data: topStocks, error: topError } = await supabase
@@ -162,8 +174,14 @@ Deno.serve(async (req) => {
           // API 호출 실패해도 계속 진행 (Gemini가 일반 시장 상황으로 요약 생성)
         }
         
-        console.log(`Generating summary with Gemini for ${stock.name}...`)
-        const summary = await summarizeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
+        let summary = '오늘의 종목 요약 정보를 생성 중입니다...'
+        try {
+          console.log(`Generating summary with Gemini for ${stock.name}...`)
+          summary = await summarizeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
+        } catch (geminiErr: any) {
+          console.error(`Gemini summary failed for ${stock.name}:`, geminiErr.message)
+          // Gemini 실패 시 기본 문구 사용하며 계속 진행
+        }
         
         // 3. daily_stocks 테이블에 중복 여부 확인 후 삽입
         const { data: existing, error: checkError } = await supabase
@@ -198,6 +216,19 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 로그 종료 기록
+    if (logEntry) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: processedCount,
+          message: `Successfully selected ${processedCount} stocks for ${targetDateStr}`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntry.id)
+    }
+
     return new Response(JSON.stringify({ 
       message: `Successfully selected and summarized ${processedCount} stocks for ${targetDateStr}`, 
       game_date: targetDateStr,
@@ -209,6 +240,19 @@ Deno.serve(async (req) => {
     
   } catch (err: any) {
     console.error('Fatal Edge Function Error:', err.message)
+    try {
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'select-daily-stocks',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    } catch (e) {
+      console.error('Failed to log error to DB:', e)
+    }
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,

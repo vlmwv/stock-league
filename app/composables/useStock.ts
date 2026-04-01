@@ -206,15 +206,15 @@ export const useStock = () => {
   })
 
   const hearts = useState<number[]>('wishlist', () => [])
-  const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
+  const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down', result?: 'win' | 'lose' | 'draw' | 'pending' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
   
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
-    // 21:20 이후면 내일 리그가 활성화된 것으로 간주
-    const { hour } = getKstHourMinute()
+    const { hour, minute } = getKstHourMinute()
+    const currentTimeVal = hour * 100 + minute
     const today = getKstDate()
 
     if (stocks.value && (stocks.value as any).length > 0) {
@@ -223,9 +223,10 @@ export const useStock = () => {
       // 과거 데이터는 마감
       if (firstStockDate < today) return false
       
-      // 미래 데이터(내일 등)는 항상 오픈 (단, 해당 날짜 08:00 전까지만)
+      // 미래 데이터(내일 등)
       if (firstStockDate > today) {
-        return true // 내일 종목이 미리 올라온 경우 응모 가능
+        // 이미 21:20이 지났거나, 내일 당일 08:00 전이면 오픈
+        return currentTimeVal >= 2120 || hour < 8
       }
       
       // 오늘 데이터인 경우 08:00 전까지만 오픈
@@ -235,6 +236,27 @@ export const useStock = () => {
     }
 
     return hour < 8
+  })
+
+  // 5. Result Status (Published after 20:20 KST)
+  const isResultPublished = computed(() => {
+    const { hour, minute } = getKstHourMinute()
+    const currentTimeVal = hour * 100 + minute
+    const today = getKstDate()
+
+    if (stocks.value && (stocks.value as any).length > 0) {
+      const firstStockDate = (stocks.value as any)[0].game_date
+      
+      // 과거 데이터는 항상 결과 발표됨
+      if (firstStockDate < today) return true
+      
+      // 오늘 데이터인 경우 20:20 이후면 발표됨
+      if (firstStockDate === today) {
+        return currentTimeVal >= 2020
+      }
+    }
+
+    return false
   })
 
   const fetchPredictions = async (date?: string) => {
@@ -250,14 +272,15 @@ export const useStock = () => {
     console.log(`[useStock] Fetching predictions for date: ${targetDate}`)
     const { data, error } = await client
       .from('predictions')
-      .select('stock_id, prediction_type')
+      .select('stock_id, prediction_type, result')
       .eq('user_id', user.value.id)
       .eq('game_date', targetDate as any)
     
     if (!error && data) {
       myPredictions.value = (data as any).map((p: any) => ({
         stockId: Number(p.stock_id),
-        prediction: p.prediction_type
+        prediction: p.prediction_type,
+        result: p.result
       }))
     }
   }
@@ -359,33 +382,45 @@ export const useStock = () => {
 
     try {
       if (isCurrentlyHearted) {
-        // 제거 요청
+        // 제거 요청 (명시적 user_id 필터)
+        console.log('[useStock] Deleting from wishlist:', { stock_id: id, user_id: user.value.id })
         const { error } = await client
           .from('wishlists')
           .delete()
-          .eq('user_id', user.value.id)
-          .eq('stock_id', id)
+          .match({ user_id: user.value.id, stock_id: id })
         
-        if (error) throw error
+        if (error) {
+          console.error('[useStock] Supabase delete error detail:', error)
+          throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
+        }
+        console.log('[useStock] Delete request successful')
       } else {
-        // 추가 요청
+        // 추가 요청 (user_id 생략하여 서버의 auth.uid() 기본값 사용 - RLS 위반 방지)
+        console.log('[useStock] Inserting into wishlist (auto user_id):', { stock_id: id })
         const { error } = await client
           .from('wishlists')
-          .insert({ user_id: user.value.id, stock_id: id } as any)
+          .insert({ stock_id: id } as any)
         
         if (error) {
           // 이미 존재하는 경우(중복 제약 조건 위반)는 성공으로 간주
           if (error.code === '23505') {
             console.log('[useStock] Already in wishlist, treating as success')
           } else {
-            throw error
+            console.error('[useStock] Supabase insert error detail:', error)
+            throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
           }
         }
+        console.log('[useStock] Insert request successful')
       }
     } catch (err: any) {
-      console.error('[useStock] toggleHeart failed, rolling back:', err)
+      console.error('[useStock] toggleHeart fallback! error:', err.message || err)
       // 에러 발생 시 원래 상태로 복구
       hearts.value = previousHearts
+      
+      // UX: 사용자에게 친절한 알림 (옵션)
+      if (process.client && err.message.includes('RLS')) {
+         console.warn('[useStock] RLS error detected. Session might be stale.')
+      }
     }
   }
 
@@ -417,7 +452,6 @@ export const useStock = () => {
     const { error } = await (client
       .from('predictions')
       .upsert({
-        user_id: user.value.id,
         stock_id: stockId,
         game_date: targetDate,
         prediction_type: prediction,
@@ -494,7 +528,7 @@ export const useStock = () => {
     // 1. Get points and profile
     const { data: profile } = await client
       .from('profiles')
-      .select('points')
+      .select('username, avatar_url, points, role')
       .eq('id', userId)
       .single()
 
@@ -555,12 +589,30 @@ export const useStock = () => {
     }
 
     return {
+      username: (profile as any)?.username,
+      avatarUrl: (profile as any)?.avatar_url,
       points: (profile as any)?.points || 0,
+      role: (profile as any)?.role || 'user',
       rank,
       winRate,
       totalGames,
       streak
     }
+  }
+
+  const updateProfile = async (username: string) => {
+    if (!user.value?.id) return false
+
+    const { error } = await (client
+      .from('profiles') as any)
+      .update({ username })
+      .eq('id', user.value.id)
+
+    if (error) {
+      console.error('Error updating profile:', error)
+      return false
+    }
+    return true
   }
 
   const fetchUserHistory = async () => {
@@ -773,6 +825,7 @@ export const useStock = () => {
     fetchUserStats,
     fetchUserHistory,
     fetchStocksWithStats,
-    isLeagueOpen
+    isResultPublished,
+    updateProfile
   }
 }

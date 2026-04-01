@@ -12,12 +12,12 @@
               <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden">
                 <img :src="user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
               </div>
-              <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center">
+              <div @click="openEditModal" class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-white" />
               </div>
             </div>
             
-            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
+            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ stats?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
             <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">마스터 예측 티어</p>
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
@@ -55,6 +55,26 @@
         </div>
       </section>
       
+      <!-- Admin Link (Only for Admins) -->
+      <section v-if="stats?.role === 'admin'" class="mb-6">
+        <NuxtLink to="/admin" class="relative overflow-hidden rounded-[2rem] p-6 border border-brand-primary/30 bg-brand-primary/5 flex items-center justify-between group hover:bg-brand-primary/10 transition-all shadow-lg shadow-brand-primary/5">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-brand-primary/20 flex items-center justify-center transition-transform group-hover:scale-110">
+              <UIcon name="i-heroicons-shield-check" class="w-7 h-7 text-brand-primary" />
+            </div>
+            <div>
+              <h3 class="text-lg font-black text-white tracking-tight">시스템 관리자</h3>
+              <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Admin Dashboard Access</p>
+            </div>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center group-hover:bg-brand-primary/40 transition-colors">
+            <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-brand-primary" />
+          </div>
+          <!-- Internal Glow -->
+          <div class="absolute -right-4 -top-4 w-20 h-20 bg-brand-primary/10 blur-2xl rounded-full"></div>
+        </NuxtLink>
+      </section>
+
       <!-- Wishlist Link -->
       <section class="mb-10">
         <NuxtLink to="/wishlist" class="glass-dark rounded-[2rem] p-6 border border-white/5 flex items-center justify-between group hover:bg-white/5 transition-all">
@@ -117,6 +137,31 @@
     </main>
 
     <BottomNav />
+
+    <!-- Edit Profile Modal -->
+    <UModal v-model="isEditModalOpen">
+      <UCard class="bg-slate-900 border-white/10 ring-1 ring-white/10">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-black text-white">프로필 수정</h3>
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isEditModalOpen = false" />
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <UFormGroup label="닉네임" name="username">
+            <UInput v-model="newUsername" placeholder="새 닉네임을 입력하세요" color="neutral" variant="outline" size="lg" />
+          </UFormGroup>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="neutral" variant="ghost" @click="isEditModalOpen = false">취소</UButton>
+            <UButton color="primary" :loading="updating" @click="handleUpdateProfile">저장하기</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
@@ -125,12 +170,34 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist } = useStock()
+const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist, updateProfile } = useStock()
 const user = useSupabaseUser()
 
 const stats = ref<any>(null)
 const history = ref<any[]>([])
 const loading = ref(true)
+const updating = ref(false)
+const isEditModalOpen = ref(false)
+const newUsername = ref('')
+
+const openEditModal = () => {
+  newUsername.value = stats.value?.username || user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0] || ''
+  isEditModalOpen.value = true
+}
+
+const handleUpdateProfile = async () => {
+  if (!newUsername.value.trim()) return
+  
+  updating.value = true
+  const success = await updateProfile(newUsername.value.trim())
+  if (success) {
+    stats.value = await fetchUserStats()
+    isEditModalOpen.value = false
+  } else {
+    alert('프로필 수정에 실패했습니다.')
+  }
+  updating.value = false
+}
 
 onMounted(async () => {
   const [statsData, historyData] = await Promise.all([
