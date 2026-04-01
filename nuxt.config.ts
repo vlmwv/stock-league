@@ -68,6 +68,10 @@ export default defineNuxtConfig({
     devOptions: {
       enabled: true,
       type: 'module'
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
     }
   },
   nitro: {
