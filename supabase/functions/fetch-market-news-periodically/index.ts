@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
         newsItems = newsData?.items || []
       }
 
-      const irItems = irData?.items || []
+      const irItems = Array.isArray(irData) ? irData : (irData?.items || [])
       
       // 개별 상세 URL 생성을 위한 헬퍼 로직
       let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
