@@ -30,23 +30,32 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 `
 
-  // Gemini 1.5 Flash 모델 호출 (안정적인 v1 엔드포인트 사용)
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { 
-        temperature: 0.3, 
-        maxOutputTokens: 250
-      }
-    })
-  })
+  // 최신 모델 우선, 실패 시 레거시 모델로 1회 폴백
+  const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash-latest']
+  let response: Response | null = null
+  let lastErrorBody = ''
 
-  if (!response.ok) {
-    const errBody = await response.text()
-    console.error(`Gemini API Error (${response.status}):`, errBody)
-    throw new Error(`Gemini API failed (${response.status}): ${errBody}`)
+  for (const model of candidateModels) {
+    response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 250
+        }
+      })
+    })
+
+    if (response.ok) break
+    lastErrorBody = await response.text()
+    console.warn(`Gemini model fallback triggered (${model}):`, response.status)
+  }
+
+  if (!response || !response.ok) {
+    console.error(`Gemini API Error (${response?.status ?? 'N/A'}):`, lastErrorBody)
+    throw new Error(`Gemini API failed (${response?.status ?? 'N/A'}): ${lastErrorBody}`)
   }
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
@@ -182,7 +191,19 @@ Deno.serve(async (req) => {
       const allItems = [...newsItems, ...discItems, ...irItems]
       if (allItems.length === 0) continue
 
-      const { title, summary } = await summarizeWithGemini(allItems, stock.name)
+      let title = ''
+      let summary = ''
+      try {
+        const summarized = await summarizeWithGemini(allItems, stock.name)
+        title = summarized.title
+        summary = summarized.summary
+      } catch (summaryError) {
+        // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
+        const fallbackTitle = String(primaryItem?.title || primaryItem?.tit || `${stock.name} 최신 이슈`).trim()
+        title = `${fallbackTitle.substring(0, 20)}${fallbackTitle.length > 20 ? '...' : ''} (요약)`
+        summary = `${stock.name} 관련 최신 ${type === 'ir' ? 'IR' : type === 'notice' ? '공시' : '뉴스'}가 등록되었습니다.`
+        console.warn(`Summary fallback applied for ${stock.code}:`, summaryError)
+      }
 
       const { error: insertError } = await supabase
         .from('news')
