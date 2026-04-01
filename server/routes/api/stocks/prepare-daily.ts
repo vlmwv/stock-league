@@ -126,12 +126,19 @@ export default defineEventHandler(async (event) => {
         // Gemini 요약 생성 (스테이블 모델: gemini-1.5-flash)
         const prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${s.name}'(${s.sector || '기타'} 섹터) 종목을 내일의 예측 게임 종목으로 추천하는 이유 혹은 관전 포인트를 2~3문장 이내로 핵심만 아주 짧고 흥미롭게 작성해주세요.\n\n[최근 이슈]\n${newsItems.slice(0, 2).map((n:any) => "- " + n.tit).join('\n')}\n${disclosureItems.slice(0, 2).map((d:any) => "- " + d.title).join('\n')}`
 
-        const geminiRes = await $fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const geminiRes = await $fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           body: {
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 200 }
+            generationConfig: { 
+              temperature: 0.7, 
+              maxOutputTokens: 200 
+            }
           }
+        }).catch(async (err: any) => {
+          const errorDetail = err.data ? JSON.stringify(err.data) : err.message
+          console.error(`[PrepareDaily] Gemini API call failed for ${s.name}:`, errorDetail)
+          throw new Error(`Gemini API failed for ${s.name}: ${errorDetail}`)
         }) as any
 
         const summary = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '추천 사유를 생성하지 못했습니다.'

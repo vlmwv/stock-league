@@ -79,6 +79,10 @@
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
           </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/5">
+            <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5 text-rose-500" />
+            <span class="text-[10px] font-bold text-slate-400">AI 추천</span>
+          </div>
         </div>
         
         <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4">
@@ -145,10 +149,28 @@
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
           </div>
-          <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
-            전체보기
-            <UIcon name="i-heroicons-arrow-right-20-solid" class="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-          </NuxtLink>
+          <div class="flex items-center gap-4">
+            <!-- Icon Legend -->
+            <div class="flex items-center gap-3 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/5">
+              <div class="flex items-center gap-1">
+                <UIcon name="i-heroicons-newspaper" class="w-3 h-3 text-brand-primary" />
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">뉴스</span>
+              </div>
+              <div class="flex items-center gap-1 border-l border-white/10 pl-2">
+                <UIcon name="i-heroicons-megaphone" class="w-3 h-3 text-brand-secondary" />
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">공시</span>
+              </div>
+              <div class="flex items-center gap-1 border-l border-white/10 pl-2">
+                <UIcon name="i-heroicons-presentation-chart-line" class="w-3 h-3 text-purple-400" />
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">IR</span>
+              </div>
+            </div>
+            
+            <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
+              전체보기
+              <UIcon name="i-heroicons-arrow-right-20-solid" class="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
+            </NuxtLink>
+          </div>
         </div>
 
         <div class="flex flex-col gap-3">

@@ -61,7 +61,7 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   const fullPrompt = `${prompt}\n\n[목록]\n${contentList}`
 
   // Gemini 1.5 Flash 모델 호출 (최신 가용 모델 사용 및 JSON 응답 모드 활성화)
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -77,7 +77,7 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   if (!response.ok) {
     const errorBody = await response.text()
     console.error(`Gemini API Error (${response.status}):`, errorBody)
-    throw new Error(`Gemini API failed: ${response.status}`)
+    throw new Error(`Gemini API failed: ${response.status} - ${errorBody}`)
   }
   
   const data = await response.json()
