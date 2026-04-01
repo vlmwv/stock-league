@@ -14,6 +14,16 @@ export const useStock = () => {
   const client = useSupabaseClient()
   const user = useSupabaseUser()
 
+  const resolveUserId = async () => {
+    if (user.value?.id) return user.value.id
+    const { data, error } = await client.auth.getSession()
+    if (error) {
+      console.warn('[useStock] Failed to resolve auth session:', error.message)
+      return null
+    }
+    return data.session?.user?.id ?? null
+  }
+
   const getKstDate = () => {
     // Intl.DateTimeFormat을 사용하여 시스템 TZ에 관계없이 항상 KST 날짜 반환
     const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
@@ -260,7 +270,8 @@ export const useStock = () => {
   })
 
   const fetchPredictions = async (date?: string) => {
-    if (!user.value?.id) {
+    const userId = await resolveUserId()
+    if (!userId) {
       console.log('[useStock] Skipping fetchPredictions: No user logged in')
       myPredictions.value = []
       return
@@ -273,7 +284,7 @@ export const useStock = () => {
     const { data, error } = await client
       .from('predictions')
       .select('stock_id, prediction_type, result')
-      .eq('user_id', user.value.id)
+      .eq('user_id', userId)
       .eq('game_date', targetDate as any)
     
     if (!error && data) {
@@ -310,7 +321,8 @@ export const useStock = () => {
   }
 
   const fetchWishlist = async () => {
-    if (!user.value?.id) {
+    const userId = await resolveUserId()
+    if (!userId) {
       console.log('[useStock] Skipping fetchWishlist: No user logged in')
       hearts.value = []
       return
@@ -326,7 +338,7 @@ export const useStock = () => {
       const { data, error } = await client
         .from('wishlists')
         .select('stock_id')
-        .eq('user_id', user.value.id)
+        .eq('user_id', userId)
       
       if (!error && data) {
         hearts.value = data.map((w: any) => Number(w.stock_id))
