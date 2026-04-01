@@ -46,7 +46,7 @@
           v-for="stock in heartedStocks" 
           :key="stock.id"
           :stock="stock"
-          :is-hearted="true"
+          :is-hearted="hearts.includes(Number(stock.id))"
           :is-league-open="isLeagueOpen"
           :prediction="getPrediction(stock.id)"
           @predict="onPredict"

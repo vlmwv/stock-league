@@ -13,6 +13,7 @@ interface Stock {
 export const useStock = () => {
   const client = useSupabaseClient()
   const user = useSupabaseUser()
+  const toast = useToast()
 
   const resolveUserId = async () => {
     if (user.value?.id) return user.value.id
@@ -372,7 +373,8 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
-    if (!user.value) {
+    const userId = await resolveUserId()
+    if (!userId) {
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
       }
@@ -391,39 +393,61 @@ export const useStock = () => {
     } else {
       hearts.value = [...hearts.value, id]
     }
+    refreshWishlistStocks()
 
     try {
       if (isCurrentlyHearted) {
-        // 제거 요청 (명시적 user_id 필터)
+        // 제거 요청 (명시적 user_id + stock_id 필터)
         const { error } = await client
           .from('wishlists')
           .delete()
-          .match({ user_id: user.value.id, stock_id: id })
+          .eq('user_id', userId)
+          .eq('stock_id', id)
         
         if (error) {
           console.error('[useStock] Supabase delete error detail:', error)
           throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
         }
+        toast.add({
+          title: '관심 종목에서 제거했어요',
+          description: '찜이 해제되었습니다.',
+          color: 'neutral',
+          icon: 'i-heroicons-heart'
+        })
       } else {
         // 추가 요청: upsert는 RLS UPDATE 정책이 없으면 충돌 시 실패할 수 있어 insert + unique 에러 무시 사용
         const { error } = await client
           .from('wishlists')
-          .insert({ user_id: user.value.id, stock_id: id } as any) as any
+          .insert({ user_id: userId, stock_id: id } as any) as any
         
         // 이미 존재하는 찜(unique 위반)은 정상 상태이므로 무시
         if (error && error.code !== '23505') {
           console.error('[useStock] Supabase wishlist insert error:', error)
           throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
         }
+        toast.add({
+          title: '관심 종목에 추가했어요',
+          description: '찜 목록에서 바로 확인할 수 있습니다.',
+          color: 'primary',
+          icon: 'i-heroicons-heart-20-solid'
+        })
       }
       
-      // 즉각적인 re-fetch 대신 필요할 때만 조용히 갱신 (0.5초 뒤)
-      setTimeout(() => fetchWishlist(), 1000)
+      // 서버 상태와 UI 상태를 즉시 동기화
+      await fetchWishlist()
+      refreshWishlistStocks()
       
     } catch (err: any) {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
       // 에러 발생 시 원래 상태로 복구
       hearts.value = previousHearts
+      refreshWishlistStocks()
+      toast.add({
+        title: '찜 상태 변경에 실패했어요',
+        description: '잠시 후 다시 시도해 주세요.',
+        color: 'error',
+        icon: 'i-heroicons-exclamation-triangle'
+      })
       
       if (process.client && err.message.includes('RLS')) {
          console.warn('[useStock] RLS error detected. Session might be stale.')
@@ -833,6 +857,7 @@ export const useStock = () => {
     fetchUserStats,
     fetchUserHistory,
     fetchStocksWithStats,
+    isLeagueOpen,
     isResultPublished,
     updateProfile
   }

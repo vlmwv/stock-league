@@ -157,10 +157,6 @@
                 <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">뉴스</span>
               </div>
               <div class="flex items-center gap-1 border-l border-white/10 pl-2">
-                <UIcon name="i-heroicons-megaphone" class="w-3 h-3 text-brand-secondary" />
-                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">공시</span>
-              </div>
-              <div class="flex items-center gap-1 border-l border-white/10 pl-2">
                 <UIcon name="i-heroicons-presentation-chart-line" class="w-3 h-3 text-purple-400" />
                 <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">IR</span>
               </div>

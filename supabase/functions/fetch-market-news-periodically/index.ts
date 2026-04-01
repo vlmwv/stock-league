@@ -189,16 +189,22 @@ Deno.serve(async (req) => {
       let type: 'news' | 'ir' = 'news'
       let primaryItem: any = null
 
-      if (irItems.length > 0) {
+      const latestNewsItem = newsItems[0]
+      const latestIrItem = irItems[0]
+      const latestNewsAt = latestNewsItem?.datetime ? new Date(latestNewsItem.datetime).getTime() : 0
+      const latestIrAt = latestIrItem?.writeDate ? new Date(latestIrItem.writeDate).getTime() : 0
+
+      // 최신 시각 기준으로 타입 결정 (뉴스가 최신이면 뉴스 아이콘 유지)
+      if (latestIrItem && latestIrAt > latestNewsAt) {
         type = 'ir'
-        primaryItem = irItems[0]
-        const boardId = primaryItem.boardId || primaryItem.id
-        finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
-      } else if (newsItems.length > 0) {
+        primaryItem = latestIrItem
+        const boardId = primaryItem.boardId || primaryItem.irInfoId || primaryItem.id
+        finalUrl = boardId
+          ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+          : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
+      } else if (latestNewsItem) {
         type = 'news'
-        // 클러스터링된 주요 뉴스가 있다면 그것을 우선시 (배열 내 객체의 total 값이 영향을 주지만 이미 평탄화되었으므로)
-        // items 속성 내부 객체 사용 시 officeId, articleId 사용 (최신 API 스펙 반영)
-        primaryItem = newsItems[0]
+        primaryItem = latestNewsItem
         const officeId = primaryItem.officeId || primaryItem.oid
         const articleId = primaryItem.articleId || primaryItem.aid
         if (officeId && articleId) {
@@ -206,9 +212,16 @@ Deno.serve(async (req) => {
         } else if (primaryItem.mobileNewsUrl) {
           finalUrl = primaryItem.mobileNewsUrl
         }
+      } else if (latestIrItem) {
+        type = 'ir'
+        primaryItem = latestIrItem
+        const boardId = primaryItem.boardId || primaryItem.irInfoId || primaryItem.id
+        finalUrl = boardId
+          ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+          : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
       }
 
-      const allItems = [...newsItems, ...irItems]
+      const allItems = type === 'ir' ? [...irItems, ...newsItems] : [...newsItems, ...irItems]
       if (allItems.length === 0) continue
 
       let title = ''
