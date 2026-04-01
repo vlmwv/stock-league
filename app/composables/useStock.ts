@@ -209,6 +209,7 @@ export const useStock = () => {
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
+  const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
   
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
@@ -292,16 +293,26 @@ export const useStock = () => {
       return
     }
 
-    const { data, error } = await client
-      .from('wishlists')
-      .select('stock_id')
-      .eq('user_id', user.value.id)
-    
-    if (!error && data) {
-      hearts.value = data.map((w: any) => Number(w.stock_id))
-      console.log('[useStock] Wishlist fetched and normalized:', hearts.value)
-    } else if (error) {
-      console.error('[useStock] Wishlist fetch error:', error)
+    if (isWishlistFetching.value) {
+      console.log('[useStock] fetchWishlist already in progress, skipping...')
+      return
+    }
+
+    isWishlistFetching.value = true
+    try {
+      const { data, error } = await client
+        .from('wishlists')
+        .select('stock_id')
+        .eq('user_id', user.value.id)
+      
+      if (!error && data) {
+        hearts.value = data.map((w: any) => Number(w.stock_id))
+        console.log('[useStock] Wishlist fetched and normalized:', hearts.value)
+      } else if (error) {
+        console.error('[useStock] Wishlist fetch error:', error)
+      }
+    } finally {
+      isWishlistFetching.value = false
     }
   }
 
@@ -326,9 +337,7 @@ export const useStock = () => {
   }, { watch: [hearts] })
 
   const toggleHeart = async (stockId: number) => {
-    console.log('[useStock] toggleHeart called with stockId:', stockId, 'Type:', typeof stockId)
     if (!user.value) {
-      console.warn('[useStock] toggleHeart failed: No user logged in')
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
       }
@@ -336,41 +345,47 @@ export const useStock = () => {
     }
 
     const id = Number(stockId)
-    if (isNaN(id)) {
-      console.error('[useStock] toggleHeart failed: Invalid stockId (NaN)', stockId)
-      return
+    if (isNaN(id)) return
+
+    const isCurrentlyHearted = hearts.value.includes(id)
+    const previousHearts = [...hearts.value]
+
+    // 1. 낙관적 업데이트: UI 즉시 반영
+    if (isCurrentlyHearted) {
+      hearts.value = hearts.value.filter(hId => Number(hId) !== id)
+    } else {
+      hearts.value = [...hearts.value, id]
     }
 
-    const isHearted = hearts.value.includes(id)
-    console.log('[useStock] Current hearts:', hearts.value, 'isHearted:', isHearted)
-    
-    if (isHearted) {
-      console.log('[useStock] Removing from wishlist:', id)
-      const { error } = await (client
-        .from('wishlists')
-        .delete() as any)
-        .eq('user_id', user.value.id)
-        .eq('stock_id', id)
-      
-      if (!error) {
-        hearts.value = hearts.value.filter(hId => Number(hId) !== id)
-        console.log('[useStock] Removed successfully. Updated hearts:', hearts.value)
+    try {
+      if (isCurrentlyHearted) {
+        // 제거 요청
+        const { error } = await client
+          .from('wishlists')
+          .delete()
+          .eq('user_id', user.value.id)
+          .eq('stock_id', id)
+        
+        if (error) throw error
       } else {
-        console.error('[useStock] Supabase direct delete error:', error)
+        // 추가 요청
+        const { error } = await client
+          .from('wishlists')
+          .insert({ user_id: user.value.id, stock_id: id } as any)
+        
+        if (error) {
+          // 이미 존재하는 경우(중복 제약 조건 위반)는 성공으로 간주
+          if (error.code === '23505') {
+            console.log('[useStock] Already in wishlist, treating as success')
+          } else {
+            throw error
+          }
+        }
       }
-    } else {
-      console.log('[useStock] Adding to wishlist:', id)
-      const { error } = await (client
-        .from('wishlists')
-        .insert({ user_id: user.value.id, stock_id: id } as any) as any)
-      
-      if (!error) {
-        // 반응성을 위해 새 배열 할당
-        hearts.value = [...hearts.value, id]
-        console.log('[useStock] Added successfully. Updated hearts:', hearts.value)
-      } else {
-        console.error('[useStock] Supabase direct insert error:', error)
-      }
+    } catch (err: any) {
+      console.error('[useStock] toggleHeart failed, rolling back:', err)
+      // 에러 발생 시 원래 상태로 복구
+      hearts.value = previousHearts
     }
   }
 
