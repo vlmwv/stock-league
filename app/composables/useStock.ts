@@ -393,24 +393,22 @@ export const useStock = () => {
           throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
         }
       } else {
-        // 추가 요청 (user_id 생략하여 서버의 auth.uid() 기본값 사용 - RLS 위반 방지)
+        // 추가 요청 (upsert 사용으로 409 Conflict 방지)
         const { error } = await client
           .from('wishlists')
-          .insert({ stock_id: id } as any)
+          .upsert(
+            { user_id: user.value.id, stock_id: id } as any, 
+            { onConflict: 'user_id, stock_id' } as any
+          ) as any
         
         if (error) {
-          // 이미 존재(409 Conflict / 23505)하거나 기타 성공 케이스와 다름없는 오류 처리
-          if (error.code === '23505' || error.message?.includes('Conflict')) {
-            console.log('[useStock] Already in wishlist or Conflict, treating as success')
-          } else {
-            console.error('[useStock] Supabase insert error detail:', error)
-            throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
-          }
+          console.error('[useStock] Supabase wishlist upsert error:', error)
+          throw new Error(`Upsert failed: ${error.message} (code ${error.code})`)
         }
       }
       
-      // 최종적으로 서버와 상태를 조용히 동기화 (레이스 컨디션 방지)
-      setTimeout(() => fetchWishlist(), 500)
+      // 즉각적인 re-fetch 대신 필요할 때만 조용히 갱신 (0.5초 뒤)
+      setTimeout(() => fetchWishlist(), 1000)
       
     } catch (err: any) {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
@@ -451,6 +449,7 @@ export const useStock = () => {
     const { error } = await (client
       .from('predictions')
       .upsert({
+        user_id: user.value.id,
         stock_id: stockId,
         game_date: targetDate,
         prediction_type: prediction,
