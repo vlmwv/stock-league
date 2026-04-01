@@ -6,6 +6,35 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
+function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'ir'): { title: string, summary: string } {
+  const first = items[0] || {}
+  const second = items[1] || {}
+  const rawTitle1 = String(first.title || first.tit || '').trim()
+  const rawTitle2 = String(second.title || second.tit || '').trim()
+
+  const baseTitle = rawTitle1 || `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트`
+  const title = `${baseTitle.substring(0, 22)}${baseTitle.length > 22 ? '...' : ''} (요약)`
+
+  if (rawTitle1 && rawTitle2) {
+    return {
+      title,
+      summary: `${rawTitle1} 이슈가 핵심이며, 추가로 ${rawTitle2} 관련 흐름도 함께 확인이 필요합니다.`
+    }
+  }
+
+  if (rawTitle1) {
+    return {
+      title,
+      summary: `${rawTitle1} 관련 이슈가 확인되었습니다. 세부 공시/원문 내용을 기준으로 단기 변동성 확대 가능성을 점검하세요.`
+    }
+  }
+
+  return {
+    title,
+    summary: `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트가 확인되었습니다.`
+  }
+}
+
 async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
 
@@ -190,9 +219,9 @@ Deno.serve(async (req) => {
         summary = summarized.summary
       } catch (summaryError) {
         // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
-        const fallbackTitle = String(primaryItem?.title || primaryItem?.tit || `${stock.name} 최신 이슈`).trim()
-        title = `${fallbackTitle.substring(0, 20)}${fallbackTitle.length > 20 ? '...' : ''} (요약)`
-        summary = `${stock.name} 관련 최신 ${type === 'ir' ? 'IR' : '뉴스'}가 등록되었습니다.`
+        const fallback = buildFallbackSummary(allItems, stock.name, type)
+        title = fallback.title
+        summary = fallback.summary
         console.warn(`Summary fallback applied for ${stock.code}:`, summaryError)
       }
 
@@ -204,7 +233,7 @@ Deno.serve(async (req) => {
           llm_summary: summary,
           url: finalUrl,
           type: type,
-           source: '네이버 시황/뉴스/공시/IR (Gemini 1.5 Flash 요약)',
+           source: '네이버 시황/뉴스/IR (Gemini 요약)',
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' })
 
