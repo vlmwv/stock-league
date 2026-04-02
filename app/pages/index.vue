@@ -123,18 +123,18 @@
               
               <div class="relative z-10 flex flex-col gap-2.5">
                 <!-- Row 1: Icon, Info, Price, Heart -->
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500/10 to-rose-500/10 flex-shrink-0 flex items-center justify-center border border-rose-500/10">
+                <div class="flex items-start justify-between gap-2.5">
+                  <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500/10 to-rose-500/10 flex-shrink-0 flex items-center justify-center border border-rose-500/10 mt-0.5">
                       <UIcon name="i-heroicons-fire-20-solid" class="w-4 h-4 text-rose-500" />
                     </div>
                     <div class="flex flex-col min-w-0">
-                      <h4 class="font-black text-slate-100 text-[12px] tracking-tight leading-none truncate">{{ stock.name }}</h4>
-                      <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter mt-0.5 truncate">{{ stock.code }}</span>
+                      <h4 class="font-black text-slate-100 text-[12px] tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
+                      <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter mt-1">{{ stock.code }}</span>
                     </div>
                   </div>
                   
-                  <div class="flex items-end gap-1.5 flex-shrink-0">
+                  <div class="flex items-end gap-1.5 flex-shrink-0 mt-0.5">
                     <div class="flex flex-col items-end">
                       <span class="text-[12px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
                       <div 
@@ -180,9 +180,6 @@
         </div>
       </section>
 
-
- 
-
       <!-- 최근 뉴스 & 공시 -->
       <section class="px-4 mb-8">
         <div class="flex justify-between items-end mb-4 px-2">
@@ -205,7 +202,13 @@
               ? type.activeClass 
               : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'"
           >
-            <UIcon v-if="type.icon" :name="type.icon"           <div 
+            <UIcon v-if="type.icon" :name="type.icon" class="w-4 h-4" />
+            <span class="text-[11px] font-black uppercase tracking-widest">{{ type.label }}</span>
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div 
             v-for="item in recentNews" 
             :key="item.id"
             @click="navigateToNews(item)"
@@ -263,11 +266,6 @@
             </div>
             <!-- Subtitle glow effect -->
             <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-brand-secondary/5 blur-[50px] rounded-full group-hover:bg-brand-secondary/10 transition-all duration-700"></div>
-          </div>
->
-            </div>
-            <!-- Subtitle glow effect -->
-            <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
           </div>
           
           <div v-if="!recentNews.length" class="text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
