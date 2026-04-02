@@ -1,3 +1,5 @@
+import { repairNewsUrl, decodeHtmlEntities } from '~/utils/stock'
+
 interface Stock {
   id: number
   name: string
@@ -157,7 +159,7 @@ export const useStock = () => {
       last_price: ds.stocks.last_price || 0,
       change_amount: ds.stocks.change_amount || 0,
       change_rate: ds.stocks.change_rate || 0,
-      summary: ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...'
+      summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
   })
 
@@ -188,7 +190,7 @@ export const useStock = () => {
       last_price: n.stocks.last_price || 0,
       change_amount: n.stocks.change_amount || 0,
       change_rate: n.stocks.change_rate || 0,
-      summary: n.llm_summary
+      summary: decodeHtmlEntities(n.llm_summary)
     }))
   })
 
@@ -209,7 +211,7 @@ export const useStock = () => {
       change_amount: s.change_amount || 0,
       change_rate: s.change_rate || 0,
       market_cap_rank: s.market_cap_rank,
-      summary: s.summary || ''
+      summary: decodeHtmlEntities(s.summary || '')
     }))
   })
 
@@ -377,7 +379,7 @@ export const useStock = () => {
       last_price: s.last_price || 0,
       change_amount: s.change_amount || 0,
       change_rate: s.change_rate || 0,
-      summary: s.summary || ''
+      summary: decodeHtmlEntities(s.summary || '')
     }))
   }, { watch: [hearts] })
 
@@ -771,7 +773,7 @@ export const useStock = () => {
             change_amount: s.change_amount || 0,
             change_rate: s.change_rate || 0,
             market_cap_rank: s.market_cap_rank,
-            summary: s.summary || '',
+            summary: decodeHtmlEntities(s.summary || ''),
             wishlist_count: 0,
             win_count: 0
           })),
@@ -790,7 +792,7 @@ export const useStock = () => {
           change_amount: s.change_amount || 0,
           change_rate: s.change_rate || 0,
           market_cap_rank: s.market_cap_rank,
-          summary: s.summary || '',
+          summary: decodeHtmlEntities(s.summary || ''),
           wishlist_count: s.wishlist_count || 0,
           win_count: s.win_count || 0
         })),
@@ -801,7 +803,10 @@ export const useStock = () => {
       return { data: [], count: 0 }
     }
   }
-  const fetchNews = async (limitNum = 20) => {
+  const fetchNews = async (pageSize = 20, page = 1) => {
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
     const { data, error } = await client
       .from('news')
       .select(`
@@ -820,7 +825,7 @@ export const useStock = () => {
         )
       `)
       .order('published_at', { ascending: false })
-      .limit(limitNum)
+      .range(from, to)
     
     if (error) {
       console.error('Error fetching news:', error)
@@ -829,12 +834,12 @@ export const useStock = () => {
 
     return (data || []).map((n: any) => ({
       id: n.id,
-      title: n.title,
+      title: decodeHtmlEntities(n.title),
       content: n.content,
       url: n.url,
       source: n.source,
       published_at: n.published_at,
-      llm_summary: n.llm_summary,
+      llm_summary: decodeHtmlEntities(n.llm_summary),
       type: n.type || 'news',
       stockId: (n.stocks as any)?.id ? Number((n.stocks as any).id) : null,
       stockName: (n.stocks as any)?.name,

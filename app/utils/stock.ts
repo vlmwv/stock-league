@@ -47,3 +47,20 @@ export const repairNewsUrl = (url: string, code?: string, type: 'news' | 'notice
   return url
 }
 
+/**
+ * HTML 엔티티(예: &quot;, &amp;)를 실제 문자로 변환합니다.
+ * @param str 변환할 문자열
+ * @returns 변환된 문자열
+ */
+export const decodeHtmlEntities = (str: string): string => {
+  if (!str) return ''
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+}
+

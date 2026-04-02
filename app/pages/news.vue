@@ -15,7 +15,7 @@
 
       <!-- 뉴스 목록 -->
       <section class="px-6 space-y-6 mt-6 animate-fade-in">
-        <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 gap-4">
+        <div v-if="isLoading && newsItems.length === 0" class="flex flex-col items-center justify-center py-20 gap-4">
           <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
         </div>
@@ -25,78 +25,85 @@
           <p class="text-sm text-slate-500 font-medium">최근 등록된 뉴스나 공시가 없습니다.</p>
         </div>
 
-        <div
-          v-else
-          v-for="(item, index) in newsItems"
-          :key="item.id"
-          class="glass-dark rounded-[2.5rem] p-7 border border-white/5 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-500"
-        >
-          <div class="flex flex-col gap-4 relative z-10">
-            <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div 
-                  class="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
-                  :class="{
-                    'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
-                    'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
-                    'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
-                  }"
-                >
-                  <UIcon 
-                    :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
-                    class="w-5 h-5" 
-                  />
+        <template v-else>
+          <div
+            v-for="(item, index) in newsItems"
+            :key="item.id"
+            class="glass-dark rounded-[2.5rem] p-7 border border-white/5 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-500"
+          >
+            <div class="flex flex-col gap-4 relative z-10">
+              <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div 
+                    class="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
+                    :class="{
+                      'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
+                      'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
+                      'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
+                    }"
+                  >
+                    <UIcon 
+                      :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
+                      class="w-5 h-5" 
+                    />
+                  </div>
+                  <div v-if="item.stockName" class="flex items-baseline gap-2">
+                    <span class="text-sm font-black text-slate-100 tracking-tight">{{ item.stockName }}</span>
+                    <span class="text-[10px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+                  </div>
+                  <span v-else class="text-xs text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
-                <div v-if="item.stockName" class="flex items-baseline gap-2">
-                  <span class="text-sm font-black text-slate-100 tracking-tight">{{ item.stockName }}</span>
-                  <span class="text-[10px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+
+                <div class="flex items-center gap-4">
+                  <button 
+                    v-if="item.stockId"
+                    @click.stop="toggleHeart(item.stockId)"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                    :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
+                  >
+                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                  </button>
+                  <span class="text-[11px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
                 </div>
-                <span v-else class="text-xs text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
               </div>
 
-              <div class="flex items-center gap-4">
-                <button 
-                  v-if="item.stockId"
-                  @click.stop="toggleHeart(item.stockId)"
-                  class="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
-                  :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
+              <!-- 중간 행: 제목 -->
+              <h3 class="text-xl font-bold text-slate-100 leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
+                {{ item.title }}
+              </h3>
+
+              <!-- 하단 행: AI 요약 -->
+              <div v-if="item.llm_summary" class="bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
+                <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                  <span class="text-brand-primary/80 font-black mr-2">AI 요약</span>
+                  {{ item.llm_summary }}
+                </p>
+              </div>
+
+              <!-- 상세보기 버튼 -->
+              <div class="flex justify-end mt-2">
+                <a 
+                  :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
+                  target="_blank"
+                  class="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300 shadow-lg"
                 >
-                  <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-                </button>
-                <span class="text-[11px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
+                  상세보기
+                  <UIcon name="i-heroicons-arrow-top-right-on-square-20-solid" class="w-4 h-4" />
+                </a>
               </div>
             </div>
 
-            <!-- 중간 행: 제목 -->
-            <h3 class="text-xl font-bold text-slate-100 leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
-              {{ item.title }}
-            </h3>
-
-            <!-- 하단 행: AI 요약 -->
-            <div v-if="item.llm_summary" class="bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
-              <p class="text-xs text-slate-400 leading-relaxed font-medium">
-                <span class="text-brand-primary/80 font-black mr-2">AI 요약</span>
-                {{ item.llm_summary }}
-              </p>
-            </div>
-
-            <!-- 상세보기 버튼 -->
-            <div class="flex justify-end mt-2">
-              <a 
-                :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
-                target="_blank"
-                class="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300 shadow-lg"
-              >
-                상세보기
-                <UIcon name="i-heroicons-arrow-top-right-on-square-20-solid" class="w-4 h-4" />
-              </a>
-            </div>
+            <!-- Decorative gradient -->
+            <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/5 blur-[60px] rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
           </div>
 
-          <!-- Decorative gradient -->
-          <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/5 blur-[60px] rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
-        </div>
+          <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
+          <div ref="sentinel" class="py-10 flex flex-col justify-center items-center gap-3">
+            <div v-if="isFetchingMore" class="w-8 h-8 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+            <p v-else-if="!hasMore && newsItems.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 뉴스입니다</p>
+          </div>
+        </template>
       </section>
     </main>
 
@@ -110,6 +117,13 @@ const { fetchNews, toggleHeart, hearts, fetchWishlist } = useStock()
 
 const newsItems = ref<any[]>([])
 const isLoading = ref(true)
+
+// 페이징 상태
+const page = ref(1)
+const pageSize = 20
+const hasMore = ref(true)
+const isFetchingMore = ref(false)
+const sentinel = ref<HTMLElement | null>(null)
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
@@ -132,18 +146,64 @@ const formatDate = (dateStr: string) => {
   })
 }
 
-onMounted(async () => {
+const loadNews = async (isAppend = false) => {
   try {
-    const [newsData] = await Promise.all([
-      fetchNews(30),
-      fetchWishlist()
-    ])
-    newsItems.value = newsData
+    if (!isAppend) {
+      isLoading.value = true
+      page.value = 1
+      hasMore.value = true
+    } else {
+      isFetchingMore.value = true
+    }
+
+    const data = await fetchNews(pageSize, page.value)
+    
+    if (isAppend) {
+      newsItems.value = [...newsItems.value, ...data]
+    } else {
+      newsItems.value = data || []
+    }
+
+    // 더 가져올 데이터가 있는지 확인
+    if (data.length < pageSize) {
+      hasMore.value = false
+    }
   } catch (error) {
     console.error('Failed to load news:', error)
   } finally {
     isLoading.value = false
+    isFetchingMore.value = false
   }
+}
+
+const loadMore = () => {
+  if (!hasMore.value || isFetchingMore.value || isLoading.value) return
+  page.value++
+  loadNews(true)
+}
+
+let observer: IntersectionObserver | null = null
+
+onMounted(async () => {
+  await Promise.all([
+    loadNews(),
+    fetchWishlist()
+  ])
+
+  // Intersection Observer 설정
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0] && entries[0].isIntersecting) {
+      loadMore()
+    }
+  }, { rootMargin: '200px' })
+
+  if (sentinel.value) {
+    observer.observe(sentinel.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
 })
 </script>
 
