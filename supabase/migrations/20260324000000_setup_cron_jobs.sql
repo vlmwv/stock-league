@@ -33,7 +33,7 @@ END $$;
 -- 1) 장중 뉴스/공시 주기적 수집
 SELECT cron.schedule(
   'fetch-market-news-periodically',
-  '*/30 0-7 * * 1-5',
+  '0 * * * *',
   $$
   SELECT net.http_post(
     url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/fetch-market-news-periodically',
@@ -105,4 +105,18 @@ SELECT cron.schedule(
   $$
 );
 
+-- 6) IR 전체 정보 수집 (매시간)
+SELECT cron.schedule(
+  'fetch-ir',
+  '0 * * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/fetch-ir',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
+    )
+  )
+  $$
+);
 );

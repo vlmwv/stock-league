@@ -226,15 +226,18 @@ const allPredicted = computed(() => {
   return dailyStocks.value.every(s => myPredictions.value.some(p => p.stockId === s.id))
 })
 
-const onPredict = (id: number, prediction: 'up' | 'down') => {
+const onPredict = async (id: number, prediction: 'up' | 'down') => {
   if (!isLeagueOpen.value) return
   
   const stock = dailyStocks.value.find(s => s.id === id)
   if (stock) {
-    predict(id, prediction, stock.game_date)
-    selectedStockName.value = stock.name
-    selectedPrediction.value = prediction
-    isResultOpen.value = true
+    const success = await predict(id, prediction, stock.game_date)
+    
+    if (success) {
+      selectedStockName.value = stock.name
+      selectedPrediction.value = prediction
+      isResultOpen.value = true
+    }
   }
 }
 

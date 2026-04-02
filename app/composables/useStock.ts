@@ -28,7 +28,7 @@ export const useStock = () => {
   const getKstDate = () => {
     // Intl.DateTimeFormat을 사용하여 시스템 TZ에 관계없이 항상 KST 날짜 반환
     const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
-    const d = new Intl.DateTimeFormat('sv-SE', options).format(new Date()) // sv-SE는 YYYY-MM-DD 형식
+    const d = new Intl.DateTimeFormat('sv-SE', options).format(new Date())
     return d
   }
 
@@ -482,39 +482,59 @@ export const useStock = () => {
   const predict = async (stockId: number, prediction: 'up' | 'down', gameDate?: string) => {
     if (!isLeagueOpen.value) {
       alert('오늘의 예측은 08:00에 마감되었습니다.')
-      return
+      return false
     }
 
     const userId = await resolveUserId()
     if (!userId) {
-      console.warn('[useStock] predict failed: No user logged in')
-      return
+      if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+        navigateTo('/login')
+      }
+      return false
     }
 
     const targetDate = gameDate || getKstDate()
     
-    const { error } = await (client
-      .from('predictions')
-      .upsert({
-        user_id: userId,
-        stock_id: stockId,
-        game_date: targetDate,
-        prediction_type: prediction,
-        result: 'pending'
-      } as any, { onConflict: 'user_id, stock_id, game_date' } as any) as any)
+    // 1. 낙관적 업데이트 (Optimistic Update)
+    const previousPredictions = [...myPredictions.value]
+    const current = [...previousPredictions]
+    const index = current.findIndex(p => Number(p.stockId) === Number(stockId))
+    
+    if (index > -1 && current[index]) {
+      current[index] = { ...current[index], prediction }
+    } else {
+      current.push({ stockId: Number(stockId), prediction, result: 'pending' })
+    }
+    myPredictions.value = current
 
-    if (!error) {
-      const current = myPredictions.value || []
-      const index = current.findIndex(p => Number(p.stockId) === Number(stockId))
-      
-      const next = [...current]
-      if (index > -1 && next[index]) {
-        next[index] = { stockId: next[index].stockId, prediction }
-      } else {
-        next.push({ stockId: Number(stockId), prediction })
+    try {
+      const { error } = await (client
+        .from('predictions')
+        .upsert({
+          user_id: userId,
+          stock_id: stockId,
+          game_date: targetDate,
+          prediction_type: prediction,
+          result: 'pending'
+        } as any, { onConflict: 'user_id,stock_id,game_date' } as any) as any)
+
+      if (error) {
+        throw error
       }
-      // 배열 자체를 교체하여 Vue의 반응성(Reactivity)을 트리거함
-      myPredictions.value = next
+      
+      return true
+    } catch (err: any) {
+      console.error('[useStock] Prediction failed:', err.message || err)
+      // 2. 에러 시 원래 상태로 복구 (Rollback)
+      myPredictions.value = previousPredictions
+      
+      toast.add({
+        title: '예측 저장에 실패했어요',
+        description: '잠시 후 다시 시도해 주세요.',
+        color: 'error',
+        icon: 'i-heroicons-exclamation-triangle'
+      })
+      return false
     }
   }
 
@@ -708,14 +728,14 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count')
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
         query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
       }
 
-      const { data: stocksData, error: stocksError } = await query
+      const { data: stocksData, error: stocksError, count } = await query
         .order(orderBy, { ascending: orderBy === 'market_cap_rank' })
         .range(from, to)
       
@@ -726,24 +746,44 @@ export const useStock = () => {
         console.log('[useStock] Attempting fallback fetch without stats columns...')
         let fallbackQuery = client
           .from('stocks')
-          .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary')
+          .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary', { count: 'exact' })
 
         if (searchQuery.trim()) {
           const q = searchQuery.trim()
           fallbackQuery = fallbackQuery.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
         }
 
-        const { data: fallbackData, error: fallbackError } = await fallbackQuery
+        const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery
           .order('market_cap_rank', { ascending: true })
           .range(from, to)
         
         if (fallbackError) {
           console.error('[useStock] Fallback fetch also failed:', fallbackError.message)
-          return []
+          return { data: [], count: 0 }
         }
         
-        return (fallbackData as any[]).map(s => ({
-          id: s.id,
+        return {
+          data: (fallbackData as any[]).map(s => ({
+            id: s.id,
+            name: s.name,
+            code: s.code,
+            last_price: s.last_price || 0,
+            change_amount: s.change_amount || 0,
+            change_rate: s.change_rate || 0,
+            market_cap_rank: s.market_cap_rank,
+            summary: s.summary || '',
+            wishlist_count: 0,
+            win_count: 0
+          })),
+          count: fallbackCount || 0
+        }
+      }
+
+      if (!stocksData) return { data: [], count: 0 }
+
+      return {
+        data: (stocksData as any[]).map(s => ({
+          id: Number(s.id),
           name: s.name,
           code: s.code,
           last_price: s.last_price || 0,
@@ -751,28 +791,14 @@ export const useStock = () => {
           change_rate: s.change_rate || 0,
           market_cap_rank: s.market_cap_rank,
           summary: s.summary || '',
-          wishlist_count: 0,
-          win_count: 0
-        }))
+          wishlist_count: s.wishlist_count || 0,
+          win_count: s.win_count || 0
+        })),
+        count: count || 0
       }
-
-      if (!stocksData) return []
-
-      return (stocksData as any[]).map(s => ({
-        id: Number(s.id),
-        name: s.name,
-        code: s.code,
-        last_price: s.last_price || 0,
-        change_amount: s.change_amount || 0,
-        change_rate: s.change_rate || 0,
-        market_cap_rank: s.market_cap_rank,
-        summary: s.summary || '',
-        wishlist_count: s.wishlist_count || 0,
-        win_count: s.win_count || 0
-      }))
     } catch (err: any) {
       console.error('[useStock] Unexpected error in fetchStocksWithStats:', err.message)
-      return []
+      return { data: [], count: 0 }
     }
   }
   const fetchNews = async (limitNum = 20) => {
