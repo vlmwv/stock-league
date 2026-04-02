@@ -37,7 +37,18 @@ export const useStock = () => {
     const parts = new Intl.DateTimeFormat('en-GB', options).format(new Date()).split(':')
     const hour = parts[0] || '0'
     const minute = parts[1] || '0'
-    return { hour: parseInt(hour), minute: parseInt(minute) }
+    return { hour: parseInt(hour), minute: parseInt(minute), timeVal: parseInt(hour) * 100 + parseInt(minute) }
+  }
+
+  // 실시간 상태 업데이트를 위한 시간 Ref (매분 업데이트)
+  const kstTime = useState('kst_time', () => getKstHourMinute())
+  if (process.client) {
+    onMounted(() => {
+      const timer = setInterval(() => {
+        kstTime.value = getKstHourMinute()
+      }, 30000) // 30초마다 갱신
+      onUnmounted(() => clearInterval(timer))
+    })
   }
   
   // 1. Fetch today's daily stocks with stock details
@@ -224,8 +235,7 @@ export const useStock = () => {
   
   // 4. League Status (Closed after 08:00 KST)
   const isLeagueOpen = computed(() => {
-    const { hour, minute } = getKstHourMinute()
-    const currentTimeVal = hour * 100 + minute
+    const { hour, timeVal: currentTimeVal } = kstTime.value
     const today = getKstDate()
 
     if (stocks.value && (stocks.value as any).length > 0) {
@@ -251,8 +261,7 @@ export const useStock = () => {
 
   // 5. Result Status (Published after 20:20 KST)
   const isResultPublished = computed(() => {
-    const { hour, minute } = getKstHourMinute()
-    const currentTimeVal = hour * 100 + minute
+    const { timeVal: currentTimeVal } = kstTime.value
     const today = getKstDate()
 
     if (stocks.value && (stocks.value as any).length > 0) {
@@ -476,14 +485,18 @@ export const useStock = () => {
       return
     }
 
-    if (!user.value) return
+    const userId = await resolveUserId()
+    if (!userId) {
+      console.warn('[useStock] predict failed: No user logged in')
+      return
+    }
 
     const targetDate = gameDate || getKstDate()
     
     const { error } = await (client
       .from('predictions')
       .upsert({
-        user_id: user.value.id,
+        user_id: userId,
         stock_id: stockId,
         game_date: targetDate,
         prediction_type: prediction,
@@ -553,9 +566,8 @@ export const useStock = () => {
   }
 
   const fetchUserStats = async () => {
-    if (!user.value?.id) return null
-
-    const userId = user.value.id
+    const userId = await resolveUserId()
+    if (!userId) return null
 
     // 1. Get points and profile
     const { data: profile } = await client
@@ -633,12 +645,13 @@ export const useStock = () => {
   }
 
   const updateProfile = async (username: string) => {
-    if (!user.value?.id) return false
+    const userId = await resolveUserId()
+    if (!userId) return false
 
     const { error } = await (client
       .from('profiles') as any)
       .update({ username })
-      .eq('id', user.value.id)
+      .eq('id', userId)
 
     if (error) {
       console.error('Error updating profile:', error)
@@ -648,7 +661,8 @@ export const useStock = () => {
   }
 
   const fetchUserHistory = async () => {
-    if (!user.value?.id) return []
+    const userId = await resolveUserId()
+    if (!userId) return []
 
     const { data, error } = await client
       .from('predictions')
@@ -662,7 +676,7 @@ export const useStock = () => {
           name
         )
       `)
-      .eq('user_id', user.value.id)
+      .eq('user_id', userId)
       .order('game_date', { ascending: false })
       .limit(10)
 
