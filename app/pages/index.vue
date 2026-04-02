@@ -157,7 +157,7 @@
                 </div>
 
                 <!-- Row 2: AI Summary (Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-6.5 flex items-center border border-white/5 group/marquee">
+                <div class="relative overflow-hidden bg-white/5 rounded-lg h-6 flex items-center border border-white/5 group/marquee">
                   <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
                     <p class="text-[9px] text-slate-400 font-medium">
                       <span class="text-brand-primary/60 font-black mr-1 text-[8px]">AI</span>
