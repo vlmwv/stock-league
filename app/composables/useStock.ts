@@ -803,11 +803,11 @@ export const useStock = () => {
       return { data: [], count: 0 }
     }
   }
-  const fetchNews = async (pageSize = 20, page = 1) => {
+  const fetchNews = async (pageSize = 20, page = 1, type?: string) => {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
-    const { data, error } = await client
+    let query = client
       .from('news')
       .select(`
         id,
@@ -824,6 +824,12 @@ export const useStock = () => {
           code
         )
       `)
+    
+    if (type && type !== 'all') {
+      query = query.eq('type', type)
+    }
+
+    const { data, error } = await query
       .order('published_at', { ascending: false })
       .range(from, to)
     

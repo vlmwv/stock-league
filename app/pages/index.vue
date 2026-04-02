@@ -197,6 +197,21 @@
             </NuxtLink>
         </div>
 
+        <div class="flex flex-wrap gap-2 mb-5 px-2">
+          <button 
+            v-for="type in filterTypes" 
+            :key="type.value"
+            @click="selectedNewsType = type.value"
+            class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border transition-all duration-300"
+            :class="selectedNewsType === type.value 
+              ? type.activeClass 
+              : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'"
+          >
+            <UIcon v-if="type.icon" :name="type.icon" class="w-3.5 h-3.5" />
+            <span class="text-[10px] font-black uppercase tracking-widest">{{ type.label }}</span>
+          </button>
+        </div>
+
         <div class="flex flex-col gap-3">
           <div 
             v-for="item in recentNews" 
@@ -279,6 +294,19 @@ import { repairNewsUrl } from '~/utils/stock'
 const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, isLeagueOpen, isResultPublished } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
+const selectedNewsType = ref('all')
+
+const filterTypes = [
+  { label: '전체', value: 'all', icon: null, activeClass: 'bg-slate-100 border-slate-100 text-slate-900' },
+  { label: '뉴스', value: 'news', icon: 'i-heroicons-newspaper', activeClass: 'bg-brand-primary/20 border-brand-primary/30 text-brand-primary' },
+  { label: '공시', value: 'notice', icon: 'i-heroicons-megaphone', activeClass: 'bg-brand-secondary/20 border-brand-secondary/30 text-brand-secondary' },
+  { label: 'IR', value: 'ir', icon: 'i-heroicons-presentation-chart-line', activeClass: 'bg-purple-500/20 border-purple-500/30 text-purple-400' }
+]
+
+watch(selectedNewsType, async (newType) => {
+  const news = await fetchNews(5, 1, newType)
+  recentNews.value = news
+})
 
 // AI 추천 종목 내비게이션 상태
 const aiScrollContainer = ref<HTMLElement | null>(null)

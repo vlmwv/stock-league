@@ -9,8 +9,23 @@
           <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
           <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">실시간 피드</span>
         </div>
-        <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-1">뉴스 & 공시</h2>
-        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Market Insights</p>
+        <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-4">뉴스 & 공시</h2>
+
+        <!-- 범례 필터 -->
+        <div class="flex flex-wrap gap-2">
+          <button 
+            v-for="type in filterTypes" 
+            :key="type.value"
+            @click="selectedType = type.value"
+            class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border transition-all duration-300"
+            :class="selectedType === type.value 
+              ? type.activeClass 
+              : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'"
+          >
+            <UIcon v-if="type.icon" :name="type.icon" class="w-3.5 h-3.5" />
+            <span class="text-[10px] font-black uppercase tracking-widest">{{ type.label }}</span>
+          </button>
+        </div>
       </section>
 
       <!-- 뉴스 목록 -->
@@ -22,7 +37,7 @@
 
         <div v-else-if="newsItems.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
           <UIcon name="i-heroicons-newspaper" class="w-12 h-12 text-slate-700 mb-4" />
-          <p class="text-sm text-slate-500 font-medium">최근 등록된 뉴스나 공시가 없습니다.</p>
+          <p class="text-sm text-slate-500 font-medium">선택한 카테고리에 등록된 뉴스나 공시가 없습니다.</p>
         </div>
 
         <template v-else>
@@ -117,6 +132,14 @@ const { fetchNews, toggleHeart, hearts, fetchWishlist } = useStock()
 
 const newsItems = ref<any[]>([])
 const isLoading = ref(true)
+const selectedType = ref('all')
+
+const filterTypes = [
+  { label: '전체', value: 'all', icon: null, activeClass: 'bg-slate-100 border-slate-100 text-slate-900' },
+  { label: '뉴스', value: 'news', icon: 'i-heroicons-newspaper', activeClass: 'bg-brand-primary/20 border-brand-primary/30 text-brand-primary' },
+  { label: '공시', value: 'notice', icon: 'i-heroicons-megaphone', activeClass: 'bg-brand-secondary/20 border-brand-secondary/30 text-brand-secondary' },
+  { label: 'IR', value: 'ir', icon: 'i-heroicons-presentation-chart-line', activeClass: 'bg-purple-500/20 border-purple-500/30 text-purple-400' }
+]
 
 // 페이징 상태
 const page = ref(1)
@@ -156,7 +179,7 @@ const loadNews = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const data = await fetchNews(pageSize, page.value)
+    const data = await fetchNews(pageSize, page.value, selectedType.value)
     
     if (isAppend) {
       newsItems.value = [...newsItems.value, ...data]
@@ -175,6 +198,10 @@ const loadNews = async (isAppend = false) => {
     isFetchingMore.value = false
   }
 }
+
+watch(selectedType, () => {
+  loadNews()
+})
 
 const loadMore = () => {
   if (!hasMore.value || isFetchingMore.value || isLoading.value) return
