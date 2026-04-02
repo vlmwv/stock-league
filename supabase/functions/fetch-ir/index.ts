@@ -62,8 +62,25 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 }
 
 Deno.serve(async (req) => {
+  const startTime = new Date().toISOString()
+  let logEntryId: string | null = null
+
   try {
     console.log('Periodic IR collection started...')
+
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'fetch-ir',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
+    
+    if (logEntry) logEntryId = logEntry.id
+
     // 1. 전체 종목 조회 (상위 100 혹은 전체) 여기서는 전체 조회
     const { data: stocks, error: stockError } = await supabase.from('stocks').select('id, code, name')
     if (stockError) throw stockError
@@ -100,8 +117,44 @@ Deno.serve(async (req) => {
       }, { onConflict: 'stock_code, url' })
       if (!insertError) processedCount++
     }
+
+    // 로그 종료 기록
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: processedCount,
+          message: `Successfully processed IR for ${processedCount} stocks`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    }
+
     return new Response(JSON.stringify({ message: `Processed IR for ${processedCount} stocks` }), { headers: { 'Content-Type': 'application/json' }, status: 200 })
   } catch (err: any) {
+    console.error('IR collection error:', err.message)
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    } else {
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'fetch-ir',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    }
     return new Response(JSON.stringify({ error: err.message }), { headers: { 'Content-Type': 'application/json' }, status: 500 })
   }
 })

@@ -113,9 +113,25 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 }
 
 Deno.serve(async (req) => {
+  const startTime = new Date().toISOString()
+  let logEntryId: string | null = null
+
   try {
     console.log('Periodic market news collection started... (v1.0.1)')
     
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'fetch-market-news-periodically',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
+    
+    if (logEntry) logEntryId = logEntry.id
+
     // 0. 특정 종목 코드 요청이 있는지 확인 (수동 트리거 용도)
     let requestedStockCode: string | null = null;
     try {
@@ -246,11 +262,24 @@ Deno.serve(async (req) => {
           llm_summary: summary,
           url: finalUrl,
           type: type,
-           source: '네이버 시황/뉴스/IR (Gemini 요약)',
+          source: '네이버 시황/뉴스/IR (Gemini 요약)',
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' })
 
       if (!insertError) processedCount++
+    }
+
+    // 로그 종료 기록
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: processedCount,
+          message: `Successfully processed news for ${processedCount} stocks`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
     }
 
     return new Response(JSON.stringify({ message: `Processed news for ${processedCount} stocks` }), {
@@ -259,6 +288,30 @@ Deno.serve(async (req) => {
     })
 
   } catch (err: any) {
+    console.error('Periodic news collection error:', err.message)
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    } else {
+      // 로그 엔트리가 생성되지 않은 경우 (시작 단계에서 에러 등)
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'fetch-market-news-periodically',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    }
+
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500

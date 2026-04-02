@@ -6,8 +6,24 @@ const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 Deno.serve(async (req) => {
+  const startTime = new Date().toISOString()
+  let logEntryId: string | null = null
+
   try {
     console.log('Fetching top stocks data from Naver...')
+
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'update-krx-stocks',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
+    
+    if (logEntry) logEntryId = logEntry.id
 
     // Fetch top 100 KOSPI and KOSDAQ
     const [kospiRes, kosdaqRes] = await Promise.all([
@@ -56,12 +72,47 @@ Deno.serve(async (req) => {
 
     if (error) throw error
 
+    // 로그 종료 기록
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: upsertData.length,
+          message: `Successfully updated top ${upsertData.length} stocks from Naver`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    }
+
     return new Response(JSON.stringify({ message: 'Successfully updated top 100 stocks from Naver', count: upsertData.length }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (err: any) {
     console.error('Error updating stocks:', err.message)
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    } else {
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'update-krx-stocks',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    }
+
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,

@@ -21,8 +21,24 @@ async function fetchNaverTop100(category: 'KOSPI' | 'KOSDAQ') {
 }
 
 Deno.serve(async (req) => {
+  const startTime = new Date().toISOString()
+  let logEntryId: string | null = null
+
   try {
     console.log('Fetching KRX Top 100 stocks triggered...')
+
+    // 로그 시작 기록
+    const { data: logEntry } = await supabase
+      .from('batch_execution_logs')
+      .insert({
+        function_name: 'update-krx-top-100',
+        status: 'success',
+        started_at: startTime
+      })
+      .select()
+      .single()
+    
+    if (logEntry) logEntryId = logEntry.id
 
     // 1. KOSPI & KOSDAQ 상위 100종목 가져오기
     const [kospiStocks, kosdaqStocks] = await Promise.all([
@@ -77,6 +93,19 @@ Deno.serve(async (req) => {
       throw upsertError
     }
 
+    // 로그 종료 기록
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'success',
+          processed_count: records.length,
+          message: `Successfully updated KRX Top 100 stocks`,
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    }
+
     return new Response(JSON.stringify({
       message: 'Successfully updated KRX Top 100 stocks',
       count: records.length
@@ -87,6 +116,27 @@ Deno.serve(async (req) => {
 
   } catch (err: any) {
     console.error('Fatal Edge Function Error:', err.message)
+    if (logEntryId) {
+      await supabase
+        .from('batch_execution_logs')
+        .update({
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+        .eq('id', logEntryId)
+    } else {
+      await supabase
+        .from('batch_execution_logs')
+        .insert({
+          function_name: 'update-krx-top-100',
+          status: 'fail',
+          message: err.message,
+          error_detail: { stack: err.stack },
+          finished_at: new Date().toISOString()
+        })
+    }
     return new Response(JSON.stringify({ error: err.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,
