@@ -55,26 +55,6 @@
         </div>
       </section>
       
-      <!-- Admin Link (Only for Admins) -->
-      <section v-if="stats?.role === 'admin'" class="mb-6">
-        <NuxtLink to="/admin" class="relative overflow-hidden rounded-[2rem] p-6 border border-brand-primary/30 bg-brand-primary/5 flex items-center justify-between group hover:bg-brand-primary/10 transition-all shadow-lg shadow-brand-primary/5">
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-brand-primary/20 flex items-center justify-center transition-transform group-hover:scale-110">
-              <UIcon name="i-heroicons-shield-check" class="w-7 h-7 text-brand-primary" />
-            </div>
-            <div>
-              <h3 class="text-lg font-black text-white tracking-tight">시스템 관리자</h3>
-              <p class="text-[10px] text-brand-primary font-bold uppercase tracking-widest mt-0.5">Admin Dashboard Access</p>
-            </div>
-          </div>
-          <div class="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center group-hover:bg-brand-primary/40 transition-colors">
-            <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-brand-primary" />
-          </div>
-          <!-- Internal Glow -->
-          <div class="absolute -right-4 -top-4 w-20 h-20 bg-brand-primary/10 blur-2xl rounded-full"></div>
-        </NuxtLink>
-      </section>
-
       <!-- Wishlist Link -->
       <section class="mb-10">
         <NuxtLink to="/wishlist" class="glass-dark rounded-[2rem] p-6 border border-white/5 flex items-center justify-between group hover:bg-white/5 transition-all">

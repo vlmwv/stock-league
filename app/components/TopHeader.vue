@@ -18,6 +18,16 @@
         <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
       </button>
 
+      <!-- Admin Dashboard Link (Only for Admins) -->
+      <NuxtLink 
+        v-if="user && role === 'admin'"
+        to="/admin"
+        class="p-2 rounded-xl bg-brand-primary/10 hover:bg-brand-primary/20 transition-all border border-brand-primary/30 active:scale-95 group"
+        title="관리자 대시보드"
+      >
+        <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-brand-primary group-hover:scale-110 transition-transform" />
+      </NuxtLink>
+
       <template v-if="user">
         <UPopover :popper="{ placement: 'bottom-end', offsetDistance: 12 }">
           <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
@@ -111,8 +121,9 @@ const isScrolled = ref(false)
 
 defineEmits(['openGuide'])
 
-const { recommendedStocks, refreshRecommended } = useStock()
+const { recommendedStocks, refreshRecommended, fetchUserStats } = useStock()
 const hasNewNotifications = computed(() => recommendedStocks.value && recommendedStocks.value.length > 0)
+const role = ref('user')
 
 const handleLogout = async () => {
   await supabase.auth.signOut()
@@ -121,6 +132,12 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   await refreshRecommended()
+  
+  if (user.value) {
+    const stats = await fetchUserStats()
+    if (stats) role.value = stats.role
+  }
+
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 20
   })
