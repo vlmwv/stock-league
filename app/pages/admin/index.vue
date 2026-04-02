@@ -154,10 +154,13 @@ const batchFunctions = ref([
   { id: 'fetch-market-news-periodically', name: '시장 뉴스 수집', isRunning: false },
   { id: 'process-daily-results', name: '결과 판정', isRunning: false },
   { id: 'select-daily-stocks', name: '종목 선정', isRunning: false },
-  { id: 'update-krx-stocks', name: '주가 업데이트', isRunning: false }
+  { id: 'update-krx-stocks', name: '주가 업데이트', isRunning: false },
+  { id: 'fetch-ir', name: 'IR 정보 수집', isRunning: false },
+  { id: 'update-krx-top-100', name: 'KRX Top 100 갱신', isRunning: false }
 ])
 
 // Functions
+const toast = useToast()
 const fetchLogs = async () => {
   const { data } = await supabase
     .from('batch_execution_logs')
@@ -194,10 +197,20 @@ const runBatch = async (batch: any) => {
   try {
     const { data, error } = await supabase.functions.invoke(batch.id)
     if (error) throw error
-    alert(`${batch.name} 실행 완료!`)
+    toast.add({
+      title: '배치 실행 완료',
+      description: `${batch.name}이(가) 성공적으로 실행되었습니다.`,
+      color: 'success',
+      icon: 'i-heroicons-check-circle'
+    })
     await refreshAll()
   } catch (err: any) {
-    alert(`실패: ${err.message}`)
+    toast.add({
+      title: '배치 실행 실패',
+      description: `${batch.name} 실행 중 오류가 발생했습니다: ${err.message}`,
+      color: 'error',
+      icon: 'i-heroicons-x-circle'
+    })
   } finally {
     batch.isRunning = false
   }

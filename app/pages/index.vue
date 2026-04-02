@@ -157,10 +157,10 @@
                 </div>
 
                 <!-- Row 2: AI Summary (Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-6 flex items-center border border-white/5 group/marquee">
+                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7.5 flex items-center border border-white/5 group/marquee">
                   <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
-                    <p class="text-[9px] text-slate-400 font-medium">
-                      <span class="text-brand-primary/60 font-black mr-1 text-[8px]">AI</span>
+                    <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
+                      <span class="text-brand-primary/60 font-black mr-1.5 text-[8px] leading-none">AI</span>
                       {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
                     </p>
                   </div>
