@@ -29,7 +29,7 @@
       </section>
 
       <!-- 뉴스 목록 -->
-      <section class="px-6 space-y-6 mt-6 animate-fade-in">
+      <section class="px-6 space-y-4 mt-6 animate-fade-in">
         <div v-if="isLoading && newsItems.length === 0" class="flex flex-col items-center justify-center py-20 gap-4">
           <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
@@ -44,14 +44,15 @@
           <div
             v-for="(item, index) in newsItems"
             :key="item.id"
-            class="glass-dark rounded-[2.5rem] p-7 border border-white/5 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-500"
+            @click="navigateToNews(item)"
+            class="bg-white/5 rounded-[1.25rem] p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
           >
-            <div class="flex flex-col gap-4 relative z-10">
+            <div class="flex flex-col gap-3.5 relative z-10">
               <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                   <div 
-                    class="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
                     :class="{
                       'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
                       'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
@@ -60,57 +61,45 @@
                   >
                     <UIcon 
                       :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
-                      class="w-5 h-5" 
+                      class="w-4.5 h-4.5" 
                     />
                   </div>
-                  <div v-if="item.stockName" class="flex items-baseline gap-2">
-                    <span class="text-sm font-black text-slate-100 tracking-tight">{{ item.stockName }}</span>
-                    <span class="text-[10px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+                  <div v-if="item.stockName" class="flex items-baseline gap-1.5">
+                    <span class="text-xs font-black text-slate-200 tracking-tight">{{ item.stockName }}</span>
+                    <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
                   </div>
-                  <span v-else class="text-xs text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
+                  <span v-else class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                   <button 
                     v-if="item.stockId"
                     @click.stop="toggleHeart(item.stockId)"
-                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
                     :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
                   >
-                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
                   </button>
-                  <span class="text-[11px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
+                  <span class="text-[10px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
                 </div>
               </div>
 
               <!-- 중간 행: 제목 -->
-              <h3 class="text-xl font-bold text-slate-100 leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
+              <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
                 {{ item.title }}
-              </h3>
+              </h4>
 
               <!-- 하단 행: AI 요약 -->
-              <div v-if="item.llm_summary" class="bg-white/5 rounded-2xl p-4 border border-white/5 backdrop-blur-sm">
-                <p class="text-xs text-slate-400 leading-relaxed font-medium">
-                  <span class="text-brand-primary/80 font-black mr-2">AI 요약</span>
+              <div v-if="item.llm_summary" class="bg-white/5 rounded-xl p-3 border border-white/5 backdrop-blur-sm">
+                <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                  <span class="text-brand-primary/80 font-black mr-1.5">AI 요약</span>
                   {{ item.llm_summary }}
                 </p>
-              </div>
-
-              <!-- 상세보기 버튼 -->
-              <div class="flex justify-end mt-2">
-                <a 
-                  :href="repairNewsUrl(item.url, item.stockCode, item.type)" 
-                  target="_blank"
-                  class="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-slate-900 transition-all duration-300 shadow-lg"
-                >
-                  상세보기
-                  <UIcon name="i-heroicons-arrow-top-right-on-square-20-solid" class="w-4 h-4" />
-                </a>
               </div>
             </div>
 
             <!-- Decorative gradient -->
-            <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/5 blur-[60px] rounded-full group-hover:bg-brand-primary/10 transition-colors"></div>
+            <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
           </div>
 
           <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
@@ -157,16 +146,21 @@ const formatDate = (dateStr: string) => {
   
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
   if (minutes < 60) return `${minutes}분 전`
   if (hours < 24) return `${hours}시간 전`
-  if (days < 7) return `${days}일 전`
   
   return date.toLocaleDateString('ko-KR', {
-    month: 'long',
+    month: 'short',
     day: 'numeric'
   })
+}
+
+const navigateToNews = (item: any) => {
+  const url = repairNewsUrl(item.url, item.stockCode, item.type)
+  if (url) {
+    window.open(url, '_blank')
+  }
 }
 
 const loadNews = async (isAppend = false) => {
