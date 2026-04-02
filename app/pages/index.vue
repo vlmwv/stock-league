@@ -116,48 +116,51 @@
             <div 
               v-for="(stock, idx) in recommendedStocks" 
               :key="stock.id"
-              class="w-[270px] flex-shrink-0 bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[1.5rem] p-4 border border-white/10 relative overflow-hidden group hover:bg-white/[0.07] transition-all duration-300 snap-center"
+              class="w-[270px] flex-shrink-0 bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md rounded-[1.25rem] p-3.5 border border-white/10 relative overflow-hidden group hover:bg-white/[0.07] transition-all duration-300 snap-center"
             >
               <!-- Premium Background Glow -->
               <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 blur-[50px] rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
               
               <div class="relative z-10 flex flex-col gap-2">
-                <!-- Row 1: Icon, Name, Code, Heart -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500/20 to-rose-500/20 flex items-center justify-center border border-rose-500/20 shadow-lg shadow-rose-500/10">
-                      <UIcon name="i-heroicons-fire-20-solid" class="w-5 h-5 text-rose-500" />
+                <!-- Row 1: All in one (Icon, Info, Price, Heart) -->
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-rose-500/20 flex-shrink-0 flex items-center justify-center border border-rose-500/20 shadow-lg shadow-rose-500/10">
+                      <UIcon name="i-heroicons-fire-20-solid" class="w-4.5 h-4.5 text-rose-500" />
                     </div>
-                    <div class="flex flex-col">
-                      <h4 class="font-black text-slate-100 text-base tracking-tight leading-tight">{{ stock.name }}</h4>
-                      <span class="text-[9px] font-mono text-slate-500 uppercase tracking-tighter bg-slate-800/50 px-1 py-0.5 rounded-md border border-slate-700/50 w-fit">{{ stock.code }}</span>
+                    <div class="flex flex-col min-w-0">
+                      <h4 class="font-black text-slate-100 text-[13px] tracking-tight leading-none truncate">{{ stock.name }}</h4>
+                      <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter mt-0.5 truncate">{{ stock.code }}</span>
                     </div>
                   </div>
-                  <button 
-                    @click.stop="toggleHeart(stock.id)"
-                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
-                    :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
-                  >
-                    <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
-                  </button>
-                </div>
-
-                <!-- Row 2: Price & Change -->
-                <div class="flex items-center justify-between px-0.5">
-                  <span class="text-lg font-black text-slate-50 tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
-                  <div 
-                    class="flex items-center gap-1 text-[10px] font-black"
-                    :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                  >
-                    <span>{{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}</span>
-                    <span class="opacity-80">({{ stock.change_rate }}%)</span>
+                  
+                  <div class="flex items-end gap-1.5 flex-shrink-0">
+                    <div class="flex flex-col items-end">
+                      <span class="text-[13px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
+                      <div 
+                        class="text-[9px] font-black leading-none mt-1"
+                        :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                      >
+                        {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
+                        <span class="opacity-70 text-[8px]">({{ stock.change_rate }}%)</span>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      @click.stop="toggleHeart(stock.id)"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 ml-1"
+                      :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
+                    >
+                      <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                <!-- Row 3: AI Summary (Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee">
+                <!-- Row 2: AI Summary (Marquee) -->
+                <div class="relative overflow-hidden bg-white/5 rounded-lg h-6.5 flex items-center border border-white/5 group/marquee">
                   <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
-                    <p class="text-[10px] text-slate-400 font-medium">
+                    <p class="text-[9px] text-slate-400 font-medium">
+                      <span class="text-brand-primary/60 font-black mr-1 text-[8px]">AI</span>
                       {{ stock.summary }} &nbsp;&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;&nbsp; {{ stock.summary }}
                     </p>
                   </div>
