@@ -755,8 +755,9 @@ export const useStock = () => {
           fallbackQuery = fallbackQuery.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
         }
 
+        const fallbackOrderBy = orderBy === 'market_cap_rank' ? 'market_cap_rank' : 'market_cap_rank'
         const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery
-          .order('market_cap_rank', { ascending: true })
+          .order(fallbackOrderBy, { ascending: true })
           .range(from, to)
         
         if (fallbackError) {

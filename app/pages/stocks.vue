@@ -139,7 +139,7 @@ const allStocks = ref<any[]>([])
 
 // 페이징 상태
 const page = ref(1)
-const pageSize = 10
+const pageSize = 20
 const totalCount = ref(0)
 const hasMore = ref(true)
 const isFetchingMore = ref(false)
@@ -230,7 +230,16 @@ watch(currentSort, () => {
   loadStocks()
 })
 
-let observer: IntersectionObserver | null = null
+// Intersection Observer 설정 (VueUse 사용)
+useIntersectionObserver(
+  sentinel,
+  ([entry]) => {
+    if (entry?.isIntersecting) {
+      loadMore()
+    }
+  },
+  { rootMargin: '200px' }
+)
 
 onMounted(() => {
   // 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
@@ -238,21 +247,6 @@ onMounted(() => {
     fetchWishlist(),
     loadStocks()
   ])
-
-  // Intersection Observer 설정
-  observer = new IntersectionObserver((entries) => {
-    if (entries[0] && entries[0].isIntersecting) {
-      loadMore()
-    }
-  }, { rootMargin: '200px' })
-
-  if (sentinel.value) {
-    observer.observe(sentinel.value)
-  }
-})
-
-onUnmounted(() => {
-  if (observer) observer.disconnect()
 })
 </script>
 
