@@ -57,69 +57,103 @@
           </p>
         </div>
 
-        <template v-else>
-          <div
-            v-for="(stock, index) in allStocks"
-            :key="stock.id"
-            @click="navigateTo('/stocks/' + stock.id)"
-            class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            <!-- 순위 -->
-            <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
-              :class="index < 3 && currentSort === 'marketCap' ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
+    <template v-else>
+      <div
+        v-for="(stock, index) in allStocks"
+        :key="stock.id"
+        @click="navigateTo('/stocks/' + stock.id)"
+        class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
+      >
+        <!-- 순위 -->
+        <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
+          :class="((page - 1) * pageSize + index) < 3 && currentSort === 'marketCap' ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
+        >
+          {{ (page - 1) * pageSize + index + 1 }}
+        </div>
+
+        <!-- 종목 정보 -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
+            <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
+          </div>
+          <div class="flex items-center gap-3 mt-1">
+            <span class="text-xs font-bold text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
+            <span
+              class="text-[10px] font-black"
+              :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
             >
-              {{ index + 1 }}
-            </div>
-
-            <!-- 종목 정보 -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
-                <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
-              </div>
-              <div class="flex items-center gap-3 mt-1">
-                <span class="text-xs font-bold text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
-                <span
-                  class="text-[10px] font-black"
-                  :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                >
-                  {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
-                </span>
-                <!-- 정렬 기준별 보조 정보 -->
-                <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
-                  <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
-                  {{ stock.wishlist_count ?? 0 }}
-                </span>
-                <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
-                  <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
-                  {{ stock.win_count ?? 0 }}
-                </span>
-              </div>
-            </div>
-
-            <!-- 액션 버튼 -->
-            <div class="flex items-center gap-2 shrink-0">
-              <button
-                @click.stop="handleToggleHeart(stock.id)"
-                class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
-                :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
-              >
-                <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-              </button>
-            </div>
+              {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
+            </span>
+            <!-- 정렬 기준별 보조 정보 -->
+            <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+              <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
+              {{ stock.wishlist_count ?? 0 }}
+            </span>
+            <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+              <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
+              {{ stock.win_count ?? 0 }}
+            </span>
           </div>
+        </div>
 
-          <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
-          <div ref="sentinel" class="py-10 flex justify-center items-center">
-            <div v-if="isFetchingMore" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
-            <p v-else-if="!hasMore && allStocks.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 종목입니다</p>
-          </div>
-        </template>
-      </section>
-    </main>
+        <!-- 액션 버튼 -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            @click.stop="handleToggleHeart(stock.id)"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
+            :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
+          >
+            <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-    <BottomNav />
-  </div>
+      <!-- 페이지네이션 -->
+      <div v-if="totalPages > 1" class="pt-10 pb-4 flex flex-col items-center gap-4">
+        <div class="flex items-center gap-1.5">
+          <!-- 이전 페이지 -->
+          <button
+            @click="jumpToPage(page - 1)"
+            :disabled="page === 1"
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+          >
+            <UIcon name="i-heroicons-chevron-left-20-solid" class="w-5 h-5" />
+          </button>
+
+          <!-- 페이지 번호 -->
+          <button
+            v-for="p in pageRange"
+            :key="p"
+            @click="jumpToPage(p)"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all"
+            :class="page === p 
+              ? 'bg-brand-primary text-slate-900 shadow-lg shadow-brand-primary/20' 
+              : 'bg-slate-800/30 border border-white/5 text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'"
+          >
+            {{ p }}
+          </button>
+
+          <!-- 다음 페이지 -->
+          <button
+            @click="jumpToPage(page + 1)"
+            :disabled="page === totalPages"
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+          >
+            <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5" />
+          </button>
+        </div>
+        
+        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+          Page {{ page }} of {{ totalPages }} <span class="mx-1">·</span> Total {{ totalCount.toLocaleString() }}
+        </p>
+      </div>
+    </template>
+  </section>
+</main>
+
+<BottomNav />
+</div>
 </template>
 
 <script setup lang="ts">
@@ -133,124 +167,121 @@ const allStocks = ref<any[]>([])
 // 페이징 상태
 const page = ref(1)
 const pageSize = 10
-const hasMore = ref(true)
-const isFetchingMore = ref(false)
-const sentinel = ref<HTMLElement | null>(null)
+const totalCount = ref(0)
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize))
+
+const pageRange = computed(() => {
+  const range = []
+  const start = Math.max(1, page.value - 2)
+  const end = Math.min(totalPages.value, Math.max(5, start + 4))
+  const adjustedStart = Math.max(1, Math.min(start, totalPages.value - 4))
+  const adjustedEnd = Math.min(totalPages.value, adjustedStart + 4)
+  
+  for (let i = adjustedStart; i <= adjustedEnd; i++) {
+    range.push(i)
+  }
+  return range
+})
 
 const sortTabs = [
-  { key: 'marketCap', label: '시가총액' },
-  { key: 'wishlist', label: '찜 많은 순' },
-  { key: 'prediction', label: '예측 성공 순' }
+{ key: 'marketCap', label: '시가총액' },
+{ key: 'wishlist', label: '찜 많은 순' },
+{ key: 'prediction', label: '예측 성공 순' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const handleToggleHeart = async (stockId: number) => {
-  const wasHearted = isHearted(stockId)
-  await toggleHeart(stockId)
-  const nowHearted = isHearted(stockId)
-  
-  if (wasHearted !== nowHearted) {
-    const stock = allStocks.value.find(s => s.id === stockId)
-    if (stock) {
-      stock.wishlist_count = Math.max(0, (stock.wishlist_count || 0) + (nowHearted ? 1 : -1))
-    }
-  }
+const wasHearted = isHearted(stockId)
+await toggleHeart(stockId)
+const nowHearted = isHearted(stockId)
+
+if (wasHearted !== nowHearted) {
+const stock = allStocks.value.find(s => s.id === stockId)
+if (stock) {
+  stock.wishlist_count = Math.max(0, (stock.wishlist_count || 0) + (nowHearted ? 1 : -1))
+}
+}
 }
 
-const loadStocks = async (isAppend = false) => {
-  try {
-    if (!isAppend) {
-      isLoading.value = true
-      page.value = 1
-      hasMore.value = true
-    } else {
-      isFetchingMore.value = true
-    }
+const loadStocks = async () => {
+try {
+isLoading.value = true
 
-    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count'> = {
-      marketCap: 'market_cap_rank',
-      wishlist: 'wishlist_count',
-      prediction: 'win_count'
-    }
-    
-    const data = await fetchStocksWithStats(
-      sortMap[currentSort.value], 
-      page.value, 
-      pageSize, 
-      searchQuery.value
-    )
-    
-    if (isAppend) {
-      allStocks.value = [...allStocks.value, ...data]
-    } else {
-      allStocks.value = data || []
-    }
-
-    // 더 가져올 데이터가 있는지 확인 (최대 100개로 제한)
-    if (data.length < pageSize || allStocks.value.length >= 100) {
-      hasMore.value = false
-    }
-  } catch (err) {
-    console.error('[Stocks] Failed to load stocks:', err)
-  } finally {
-    isLoading.value = false
-    isFetchingMore.value = false
-  }
+const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count'> = {
+  marketCap: 'market_cap_rank',
+  wishlist: 'wishlist_count',
+  prediction: 'win_count'
 }
 
-const loadMore = () => {
-  if (!hasMore.value || isFetchingMore.value || isLoading.value || allStocks.value.length >= 100) return
-  page.value++
-  loadStocks(true)
+const response = await fetchStocksWithStats(
+  sortMap[currentSort.value], 
+  page.value, 
+  pageSize, 
+  searchQuery.value
+)
+
+allStocks.value = response.data || []
+totalCount.value = response.count || 0
+
+// 페이지 범위를 벗어난 경우 (검색 등으로 인해)
+if (page.value > totalPages.value && totalPages.value > 0) {
+  page.value = totalPages.value
+  await loadStocks()
+}
+
+} catch (err) {
+console.error('[Stocks] Failed to load stocks:', err)
+} finally {
+isLoading.value = false
+}
+}
+
+const jumpToPage = (p: number) => {
+if (p < 1 || p > totalPages.value || p === page.value) return
+page.value = p
+loadStocks()
+// 스크롤 상단으로 이동
+window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 검색어 변경 감지 (Debounce)
 let searchTimeout: any = null
 watch(searchQuery, () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    loadStocks()
-  }, 400)
+if (searchTimeout) clearTimeout(searchTimeout)
+searchTimeout = setTimeout(() => {
+page.value = 1
+loadStocks()
+}, 400)
 })
 
 // 정렬 탭 변경 시 데이터 다시 불러오기
 watch(currentSort, () => {
-  loadStocks()
+page.value = 1
+loadStocks()
 })
-
-let observer: IntersectionObserver | null = null
 
 onMounted(() => {
-  // 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
-  Promise.all([
-    fetchWishlist(),
-    loadStocks()
-  ])
-
-  // Intersection Observer 설정
-  observer = new IntersectionObserver((entries) => {
-    if (entries[0] && entries[0].isIntersecting) {
-      loadMore()
-    }
-  }, { rootMargin: '200px' })
-
-  if (sentinel.value) {
-    observer.observe(sentinel.value)
-  }
-})
-
-onUnmounted(() => {
-  if (observer) observer.disconnect()
+// 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
+Promise.all([
+fetchWishlist(),
+loadStocks()
+])
 })
 </script>
 
 <style scoped>
+.glass-dark {
+background: rgba(15, 23, 42, 0.6);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+}
+
 .animate-fade-in {
-  animation: fade-in 0.4s ease-out;
+animation: fade-in 0.4s ease-out;
 }
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+from { opacity: 0; transform: translateY(8px); }
+to { opacity: 1; transform: translateY(0); }
 }
 </style>
