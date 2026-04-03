@@ -83,23 +83,38 @@
       <div class="space-y-4">
         <div v-if="loading" class="text-center py-10 text-slate-500 font-bold">로딩 중...</div>
         <div v-else-if="history.length === 0" class="text-center py-10 text-slate-500 font-bold">예측 기록이 없습니다.</div>
-        <div v-for="item in history" :key="item.id" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center justify-between">
-           <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-400 text-xs">
-                 {{ item.stockName.substring(0, 1) }}
+        <div v-for="item in history" :key="item.id" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors">
+           <!-- Icon/Initial -->
+           <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0 text-slate-400">
+              {{ item.stockName.substring(0, 1) }}
+           </div>
+
+           <!-- Stock Info -->
+           <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-200 truncate text-sm">{{ item.stockName }}</h4>
+                <span v-if="item.stockCode" class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ item.stockCode }}</span>
               </div>
-              <div>
-                <p class="text-sm font-black text-slate-200">{{ item.stockName }}</p>
-                <p class="text-[10px] text-slate-500 font-bold">{{ item.game_date }} · {{ item.prediction_type === 'up' ? '상승' : '하락' }} 예측</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
+                <span class="w-1 h-1 rounded-full bg-slate-800"></span>
+                <span 
+                  class="text-[10px] font-black"
+                  :class="item.prediction_type === 'up' ? 'text-rose-400' : 'text-indigo-400'"
+                >
+                  {{ item.prediction_type === 'up' ? '상승' : '하락' }} 예측
+                </span>
               </div>
            </div>
-           <div class="text-right">
+
+           <!-- Status & Points -->
+           <div class="flex flex-col items-end gap-2 shrink-0">
               <span 
-                class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                 :class="{
-                  'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20': item.result === 'win',
-                  'bg-rose-500/10 text-rose-500 border border-rose-500/20': item.result === 'lose',
-                  'bg-slate-500/10 text-slate-500 border border-slate-500/20': item.result === 'pending' || item.result === 'draw'
+                  'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': item.result === 'win',
+                  'bg-rose-500/10 text-rose-500 border-rose-500/20': item.result === 'lose',
+                  'bg-slate-500/10 text-slate-500 border-slate-500/20': item.result === 'pending' || item.result === 'draw'
                 }"
               >
                 {{ 
@@ -108,7 +123,7 @@
                   item.result === 'draw' ? '무승부' : '대기중'
                 }}
               </span>
-              <p v-if="item.result !== 'pending'" class="text-[10px] font-bold text-slate-600 mt-2 tracking-tighter">
+              <p v-if="item.result !== 'pending' && item.points_awarded !== 0" class="text-[10px] font-black text-slate-500 tracking-tighter">
                 {{ item.points_awarded > 0 ? '+' : '' }}{{ item.points_awarded }}p
               </p>
            </div>
