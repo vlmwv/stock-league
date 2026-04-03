@@ -120,7 +120,9 @@ const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 
 const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
   const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return '-'
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(d)
 }
 

@@ -10,6 +10,9 @@ interface Stock {
   summary: string
   game_date?: string
   daily_id?: number
+  wishlist_count?: number
+  win_count?: number
+  ai_recommendation_count?: number
 }
 
 export const useStock = () => {
@@ -104,7 +107,8 @@ export const useStock = () => {
           name,
           last_price,
           change_amount,
-          change_rate
+          change_rate,
+          ai_recommendation_count
         )
       `)
       .eq('game_date', targetDate as any)
@@ -159,6 +163,7 @@ export const useStock = () => {
       last_price: ds.stocks.last_price || 0,
       change_amount: ds.stocks.change_amount || 0,
       change_rate: ds.stocks.change_rate || 0,
+      ai_recommendation_count: ds.stocks.ai_recommendation_count || 0,
       summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
   })
@@ -176,7 +181,8 @@ export const useStock = () => {
           name,
           last_price,
           change_amount,
-          change_rate
+          change_rate,
+          ai_recommendation_count
         )
       `)
       .order('published_at', { ascending: false })
@@ -190,6 +196,7 @@ export const useStock = () => {
       last_price: n.stocks.last_price || 0,
       change_amount: n.stocks.change_amount || 0,
       change_rate: n.stocks.change_rate || 0,
+      ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
       summary: decodeHtmlEntities(n.llm_summary)
     }))
   })
@@ -211,6 +218,7 @@ export const useStock = () => {
       change_amount: s.change_amount || 0,
       change_rate: s.change_rate || 0,
       market_cap_rank: s.market_cap_rank,
+      ai_recommendation_count: s.ai_recommendation_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
   })
@@ -221,11 +229,11 @@ export const useStock = () => {
     }
     const today = getKstDate()
     return [
-      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, summary: 'DB 데이터가 없거나 로드 전입니다.' }
+      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' }
     ]
   })
 
@@ -379,6 +387,7 @@ export const useStock = () => {
       last_price: s.last_price || 0,
       change_amount: s.change_amount || 0,
       change_rate: s.change_rate || 0,
+      ai_recommendation_count: s.ai_recommendation_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
   }, { watch: [hearts] })
@@ -720,7 +729,7 @@ export const useStock = () => {
   }
 
   const fetchStocksWithStats = async (
-    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' = 'market_cap_rank',
+    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' = 'market_cap_rank',
     page = 1,
     pageSize = 10,
     searchQuery = ''
@@ -732,7 +741,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -778,7 +787,8 @@ export const useStock = () => {
             market_cap_rank: s.market_cap_rank,
             summary: decodeHtmlEntities(s.summary || ''),
             wishlist_count: 0,
-            win_count: 0
+            win_count: 0,
+            ai_recommendation_count: 0
           })),
           count: fallbackCount || 0
         }
@@ -797,7 +807,8 @@ export const useStock = () => {
           market_cap_rank: s.market_cap_rank,
           summary: decodeHtmlEntities(s.summary || ''),
           wishlist_count: s.wishlist_count || 0,
-          win_count: s.win_count || 0
+          win_count: s.win_count || 0,
+          ai_recommendation_count: s.ai_recommendation_count || 0
         })),
         count: count || 0
       }

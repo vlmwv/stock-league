@@ -130,7 +130,13 @@
                     </div>
                     <div class="flex flex-col min-w-0">
                       <h4 class="font-black text-slate-100 text-[12px] tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
-                      <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter mt-1">{{ stock.code }}</span>
+                      <div class="flex items-center gap-1.5 mt-1">
+                        <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
+                        <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 text-[8px] font-black text-orange-400/80 bg-orange-400/10 px-1 rounded-sm">
+                          <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
+                          {{ stock.ai_recommendation_count }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
@@ -300,11 +306,16 @@ const scrollAiTo = (index: number) => {
 }
 
 const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '-'
+  
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
+  
+  if (minutes < 1) return '방금 전'
   if (minutes < 60) return `${minutes}분 전`
   if (hours < 24) return `${hours}시간 전`
   return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
@@ -339,8 +350,8 @@ onMounted(async () => {
     refreshMarketCap(),
     fetchParticipantCount(),
     (async () => {
-      const news = await fetchNews(5)
-      recentNews.value = news
+      const response = await fetchNews(5)
+      recentNews.value = response.data || []
     })()
   ])
   

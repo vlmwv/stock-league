@@ -62,7 +62,7 @@ const { data: rankings, pending, refresh } = useAsyncData('userRankings', async 
 }, { watch: [selectedYear, selectedMonth, sortBy] })
 
 const topThree = computed(() => (rankings.value as any[])?.slice(0, 3) || [])
-const others = computed(() => (rankings.value as any[])?.slice(3, displayLimit.value) || [])
+const listRankings = computed(() => (rankings.value as any[])?.slice(0, displayLimit.value) || [])
 const hasMore = computed(() => (rankings.value as any[])?.length > displayLimit.value)
 
 const loadMore = () => {
@@ -253,7 +253,7 @@ onMounted(async () => {
 
         <!-- Leaderboard List -->
         <div class="space-y-2">
-          <div v-for="(rankingUser, index) in others" :key="rankingUser.username" 
+          <div v-for="(rankingUser, index) in listRankings" :key="rankingUser.username" 
                class="glass-dark rounded-2xl p-3 flex items-center hover:bg-slate-800/50 transition-colors border border-white/5 group"
           >
             <!-- Rank -->

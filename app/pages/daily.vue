@@ -54,6 +54,10 @@
               <div class="flex items-center gap-2 mb-1">
                 <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                 <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest bg-brand-primary/5 px-2 py-0.5 rounded-md">Trending</span>
+                <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 text-[10px] font-black text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-md border border-orange-400/20">
+                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
+                  추천 {{ stock.ai_recommendation_count }}회
+                </span>
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
             </div>

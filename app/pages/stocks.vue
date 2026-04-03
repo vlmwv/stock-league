@@ -101,6 +101,10 @@
                   <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
                   {{ stock.win_count ?? 0 }}
                 </span>
+                <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400/60" />
+                  {{ stock.ai_recommendation_count ?? 0 }}
+                </span>
               </div>
             </div>
 
@@ -133,7 +137,7 @@
 const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats } = useStock()
 
 const searchQuery = ref('')
-const currentSort = ref<'marketCap' | 'wishlist' | 'prediction'>('marketCap')
+const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation'>('marketCap')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
@@ -147,8 +151,9 @@ const sentinel = ref<HTMLElement | null>(null)
 
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
-  { key: 'wishlist', label: '찜 많은 순' },
-  { key: 'prediction', label: '예측 성공 순' }
+  { key: 'wishlist', label: '찜 순' },
+  { key: 'prediction', label: '예측 성공' },
+  { key: 'aiRecommendation', label: 'AI 추천' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
@@ -176,10 +181,11 @@ const loadStocks = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count'> = {
+    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count'> = {
       marketCap: 'market_cap_rank',
       wishlist: 'wishlist_count',
-      prediction: 'win_count'
+      prediction: 'win_count',
+      aiRecommendation: 'ai_recommendation_count'
     }
     
     const response = await fetchStocksWithStats(

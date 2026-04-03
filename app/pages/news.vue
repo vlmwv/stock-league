@@ -146,13 +146,17 @@ const sentinel = ref<HTMLElement | null>(null)
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '-'
+  
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
 
+  if (minutes < 1) return '방금 전'
   if (minutes < 60) return `${minutes}분 전`
   if (hours < 24) return `${hours}시간 전`
   
