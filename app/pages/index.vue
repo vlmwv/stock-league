@@ -212,13 +212,12 @@
                   <div 
                     class="w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm transition-transform group-hover:scale-110 duration-500"
                     :class="{
-                      'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
                       'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
                       'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
                     }"
                   >
                     <UIcon 
-                      :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
+                      :name="item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper'" 
                       class="w-5 h-5" 
                     />
                   </div>

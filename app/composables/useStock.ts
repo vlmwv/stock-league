@@ -841,6 +841,8 @@ export const useStock = () => {
     
     if (type && type !== 'all') {
       query = query.eq('type', type)
+    } else {
+      query = query.neq('type', 'notice')
     }
 
     const { data, error, count } = await query

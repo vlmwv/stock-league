@@ -59,13 +59,12 @@
                   <div 
                     class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
                     :class="{
-                      'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary': item.type === 'notice',
                       'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
                       'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
                     }"
                   >
                     <UIcon 
-                      :name="item.type === 'notice' ? 'i-heroicons-megaphone' : (item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper')" 
+                      :name="item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper'" 
                       class="w-4.5 h-4.5" 
                     />
                   </div>
@@ -132,7 +131,6 @@ const totalCount = ref(0)
 const filterTypes = [
   { label: '전체', value: 'all', icon: null, activeClass: 'bg-slate-100 border-slate-100 text-slate-900' },
   { label: '뉴스', value: 'news', icon: 'i-heroicons-newspaper', activeClass: 'bg-brand-primary/20 border-brand-primary/30 text-brand-primary' },
-  { label: '공시', value: 'notice', icon: 'i-heroicons-megaphone', activeClass: 'bg-brand-secondary/20 border-brand-secondary/30 text-brand-secondary' },
   { label: 'IR', value: 'ir', icon: 'i-heroicons-presentation-chart-line', activeClass: 'bg-purple-500/20 border-purple-500/30 text-purple-400' }
 ]
 
