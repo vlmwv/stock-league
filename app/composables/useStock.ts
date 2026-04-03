@@ -695,7 +695,8 @@ export const useStock = () => {
         result,
         points_awarded,
         stocks (
-          name
+          name,
+          code
         )
       `)
       .eq('user_id', userId)
@@ -713,7 +714,8 @@ export const useStock = () => {
       prediction_type: p.prediction_type,
       result: p.result,
       points_awarded: p.points_awarded,
-      stockName: (p.stocks as any)?.name || '알 수 없는 종목'
+      stockName: (p.stocks as any)?.name || '알 수 없는 종목',
+      stockCode: (p.stocks as any)?.code || ''
     }))
   }
 
@@ -824,35 +826,39 @@ export const useStock = () => {
           name,
           code
         )
-      `)
+      `, { count: 'exact' })
     
     if (type && type !== 'all') {
       query = query.eq('type', type)
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
       .order('published_at', { ascending: false })
       .range(from, to)
     
     if (error) {
       console.error('Error fetching news:', error)
-      return []
+      return { data: [], count: 0 }
     }
 
-    return (data || []).map((n: any) => ({
-      id: n.id,
-      title: decodeHtmlEntities(n.title),
-      content: n.content,
-      url: n.url,
-      source: n.source,
-      published_at: n.published_at,
-      llm_summary: decodeHtmlEntities(n.llm_summary),
-      type: n.type || 'news',
-      stockId: (n.stocks as any)?.id ? Number((n.stocks as any).id) : null,
-      stockName: (n.stocks as any)?.name,
-      stockCode: (n.stocks as any)?.code
-    }))
+    return {
+      data: (data || []).map((n: any) => ({
+        id: n.id,
+        title: decodeHtmlEntities(n.title),
+        content: n.content,
+        url: n.url,
+        source: n.source,
+        published_at: n.published_at,
+        llm_summary: decodeHtmlEntities(n.llm_summary),
+        type: n.type || 'news',
+        stockId: (n.stocks as any)?.id ? Number((n.stocks as any).id) : null,
+        stockName: (n.stocks as any)?.name,
+        stockCode: (n.stocks as any)?.code
+      })),
+      count: count || 0
+    }
   }
+
 
   const fetchStockById = async (id: number) => {
     const { data, error } = await client

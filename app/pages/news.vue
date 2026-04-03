@@ -9,7 +9,12 @@
           <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
           <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">실시간 피드</span>
         </div>
-        <h2 class="text-3xl font-black text-slate-100 tracking-tight mb-4">뉴스 & 공시</h2>
+        <div class="flex items-baseline justify-between mb-4">
+          <h2 class="text-3xl font-black text-slate-100 tracking-tight">뉴스 & 공시</h2>
+          <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            전체 <span class="text-brand-primary">{{ totalCount.toLocaleString() }}</span>건
+          </p>
+        </div>
 
         <!-- 범례 필터 -->
         <div class="flex flex-wrap gap-2">
@@ -122,6 +127,7 @@ const { fetchNews, toggleHeart, hearts, fetchWishlist } = useStock()
 const newsItems = ref<any[]>([])
 const isLoading = ref(true)
 const selectedType = ref('all')
+const totalCount = ref(0)
 
 const filterTypes = [
   { label: '전체', value: 'all', icon: null, activeClass: 'bg-slate-100 border-slate-100 text-slate-900' },
@@ -173,12 +179,14 @@ const loadNews = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const data = await fetchNews(pageSize, page.value, selectedType.value)
+    const response = await fetchNews(pageSize, page.value, selectedType.value)
+    const data = response.data || []
+    totalCount.value = response.count || 0
     
     if (isAppend) {
       newsItems.value = [...newsItems.value, ...data]
     } else {
-      newsItems.value = data || []
+      newsItems.value = data
     }
 
     // 더 가져올 데이터가 있는지 확인
