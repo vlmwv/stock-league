@@ -68,6 +68,17 @@ Deno.serve(async (req) => {
   try {
     console.log('Periodic IR collection started...')
 
+    // 0. 수동 수집 개수 요청 확인
+    let manualTargetCount: number | null = null;
+    try {
+      if (req.method === 'POST') {
+        const body = await req.json();
+        manualTargetCount = body.targetCount || null;
+      }
+    } catch (e) {
+      console.log('No valid JSON body found or not a POST request.');
+    }
+
     // 로그 시작 기록
     const { data: logEntry } = await supabase
       .from('batch_execution_logs')
@@ -94,7 +105,8 @@ Deno.serve(async (req) => {
     // 시간대에 따른 수집 종목 수 결정
     // 주간 활성기(08:00 ~ 20:00 KST): 6개 종목
     // 야간/새벽(20:00 ~ 익일 08:00 KST): 1개 종목
-    const targetCount = (kstHour >= 8 && kstHour < 20) ? 6 : 1;
+    // 단, 요청 본문에 targetCount가 명시된 경우 이를 우선적으로 사용합니다.
+    const targetCount = manualTargetCount || ((kstHour >= 8 && kstHour < 20) ? 6 : 1);
     
     console.log(`[KST ${kstHour}:00] Target IR collection count set to: ${targetCount}`);
 
