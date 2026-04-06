@@ -97,8 +97,13 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     throw new Error(`Gemini API failed (${response?.status ?? 'N/A'}): ${lastErrorBody}`)
   }
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
+  let text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
   
+  // 마크다운 코드 블록 제거 로직 추가 (```json ... ``` 또는 ``` ... ```)
+  if (text.startsWith('```')) {
+    text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  }
+
   try {
     const parsed = JSON.parse(text)
     let finalTitle = parsed.title || ""

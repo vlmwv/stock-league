@@ -69,8 +69,12 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}`
     throw new Error(`Gemini API failed (${response?.status ?? 'N/A'}): ${lastErrorBody}`)
   }
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
+  let text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
   
+  if (text.startsWith('```')) {
+    text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  }
+
   try {
     const parsed = JSON.parse(text)
     let finalTitle = parsed.title || ''
