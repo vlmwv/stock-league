@@ -46,12 +46,18 @@ export const useStock = () => {
     return { hour: parseInt(hour), minute: parseInt(minute), timeVal: parseInt(hour) * 100 + parseInt(minute) }
   }
 
-  // 실시간 상태 업데이트를 위한 시간 Ref (매분 업데이트)
+  // 실시간 상태 업데이트를 위한 시간 Ref (30초마다 갱신)
   const kstTime = useState('kst_time', () => getKstHourMinute())
   if (process.client) {
     onMounted(() => {
       const timer = setInterval(() => {
+        const prev = kstTime.value.timeVal
         kstTime.value = getKstHourMinute()
+        // 21:20이 되는 순간 종목 데이터를 자동 새로고침 (내일 종목 로드)
+        if (prev < 2120 && kstTime.value.timeVal >= 2120) {
+          console.log('[useStock] 21:20 경과: 내일 종목 자동 새로고침')
+          refresh()
+        }
       }, 30000) // 30초마다 갱신
       onUnmounted(() => clearInterval(timer))
     })
@@ -285,10 +291,13 @@ export const useStock = () => {
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
   
-  // 4. League Status (Closed after 08:00 KST)
+  // 4. League Status (Closed after 08:00 KST, Open after 21:20 KST)
   const isLeagueOpen = computed(() => {
     const { hour, timeVal: currentTimeVal } = kstTime.value
     const today = getKstDate()
+
+    // 현재 시간이 참여 가능 시간대인지 판단 (21:20 ~ 다음날 08:00)
+    const isInOpenWindow = currentTimeVal >= 2120 || hour < 8
 
     if (stocks.value && (stocks.value as any).length > 0) {
       const firstStockDate = (stocks.value as any)[0].game_date
@@ -296,10 +305,9 @@ export const useStock = () => {
       // 과거 데이터는 마감
       if (firstStockDate < today) return false
       
-      // 미래 데이터(내일 등)
+      // 미래 데이터(내일 등): 21:20~08:00 참여 가능
       if (firstStockDate > today) {
-        // 이미 21:20이 지났거나, 내일 당일 08:00 전이면 오픈
-        return currentTimeVal >= 2120 || hour < 8
+        return isInOpenWindow
       }
       
       // 오늘 데이터인 경우 08:00 전까지만 오픈
@@ -308,7 +316,8 @@ export const useStock = () => {
       }
     }
 
-    return hour < 8
+    // stocks 데이터가 없더라도 참여 가능 시간대이면 오픈으로 표시
+    return isInOpenWindow
   })
 
   // 5. Result Status (Published after 20:20 KST)
