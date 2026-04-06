@@ -85,9 +85,21 @@ Deno.serve(async (req) => {
     const { data: stocks, error: stockError } = await supabase.from('stocks').select('id, code, name')
     if (stockError) throw stockError
     if (!stocks || stocks.length === 0) throw new Error('No stocks found')
-    let processedCount = 0
-    // 무작위 3개 종목 선택 (시간당 전체를 다 돌리는 것이 부담될 수 있어) 필요 시 전체로 변경 가능
-    const targetStocks = stocks.sort(() => 0.5 - Math.random()).slice(0, 3)
+    let processedCount = 0;
+    
+    // 현재 KST(한국 시간) 기준 시간 구하기 (Edge Function은 기본 UTC 환경)
+    const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+    const kstHour = kstNow.getUTCHours();
+    
+    // 시간대에 따른 수집 종목 수 결정
+    // 주간 활성기(08:00 ~ 20:00 KST): 6개 종목
+    // 야간/새벽(20:00 ~ 익일 08:00 KST): 1개 종목
+    const targetCount = (kstHour >= 8 && kstHour < 20) ? 6 : 1;
+    
+    console.log(`[KST ${kstHour}:00] Target IR collection count set to: ${targetCount}`);
+
+    // 무작위 종목 선택
+    const targetStocks = stocks.sort(() => 0.5 - Math.random()).slice(0, targetCount);
     for (const stock of targetStocks) {
       const irUrl = `https://m.stock.naver.com/api/stock/${stock.code}/irInfo?pageSize=3&page=1`
       const irRes = await fetch(irUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })

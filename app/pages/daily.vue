@@ -58,6 +58,10 @@
                   <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
                   추천 {{ stock.ai_recommendation_count }}회
                 </span>
+                <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20">
+                  <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
+                  AI 점수 {{ stock.ai_score }}점
+                </span>
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
             </div>

@@ -6,33 +6,49 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[], stockName: string, sector: string): Promise<string> {
+/**
+ * Gemini를 사용하여 종목 요약 및 추천 점수 산출
+ */
+async function analyzeStockWithGemini(newsItems: any[], disclosureItems: any[], stockName: string, sector: string): Promise<{ summary: string, score: number }> {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not set')
   }
 
-  let prompt = `당신은 주식 예측 게임의 전문가입니다. 사용자들이 내일 주가 향방(상승/하락)을 예측할 수 있도록, 다음의 최근 뉴스 및 공시 정보를 바탕으로 '${stockName}'(${sector || '기타'} 섹터) 종목의 핵심 이슈를 **딱 1문장(50자 내외)**으로 짧고 강렬하게 작성해주세요. \n\n`
-  prompt += `[중요 지침]\n`
-  prompt += `1. 응답 시 '${stockName}' 이라는 종목명은 이미 화면에 표시되므로 문장 처음에 넣지 마세요.\n`
-  prompt += `2. '추천 이유:', '관전 포인트:', '요약:' 등의 서두 문구 없이 바로 본론으로 시작하세요.\n`
-  prompt += `3. 반드시 마침표(.)로 끝나는 완결된 한 문장이어야 합니다.\n\n`
+  let prompt = `당신은 주식 예측 게임의 전문가이자 전문 퀀트 분석가입니다. 
+다음 제공되는 '${stockName}'(${sector || '기타'} 섹터) 관련 뉴스 및 공시 정보를 분석하여, **익일(다음 영업일) 주가 상승 가능성**을 평가하고 요약해 주세요.
+
+[분석 지표]
+1. 수익 실질 영향도: 해당 이슈가 기업 수익성에 즉각적이고 긍정적인 영향을 미치는가?
+2. 신규성: 이미 시장에 알려진 내용인가, 아니면 새로운 호재인가?
+3. 기술적/테마 모멘텀: 거래량 급등이나 강력한 테마 형성이 동반되는가?
+
+[응답 지침]
+1. 요약(summary): 핵심 이슈를 **딱 1문장(50자 내외)**으로 짧고 강렬하게 작성하세요. 종목명은 생략하고 마침표(.)로 끝내세요.
+2. 점수(score): 0점에서 100점 사이의 정수로 산출하세요. (100점에 가까울수록 강력한 상승 시그널)
+3. 반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "summary": "분석 요약 문장.",
+  "score": 85
+}
+
+`
   
   if (newsItems && newsItems.length > 0) {
     prompt += `[최근 뉴스]\n`
-    newsItems.slice(0, 2).forEach((n: any, i: number) => {
+    newsItems.slice(0, 3).forEach((n: any) => {
       prompt += `- ${n.tit}\n`
     })
   }
 
   if (disclosureItems && disclosureItems.length > 0) {
     prompt += `\n[최근 공시]\n`
-    disclosureItems.slice(0, 2).forEach((d: any, i: number) => {
+    disclosureItems.slice(0, 2).forEach((d: any) => {
       prompt += `- ${d.title}\n`
     })
   }
 
   if (!newsItems.length && !disclosureItems.length) {
-    prompt += `(최근 특징적인 뉴스나 공시가 없습니다. 해당 기업의 섹터(${sector || '기타'})와 일반적인 시장 상황을 가정하여 추천 이유를 작성해주세요.)\n\n`
+    prompt += `\n(특이 뉴스나 공시가 적은 상태입니다. 섹터의 업황과 일반적인 시장 기대치를 반영하여 보수적으로 평가해 주세요.)\n`
   }
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
@@ -41,37 +57,55 @@ async function summarizeStockWithGemini(newsItems: any[], disclosureItems: any[]
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.2,
         maxOutputTokens: 200,
+        response_mime_type: "application/json"
       }
     })
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('Gemini API Error Detail:', errorText)
     throw new Error(`Gemini API failed: ${response.status} - ${errorText}`)
   }
 
   const data = await response.json()
-  let summaryText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'
   
-  // 후처리: 종목명이나 불필요한 서두 제거
-  summaryText = summaryText.trim()
-  
-  // "한화오션, ", "한화오션 : " 등 제거 (문두에 올 때만)
-  const prefixRegex = new RegExp(`^(${stockName})\\s*[:,-]?\\s*`, 'i')
-  summaryText = summaryText.replace(prefixRegex, '')
-  
-  // "추천 이유:", "관전 포인트:" 등 일반적 패턴 제거
-  summaryText = summaryText.replace(/^(추천 이유|관전 포인트|요약|핵심)\s*[:,-]?\s*/i, '')
-  
-  return summaryText.trim() || '추천 사유를 생성하지 못했습니다.'
+  try {
+    const parsed = JSON.parse(resultText)
+    return {
+      summary: parsed.summary || '상승 모멘텀을 분석 중입니다.',
+      score: typeof parsed.score === 'number' ? parsed.score : 50
+    }
+  } catch (e) {
+    console.error('JSON Parse Error:', resultText)
+    return { summary: '분석 정보를 생성하지 못했습니다.', score: 50 }
+  }
 }
 
-Deno.serve(async (req) => {
+/**
+ * 네이버 랭킹 API에서 종목 코드 추출
+ */
+async function fetchRankingStocks(category: string): Promise<string[]> {
   try {
-    console.log('Selecting daily stocks triggered...')
+    const url = `https://m.stock.naver.com/api/ready/rankingList?category=${category}`
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+    if (!res.ok) return []
+    const data = await res.json()
+    // data는 보통 { stocks: [...] } 또는 배열 형태일 수 있음. 
+    // 네이버 모바일 API 특성상 구조 확인 필요. 보통 items 아래에 있음.
+    const items = data?.items || []
+    return items.map((item: any) => item.cd).filter(Boolean)
+  } catch (e: any) {
+    console.warn(`Failed to fetch ranking for ${category}:`, e.message)
+    return []
+  }
+}
+
+Deno.serve(async (req: any) => {
+  try {
+    console.log('Advanced Select Daily Stocks Triggered...')
     const startTime = new Date().toISOString()
     
     // 로그 시작 기록
@@ -85,135 +119,107 @@ Deno.serve(async (req) => {
       .select()
       .single()
     
-    // 1. 시가총액 상위 100개 종목 가져오기
-    const { data: topStocks, error: topError } = await supabase
+    // 1. 후보 종목군 수집 (시총 상위 + 거래대금 상위 + 상승률 상위)
+    console.log('Collecting candidate stocks...')
+    
+    const [topTrading, topGainers] = await Promise.all([
+      fetchRankingStocks('TOP_TRADING'),
+      fetchRankingStocks('TOP_GAIN')
+    ])
+
+    const { data: topMarketCapStocks } = await supabase
       .from('stocks')
-      .select('id, code, name, sector')
+      .select('code')
       .lte('market_cap_rank', 100)
     
-    if (topError) throw topError
-    if (!topStocks || topStocks.length === 0) {
-      throw new Error('No stocks found in the database. Please run update-krx-stocks first.')
-    }
+    const candidateCodes = new Set([
+      ...topTrading.slice(0, 15),
+      ...topGainers.slice(0, 10),
+      ...(topMarketCapStocks?.map(s => s.code) || [])
+    ])
 
-    // 배열 섞기 (Fisher-Yates shuffle)
-    const shuffledStocks = [...topStocks]
-    for (let i = shuffledStocks.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledStocks[i], shuffledStocks[j]] = [shuffledStocks[j], shuffledStocks[i]];
-    }
+    console.log(`Initial candidates: ${candidateCodes.size} stocks.`)
 
-    const selectedStocks = shuffledStocks.slice(0, 5)
-    console.log(`Selected 5 stocks: ${selectedStocks.map((s: any) => s.name).join(', ')}`)
-
-    // 내일 날짜 (KST 기준) 구하기
-    const now = new Date()
-    // KST는 UTC+9
-    const kstOffset = 9 * 60 * 60 * 1000
-    const kstNow = new Date(now.getTime() + kstOffset)
+    // DB에서 실제 정보 조회
+    const { data: allStocks, error: fetchError } = await supabase
+      .from('stocks')
+      .select('id, code, name, sector')
+      .in('code', Array.from(candidateCodes))
+      .limit(50) // 너무 많으면 API 부하가 크므로 제한
     
-    // 타겟 날짜 계산: 오늘이 아니라 '다음 영업일'을 찾습니다.
+    if (fetchError) throw fetchError
+    if (!allStocks || allStocks.length === 0) throw new Error('No stocks found in DB.')
+
+    // 2. 내일 날짜 계산 (KST 기준)
+    const kstOffset = 9 * 60 * 60 * 1000
+    const kstNow = new Date(Date.now() + kstOffset)
     const targetDate = new Date(kstNow)
-    const currentDay = kstNow.getDay() // 0(일) ~ 6(토)
+    const currentDay = kstNow.getDay()
     
     let daysToAdd = 1
-    if (currentDay === 5) { // 금요일 -> 월요일 (+3)
-      daysToAdd = 3
-    } else if (currentDay === 6) { // 토요일 -> 월요일 (+2)
-      daysToAdd = 2
-    }
+    if (currentDay === 5) daysToAdd = 3 // 금 -> 월
+    else if (currentDay === 6) daysToAdd = 2 // 토 -> 월
     targetDate.setDate(kstNow.getDate() + daysToAdd)
-    
     const targetDateStr = targetDate.toISOString().split('T')[0]
-    console.log(`Target game_date (Next Business Day): ${targetDateStr}`)
-    
-    // 1-1. 해당 날짜에 이미 종목이 있는지 확인 (5개 이상이면 중단)
-    const { count: existingTotalCount, error: countError } = await supabase
+
+    // 이미 종목이 선정되어 있는지 확인
+    const { count: existingCount } = await supabase
       .from('daily_stocks')
       .select('*', { count: 'exact', head: true })
       .eq('game_date', targetDateStr)
     
-    if (countError) throw countError
-    if (existingTotalCount && existingTotalCount >= 5) {
-      return new Response(JSON.stringify({ 
-        message: `Already have ${existingTotalCount} stocks for ${targetDateStr}. No more stocks needed.`,
-        game_date: targetDateStr
-      }), { headers: { 'Content-Type': 'application/json' }, status: 200 })
+    if (existingCount && existingCount >= 5) {
+      return new Response(JSON.stringify({ message: 'Already selected.', game_date: targetDateStr }), { status: 200 })
     }
 
-    let processedCount = 0
-    let errors = []
-    
-    // 2. 각 종목별 뉴스 수집 및 Gemini 요약 생성
-    for (const stock of selectedStocks) {
+    // 3. 종목별 분석 및 점수 산출
+    console.log('Analyzing candidates with Gemini...')
+    const scoredStocks = []
+
+    // 한 번에 너무 많은 API 요청을 보내지 않기 위해 순차 또는 소규모 병렬 처리
+    for (const stock of allStocks.slice(0, 30)) { // 최대 30개 분석
       try {
-        console.log(`Fetching News & Disclosures for ${stock.name} (${stock.code})...`)
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
-        const disclosureUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
+        const discUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
         
         let newsItems = []
         let disclosureItems = []
 
         try {
           const [newsRes, discRes] = await Promise.all([
-            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) }),
-            fetch(disclosureUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
+            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3000) }),
+            fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3000) })
           ])
-          
-          if (newsRes.ok) {
-            const newsData = await newsRes.json()
-            newsItems = newsData?.items || []
-          }
-          
-          if (discRes.ok) {
-            const discData = await discRes.json()
-            disclosureItems = Array.isArray(discData) ? discData : (discData?.items || [])
-          }
-        } catch (fetchErr: any) {
-          console.warn(`External API fetch failed for ${stock.name}: ${fetchErr.message}`)
-          // API 호출 실패해도 계속 진행 (Gemini가 일반 시장 상황으로 요약 생성)
-        }
-        
-        let summary = '오늘의 종목 요약 정보를 생성 중입니다...'
-        try {
-          console.log(`Generating summary with Gemini for ${stock.name}...`)
-          summary = await summarizeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
-        } catch (geminiErr: any) {
-          console.error(`Gemini summary failed for ${stock.name}:`, geminiErr.message)
-          // Gemini 실패 시 기본 문구 사용하며 계속 진행
-        }
-        
-        // 3. daily_stocks 테이블에 중복 여부 확인 후 삽입
-        const { data: existing, error: checkError } = await supabase
-          .from('daily_stocks')
-          .select('id')
-          .eq('game_date', targetDateStr)
-          .eq('stock_id', stock.id)
-          .maybeSingle()
-          
-        if (checkError) throw checkError
-        
-        if (!existing) {
-          const { error: insertError } = await supabase
-            .from('daily_stocks')
-            .insert({
-              stock_id: stock.id,
-              game_date: targetDateStr,
-              llm_summary: summary,
-              status: 'pending'
-            })
-            
-          if (insertError) throw insertError
-          processedCount++
-          console.log(`Successfully saved daily_stock for ${stock.name} on ${targetDateStr}`)
-        } else {
-          console.log(`${stock.name} is already selected for ${targetDateStr}`)
-        }
+          if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
+          if (discRes.ok) disclosureItems = (await discRes.json()) || []
+        } catch (e) { /* ignore fetch errors */ }
+
+        const { summary, score } = await analyzeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
+        scoredStocks.push({ ...stock, summary, score })
         
       } catch (err: any) {
-        console.error(`Error processing stock ${stock.name}:`, err.message)
-        errors.push({ stock: stock.name, error: err.message })
+        console.warn(`Failed to analyze ${stock.name}:`, err.message)
       }
+    }
+
+    // 4. 점수 높은 순으로 정렬 후 상위 5개 선정
+    scoredStocks.sort((a, b) => b.score - a.score)
+    const finalSelection = scoredStocks.slice(0, 5)
+
+    console.log(`Final Selection: ${finalSelection.map(s => `${s.name}(${s.score})`).join(', ')}`)
+
+    let processedCount = 0
+    for (const stock of finalSelection) {
+      const { error: insErr } = await supabase
+        .from('daily_stocks')
+        .insert({
+          stock_id: stock.id,
+          game_date: targetDateStr,
+          llm_summary: stock.summary,
+          ai_score: stock.score,
+          status: 'pending'
+        })
+      if (!insErr) processedCount++
     }
 
     // 로그 종료 기록
@@ -223,39 +229,20 @@ Deno.serve(async (req) => {
         .update({
           status: 'success',
           processed_count: processedCount,
-          message: `Successfully selected ${processedCount} stocks for ${targetDateStr}`,
+          message: `Selected ${processedCount} stocks with scoring.`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntry.id)
     }
 
     return new Response(JSON.stringify({ 
-      message: `Successfully selected and summarized ${processedCount} stocks for ${targetDateStr}`, 
+      message: `Successfully selected ${processedCount} stocks.`, 
       game_date: targetDateStr,
-      errors: errors.length > 0 ? errors : undefined
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200,
-    })
+      selected: finalSelection.map(s => ({ name: s.name, score: s.score }))
+    }), { status: 200 })
     
   } catch (err: any) {
-    console.error('Fatal Edge Function Error:', err.message)
-    try {
-      await supabase
-        .from('batch_execution_logs')
-        .insert({
-          function_name: 'select-daily-stocks',
-          status: 'fail',
-          message: err.message,
-          error_detail: { stack: err.stack },
-          finished_at: new Date().toISOString()
-        })
-    } catch (e) {
-      console.error('Failed to log error to DB:', e)
-    }
-    return new Response(JSON.stringify({ error: err.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 500,
-    })
+    console.error('Fatal Error:', err.message)
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 })

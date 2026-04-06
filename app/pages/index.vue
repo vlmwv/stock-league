@@ -136,6 +136,10 @@
                           <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
                           {{ stock.ai_recommendation_count }}
                         </span>
+                        <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[8px] font-black text-emerald-400/80 bg-emerald-400/10 px-1 rounded-sm">
+                          <UIcon name="i-heroicons-chart-bar-20-solid" class="w-2.5 h-2.5" />
+                          {{ stock.ai_score }}점
+                        </span>
                       </div>
                     </div>
                   </div>

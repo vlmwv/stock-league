@@ -161,11 +161,22 @@ Deno.serve(async (req) => {
 
     let processedCount = 0
     
+    // 현재 KST(한국 시간) 기준 시간 구하기 (Edge Function은 기본 UTC 환경)
+    const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+    const kstHour = kstNow.getUTCHours();
+    
+    // 시간대에 따른 수집 종목 수 결정
+    // 주간 활성기(08:00 ~ 20:00 KST): 6개 종목
+    // 야간/새벽(20:00 ~ 익일 08:00 KST): 1개 종목
+    const targetCount = (kstHour >= 8 && kstHour < 20) ? 6 : 1;
+    
+    console.log(`[KST ${kstHour}:00] Target collection count set to: ${targetCount}`);
+
     // 2. 종목 선정
-    // 특정 종목 요청 시 해당 종목만 처리, 아닐 시 무작위 3개 처리
+    // 특정 종목 요청 시 해당 종목만 처리, 아닐 시 무작위 추출
     const targetStocks = requestedStockCode 
       ? stocks 
-      : stocks.sort(() => 0.5 - Math.random()).slice(0, 3);
+      : stocks.sort(() => 0.5 - Math.random()).slice(0, targetCount);
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`

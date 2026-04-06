@@ -13,6 +13,7 @@ interface Stock {
   wishlist_count?: number
   win_count?: number
   ai_recommendation_count?: number
+  ai_score?: number
 }
 
 export const useStock = () => {
@@ -101,6 +102,7 @@ export const useStock = () => {
         id,
         game_date,
         llm_summary,
+        ai_score,
         stocks (
           id,
           code,
@@ -138,7 +140,8 @@ export const useStock = () => {
               last_price,
               change_amount,
               change_rate
-            )
+            ),
+            ai_score
           `)
           .eq('game_date', latestDate)
         
@@ -164,13 +167,50 @@ export const useStock = () => {
       change_amount: ds.stocks.change_amount || 0,
       change_rate: ds.stocks.change_rate || 0,
       ai_recommendation_count: ds.stocks.ai_recommendation_count || 0,
+      ai_score: ds.ai_score || 0,
       summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
   })
 
-  // 2. Fallback to mock data if no data exists in DB
+  // 2. AI 추천 종목 (AI 점수 기반 고도화)
   const { data: recommended, refresh: refreshRecommended } = useAsyncData('recommendedStocks', async () => {
-    // Fetch latest 10 news items with stock details
+    const today = getKstDate()
+
+    // 1) 당일 리그 종목 중 AI 점수가 높은 순으로 가져옴
+    const { data: dailyData, error: dailyError } = await client
+      .from('daily_stocks')
+      .select(`
+        ai_score,
+        llm_summary,
+        stocks (
+          id,
+          code,
+          name,
+          last_price,
+          change_amount,
+          change_rate,
+          ai_recommendation_count
+        )
+      `)
+      .eq('game_date', today as any)
+      .order('ai_score', { ascending: false })
+      .limit(5)
+
+    if (!dailyError && dailyData && dailyData.length > 0) {
+      return dailyData.map((d: any) => ({
+        id: Number(d.stocks.id),
+        name: d.stocks.name,
+        code: d.stocks.code,
+        last_price: d.stocks.last_price || 0,
+        change_amount: d.stocks.change_amount || 0,
+        change_rate: d.stocks.change_rate || 0,
+        ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
+        ai_score: d.ai_score || 0,
+        summary: decodeHtmlEntities(d.llm_summary)
+      }))
+    }
+
+    // 2) Fallback: 당일 데이터가 없을 경우 최신 뉴스 기반 요약 노출
     const { data, error } = await client
       .from('news')
       .select(`
@@ -197,6 +237,7 @@ export const useStock = () => {
       change_amount: n.stocks.change_amount || 0,
       change_rate: n.stocks.change_rate || 0,
       ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
+      ai_score: 0,
       summary: decodeHtmlEntities(n.llm_summary)
     }))
   })
@@ -229,11 +270,11 @@ export const useStock = () => {
     }
     const today = getKstDate()
     return [
-      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, ai_recommendation_count: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' }
+      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
+      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' }
     ]
   })
 
