@@ -214,6 +214,7 @@ export const useStock = () => {
     const { data, error } = await client
       .from('news')
       .select(`
+        ai_score,
         llm_summary,
         stocks (
           id,
@@ -237,7 +238,7 @@ export const useStock = () => {
       change_amount: n.stocks.change_amount || 0,
       change_rate: n.stocks.change_rate || 0,
       ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
-      ai_score: 0,
+      ai_score: n.ai_score || 0,
       summary: decodeHtmlEntities(n.llm_summary)
     }))
   })
@@ -875,6 +876,7 @@ export const useStock = () => {
         source,
         published_at,
         llm_summary,
+        ai_score,
         type,
         stocks (
           id,

@@ -6,22 +6,43 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-function buildFallbackSummary(items: any[], stockName: string): { title: string, summary: string } {
+function buildFallbackSummary(items: any[], stockName: string): { title: string, summary: string, score: number } {
   const first = items[0] || {}
   const rawTitle = String(first.title || first.tit || '').trim()
   const baseTitle = rawTitle || `${stockName} IR 업데이트`
   const title = `${baseTitle.substring(0, 22)}${baseTitle.length > 22 ? '...' : ''} (요약)`
   return {
     title,
-    summary: rawTitle ? `${rawTitle} 관련 IR 내용이 확인되었습니다.` : `${stockName} IR 업데이트가 있습니다.`
+    summary: rawTitle ? `${rawTitle} 관련 IR 내용이 확인되었습니다.` : `${stockName} IR 업데이트가 있습니다.`,
+    score: 50
   }
 }
 
-async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string }> {
+async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string, score: number }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
   const primaryItem = items[0]
   const primaryTitle = primaryItem.title || primaryItem.tit || ''
-  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식의 최신 IR(Investor Relations) 목록입니다.\n가장 중요한 핵심 내용 1가지를 골라 1~2문장으로 아주 짧고 강렬하게 요약해 주세요.\n또한 이 내용을 잘 나타내는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.\n\n[제약 조건]\n- "${stockName} IR" 같은 단순 제목은 사용하지 마세요.\n- 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 제목을 만드세요.\n- 제목은 25자 이내로 작성해 주세요.\n\n응답 형식:\n제목: {실제 헤드라인} (요약)\n요약: {핵심 요약 내용}\n\n[목록]\n${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}`
+  const prompt = `당신은 전문 경제 기자이자 주식 분석가입니다. 다음은 '${stockName}' 주식의 최신 IR(Investor Relations) 목록입니다.
+
+[분석 및 요약 지침]
+1. 최신 IR 내용 중 주가에 가장 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
+2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(25자 이내)을 만드세요. 제목 끝에는 반드시 '(요약)'을 붙이세요.
+3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
+4. 해당 정보가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요. (50점은 중립, 100점에 가까울수록 강력한 호재)
+
+[응답 형식]
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "title": "{생성한 제목} (요약)",
+  "summary": "{핵심 요약 내용}",
+  "score": {0~100 사이의 숫자}
+}
+
+[제약 조건]
+- "${stockName} IR" 같은 단순 제목 금지. 구체적인 수치나 키워드 중심의 임팩트 있는 제목 생성.
+
+[목록]
+${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}`
 
   const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash-latest']
   let response: Response | null = null
@@ -32,7 +53,11 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 250 }
+        generationConfig: { 
+          temperature: 0.3, 
+          maxOutputTokens: 300,
+          response_mime_type: "application/json"
+        }
       })
     })
     if (response.ok) break
@@ -44,21 +69,30 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
     throw new Error(`Gemini API failed (${response?.status ?? 'N/A'}): ${lastErrorBody}`)
   }
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
-  let finalTitle = ''
-  let finalSummary = ''
-  if (text.includes('제목:')) {
-    finalTitle = text.split('제목:')[1].split('\n')[0].trim()
-    if (text.includes('요약:')) {
-      finalSummary = text.split('요약:')[1].trim()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
+  
+  try {
+    const parsed = JSON.parse(text)
+    let finalTitle = parsed.title || ''
+    let finalSummary = parsed.summary || ''
+    let finalScore = typeof parsed.score === 'number' ? parsed.score : 50
+
+    if (!finalTitle || finalTitle.includes('IR')) {
+      finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
     }
-  } else {
-    finalSummary = text
+
+    return {
+      title: finalTitle,
+      summary: finalSummary || '요약을 생성할 수 없습니다.',
+      score: finalScore
+    }
+  } catch (e) {
+    return {
+      title: `${primaryTitle.substring(0, 20)}... (요약)`,
+      summary: 'IR 정보를 분석 중입니다.',
+      score: 50
+    }
   }
-  if (!finalTitle || finalTitle.includes('IR')) {
-    finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
-  }
-  return { title: finalTitle, summary: finalSummary || '요약을 생성할 수 없습니다.' }
 }
 
 Deno.serve(async (req) => {
@@ -120,14 +154,17 @@ Deno.serve(async (req) => {
       if (!irItems || irItems.length === 0) continue
       let title = ''
       let summary = ''
+      let score = 50
       try {
         const summarized = await summarizeWithGemini(irItems, stock.name)
         title = summarized.title
         summary = summarized.summary
+        score = summarized.score
       } catch (e) {
         const fallback = buildFallbackSummary(irItems, stock.name)
         title = fallback.title
         summary = fallback.summary
+        score = fallback.score
         console.warn(`IR summary fallback for ${stock.code}:`, e)
       }
       const { error: insertError } = await supabase.from('ir_info').upsert({
@@ -139,6 +176,19 @@ Deno.serve(async (req) => {
         source: '네이버 IR',
         llm_summary: summary
       }, { onConflict: 'stock_code, url' })
+
+      // news 테이블에도 함께 저장 (메인 페이지 '최근 주요 이슈' 연동용)
+      await supabase.from('news').upsert({
+        stock_id: stock.id,
+        title: title,
+        llm_summary: summary,
+        ai_score: score,
+        url: `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`,
+        type: 'ir',
+        source: '네이버 IR (Gemini 요약)',
+        published_at: new Date().toISOString()
+      }, { onConflict: 'stock_id, title' })
+
       if (!insertError) processedCount++
     }
 

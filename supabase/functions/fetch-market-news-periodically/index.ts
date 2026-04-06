@@ -6,7 +6,7 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'ir'): { title: string, summary: string } {
+function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'ir'): { title: string, summary: string, score: number } {
   const first = items[0] || {}
   const second = items[1] || {}
   const rawTitle1 = String(first.title || first.tit || '').trim()
@@ -18,42 +18,51 @@ function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'i
   if (rawTitle1 && rawTitle2) {
     return {
       title,
-      summary: `${rawTitle1} 이슈가 핵심이며, 추가로 ${rawTitle2} 관련 흐름도 함께 확인이 필요합니다.`
+      summary: `${rawTitle1} 이슈가 핵심이며, 추가로 ${rawTitle2} 관련 흐름도 함께 확인이 필요합니다.`,
+      score: 50
     }
   }
 
   if (rawTitle1) {
     return {
       title,
-      summary: `${rawTitle1} 관련 이슈가 확인되었습니다. 세부 공시/원문 내용을 기준으로 단기 변동성 확대 가능성을 점검하세요.`
+      summary: `${rawTitle1} 관련 이슈가 확인되었습니다. 세부 공시/원문 내용을 기준으로 단기 변동성 확대 가능성을 점검하세요.`,
+      score: 50
     }
   }
 
   return {
     title,
-    summary: `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트가 확인되었습니다.`
+    summary: `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트가 확인되었습니다.`,
+    score: 50
   }
 }
 
-async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string }> {
+async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string, score: number }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
 
   // 첫 번째 항목(가장 임팩트 있는 항목)을 주 대상으로 정보 요약
   const primaryItem = items[0]
   const primaryTitle = primaryItem.title || primaryItem.tit || ""
 
-  const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
-가장 중요한 핵심 내용 1가지를 골라 1~2문장으로 아주 짧고 강렬하게 요약해 주세요. 
-또한 이 내용을 잘 나타내는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요. 이때 제목 끝에 '(요약)'을 붙여주세요.
+  const prompt = `당신은 전문 경제 기자이자 주식 분석가입니다. 다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
 
-[중요 제약 조건]
-- "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같이 단순하고 반복적인 제목은 절대 사용하지 마세요.
-- 독자의 시선을 끌 수 있도록 구체적인 수치나 핵심 키워드를 포함한 임팩트 있는 실제 뉴스 제목을 만드세요.
-- 제목은 25자 이내로 작성해 주세요.
+[분석 및 요약 지침]
+1. 최신 이슈 중 주가에 가장 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
+2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(25자 이내)을 만드세요. 제목 끝에는 반드시 '(요약)'을 붙이세요.
+3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
+4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요. (50점은 중립, 100점에 가까울수록 강력한 호재)
 
-응답은 반드시 아래 형식으로만 작성해 주세요:
-제목: {실제 뉴스 제목 같은 헤드라인} (요약)
-요약: {핵심 요약 내용}
+[응답 형식]
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "title": "{생성한 제목} (요약)",
+  "summary": "{핵심 요약 내용}",
+  "score": {0~100 사이의 숫자}
+}
+
+[중요 제약]
+- 제목에 "${stockName} 주요 이슈" 같은 단순 기계적 표현 금지. 키워드 중심의 임팩트 있는 제목 생성.
 
 [목록]
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
@@ -72,7 +81,8 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 250
+          maxOutputTokens: 300,
+          response_mime_type: "application/json"
         }
       })
     })
@@ -87,28 +97,31 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     throw new Error(`Gemini API failed (${response?.status ?? 'N/A'}): ${lastErrorBody}`)
   }
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ''
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '{}'
   
-  let finalTitle = ""
-  let finalSummary = ""
-  
-  if (text.includes('제목:')) {
-    finalTitle = text.split('제목:')[1].split('\n')[0].trim()
-    if (text.includes('요약:')) {
-      finalSummary = text.split('요약:')[1].trim()
+  try {
+    const parsed = JSON.parse(text)
+    let finalTitle = parsed.title || ""
+    let finalSummary = parsed.summary || ""
+    let finalScore = typeof parsed.score === 'number' ? parsed.score : 50
+
+    // 만약 제목이 비어있거나 너무 단순하면 원문 제목 활용
+    if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
+      finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
     }
-  } else {
-    finalSummary = text
-  }
 
-  // 만약 제목이 비어있으면 원문 제목 활용
-  if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
-    finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
-  }
-
-  return {
-    title: finalTitle,
-    summary: finalSummary || '요약을 생성할 수 없습니다.'
+    return {
+      title: finalTitle,
+      summary: finalSummary || '요약을 생성할 수 없습니다.',
+      score: finalScore
+    }
+  } catch (e) {
+    console.error('JSON Parse Error:', text)
+    return {
+      title: `${primaryTitle.substring(0, 20)}... (요약)`,
+      summary: '요약 정보를 분석 중입니다.',
+      score: 50
+    }
   }
 }
 
@@ -256,15 +269,18 @@ Deno.serve(async (req) => {
 
       let title = ''
       let summary = ''
+      let score = 50
       try {
         const summarized = await summarizeWithGemini(allItems, stock.name)
         title = summarized.title
         summary = summarized.summary
+        score = summarized.score
       } catch (summaryError) {
         // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
         const fallback = buildFallbackSummary(allItems, stock.name, type)
         title = fallback.title
         summary = fallback.summary
+        score = fallback.score
         console.warn(`Summary fallback applied for ${stock.code}:`, summaryError)
       }
 
@@ -274,6 +290,7 @@ Deno.serve(async (req) => {
           stock_id: stock.id,
           title: title,
           llm_summary: summary,
+          ai_score: score,
           url: finalUrl,
           type: type,
           source: '네이버 시황/뉴스/IR (Gemini 요약)',

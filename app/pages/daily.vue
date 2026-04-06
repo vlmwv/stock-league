@@ -58,7 +58,15 @@
                   <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
                   추천 {{ stock.ai_recommendation_count }}회
                 </span>
-                <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20">
+                <span 
+                  v-if="stock.ai_score" 
+                  class="flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-md border shadow-sm"
+                  :class="[
+                    stock.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 
+                    stock.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' : 
+                    'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                  ]"
+                >
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
                   AI 점수 {{ stock.ai_score }}점
                 </span>
