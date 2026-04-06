@@ -162,8 +162,7 @@
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
                     {{ stock.ai_score }}점
                   </span>
-                  <!-- AI 요약 라벨 (고정 분리) -->
-                  <span class="text-[8px] font-black text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md shrink-0 border border-brand-primary/20">AI</span>
+                  <!-- AI 요약 라벨 삭제됨 -->
                   
                   <!-- 스크롤되는 요약 텍스트 영역 -->
                   <div class="flex-1 overflow-hidden relative">
@@ -411,7 +410,7 @@ onMounted(async () => {
   100% { transform: translateX(-50%); }
 }
 .animate-marquee-slow {
-  animation: marquee-slow 15s linear infinite;
+  animation: marquee-slow 10s linear infinite;
 }
 .animate-marquee-paused {
   animation-play-state: paused;
