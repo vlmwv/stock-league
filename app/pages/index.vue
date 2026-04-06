@@ -164,14 +164,28 @@
                   </span>
                   <!-- AI 요약 라벨 삭제됨 -->
                   
-                  <!-- 스크롤되는 요약 텍스트 영역 -->
-                  <div class="flex-1 overflow-hidden relative">
-                    <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
-                      <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
-                        {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
-                      </p>
+                  <!-- 스크롤되는 요약 텍스트 영역 (클릭 시 전체 보기) -->
+                  <UPopover mode="click" :popper="{ placement: 'top', offsetDistance: 12 }">
+                    <div class="flex-1 overflow-hidden relative cursor-help group/summary hover:bg-white/5 transition-colors rounded-md py-0.5">
+                      <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
+                        <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
+                          {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                    
+                    <template #content>
+                      <div class="px-4 py-3 max-w-[280px] bg-slate-900 border border-white/10 rounded-xl shadow-2xl ring-1 ring-white/5">
+                        <div class="flex items-center gap-1.5 mb-2 opacity-60">
+                          <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
+                          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI INSIGHT</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed font-medium">
+                          {{ stock.summary }}
+                        </p>
+                      </div>
+                    </template>
+                  </UPopover>
                 </div>
               </div>
             </div>
