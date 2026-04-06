@@ -107,7 +107,6 @@
             </button>
           </div>
 
-          <!-- Horizontal Scroll Container -->
           <div 
             ref="aiScrollContainer"
             @scroll="handleAiScroll"
@@ -116,7 +115,8 @@
             <div 
               v-for="(stock, idx) in recommendedStocks" 
               :key="stock.id"
-              class="w-[240px] flex-shrink-0 bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-3 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 snap-center"
+              @click="navigateTo('/stocks/' + stock.id)"
+              class="w-[240px] flex-shrink-0 bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-3 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 snap-center cursor-pointer"
             >
               <!-- Subtle Background Glow -->
               <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full group-hover:bg-brand-primary/10 transition-all"></div>

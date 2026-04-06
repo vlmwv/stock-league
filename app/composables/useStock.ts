@@ -938,7 +938,7 @@ export const useStock = () => {
       .from('stock_price_history')
       .select('*')
       .eq('stock_id', stockId)
-      .order('price_date', { ascending: true })
+      .order('price_date', { ascending: false })
       .limit(days)
     
     if (error) {

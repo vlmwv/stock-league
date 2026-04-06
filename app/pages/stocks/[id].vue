@@ -80,7 +80,7 @@
         <section class="space-y-4">
           <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2">Price History</h3>
           <div class="space-y-3">
-            <div v-for="item in priceHistory.slice().reverse()" :key="item.price_date" class="glass-dark rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+            <div v-for="item in priceHistory" :key="item.price_date" class="glass-dark rounded-2xl p-4 border border-white/5 flex items-center justify-between">
               <div>
                 <p class="text-xs font-bold text-slate-200">{{ formatDate(item.price_date) }}</p>
                 <p class="text-[10px] text-slate-500 mt-0.5">{{ item.price_date }}</p>
@@ -134,9 +134,11 @@ const handleToggleHeart = async (stockId: number) => {
 
 const chartSeries = computed(() => {
   if (priceHistory.value.length === 0) return []
+  // 차트는 시간순(오름차순)으로 그려야 하므로 가져온 최신순 데이터를 사용 시 역순으로 정렬
+  const dataForChart = [...priceHistory.value].reverse()
   return [{
     name: '종가',
-    data: priceHistory.value.map(h => ({
+    data: dataForChart.map(h => ({
       x: h.price_date,
       y: h.close_price
     }))
