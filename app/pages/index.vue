@@ -125,21 +125,10 @@
                 <!-- Row 1: Icon, Info, Price, Heart -->
                 <div class="flex items-start justify-between gap-2.5">
                   <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500/10 to-rose-500/10 flex-shrink-0 flex items-center justify-center border border-rose-500/10 mt-0.5">
-                      <UIcon name="i-heroicons-fire-20-solid" class="w-4 h-4 text-rose-500" />
-                    </div>
                     <div class="flex flex-col min-w-0">
                       <h4 class="font-black text-slate-100 text-[12px] tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
                       <div class="flex items-center gap-1.5 mt-1">
                         <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
-                        <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 text-[8px] font-black text-orange-400/80 bg-orange-400/10 px-1 rounded-sm">
-                          <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
-                          {{ stock.ai_recommendation_count }}
-                        </span>
-                        <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[8px] font-black text-emerald-400/80 bg-emerald-400/10 px-1 rounded-sm">
-                          <UIcon name="i-heroicons-chart-bar-20-solid" class="w-2.5 h-2.5" />
-                          {{ stock.ai_score }}점
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -170,6 +159,9 @@
                 <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee">
                   <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
                     <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
+                      <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[8px] font-black text-emerald-400/80 bg-emerald-400/10 px-1.5 py-0.5 rounded-md mr-2 shrink-0 border border-emerald-400/20">
+                        {{ stock.ai_score }}점
+                      </span>
                       <span class="text-[8px] font-black text-brand-primary opacity-80 mr-1.5">AI</span>
                       {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
                     </p>
