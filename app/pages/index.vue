@@ -156,15 +156,22 @@
                 </div>
 
                 <!-- Row 2: AI Summary (More Refined Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee">
-                  <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused px-2">
-                    <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
-                      <span v-if="stock.ai_score" class="flex items-center gap-0.5 text-[8px] font-black text-emerald-400/80 bg-emerald-400/10 px-1.5 py-0.5 rounded-md mr-2 shrink-0 border border-emerald-400/20">
-                        {{ stock.ai_score }}점
-                      </span>
-                      <span class="text-[8px] font-black text-brand-primary opacity-80 mr-1.5">AI</span>
-                      {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
-                    </p>
+                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2 gap-1.5">
+                  <!-- AI 점수 라벨 (고정) -->
+                  <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center gap-1 text-[8px] font-black text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-md shrink-0 border border-emerald-400/20">
+                    <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
+                    {{ stock.ai_score }}점
+                  </span>
+                  <!-- AI 요약 라벨 (고정 분리) -->
+                  <span class="text-[8px] font-black text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md shrink-0 border border-brand-primary/20">AI</span>
+                  
+                  <!-- 스크롤되는 요약 텍스트 영역 -->
+                  <div class="flex-1 overflow-hidden relative">
+                    <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
+                      <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
+                        {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
