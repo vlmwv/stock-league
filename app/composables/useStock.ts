@@ -50,6 +50,8 @@ export const useStock = () => {
   const kstTime = useState('kst_time', () => getKstHourMinute())
   if (process.client) {
     onMounted(() => {
+      // SSR hydration 직후 즉시 클라이언트 현재 시각으로 갱신
+      kstTime.value = getKstHourMinute()
       const timer = setInterval(() => {
         const prev = kstTime.value.timeVal
         kstTime.value = getKstHourMinute()
