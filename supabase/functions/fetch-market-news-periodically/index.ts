@@ -51,7 +51,9 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 1. 최신 이슈 중 주가에 가장 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
 2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(25자 이내)을 만드세요. 제목 끝에는 반드시 '(요약)'을 붙이세요.
 3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
-4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요. (50점은 중립, 100점에 가까울수록 강력한 호재)
+4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요. 
+   - 100점에 가까울수록 강력한 호재, 0점에 가까울수록 강력한 악재입니다.
+   - [중요] 45~55점 사이의 '중립' 점수 남발을 지양하고, 시장의 예측되는 반응을 과감하게 수치화하세요.
 
 [응답 형식]
 반드시 아래 JSON 형식으로만 응답하세요:
@@ -133,12 +135,9 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
       score: finalScore
     }
   } catch (e) {
-    console.error('JSON Parse Error:', text)
-    return {
-      title: `${primaryTitle.substring(0, 20)}... (요약)`,
-      summary: '요약 정보를 분석 중입니다.',
-      score: 50
-    }
+    console.error(`JSON Parse Error for ${stockName}:`, text);
+    // 에러 발생 시 로그에 원문 기록 (나중에 확인 가능하도록)
+    throw new Error(`[JSON_PARSE_ERROR] Raw Text: ${text.substring(0, 100)}... Error: ${e.message}`);
   }
 }
 

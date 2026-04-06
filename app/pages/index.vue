@@ -226,21 +226,7 @@
                     />
                   </div>
                   <div v-if="item.stockName" class="flex flex-col gap-0.5">
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-[13px] font-black text-slate-200 tracking-tight leading-none">{{ item.stockName }}</span>
-                      <span 
-                        v-if="item.ai_score" 
-                        class="flex items-center gap-0.5 text-[8px] font-black px-1 rounded-sm border"
-                        :class="[
-                          item.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 
-                          item.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' : 
-                          'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
-                        ]"
-                      >
-                        <UIcon name="i-heroicons-chart-bar-20-solid" class="w-2.5 h-2.5" />
-                        {{ item.ai_score }}점
-                      </span>
-                    </div>
+                    <span class="text-[13px] font-black text-slate-200 tracking-tight leading-none">{{ item.stockName }}</span>
                     <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
                   </div>
                   <span v-else class="text-[11px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
@@ -264,10 +250,22 @@
                 {{ item.title }}
               </h4>
  
-              <!-- 하단 행: AI 요약 -->
               <div v-if="item.llm_summary" class="bg-indigo-500/[0.04] rounded-2xl p-3.5 border border-white/5 transition-colors group-hover:border-brand-primary/20">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span 
+                    v-if="item.ai_score" 
+                    class="flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-sm"
+                    :class="[
+                      item.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 
+                      item.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' : 
+                      'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                    ]"
+                  >
+                    {{ item.ai_score }}점
+                  </span>
+                  <span class="text-brand-primary text-[10px] font-black opacity-80 uppercase tracking-wider">AI INSIGHT</span>
+                </div>
                 <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
-                  <span class="text-brand-primary font-black mr-2 opacity-80">AI INSIGHT</span>
                   {{ item.llm_summary }}
                 </p>
               </div>
