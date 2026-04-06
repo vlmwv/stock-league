@@ -105,10 +105,22 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
   }
 
   try {
+    // 1. 더 강력한 JSON 추출: 첫 번째 { 와 마지막 } 사이의 내용만 추출
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      text = jsonMatch[0];
+    }
+
     const parsed = JSON.parse(text)
     let finalTitle = parsed.title || ""
     let finalSummary = parsed.summary || ""
-    let finalScore = typeof parsed.score === 'number' ? parsed.score : 50
+    
+    // 2. 점수 타입 변환 강화 (문자열인 경우 숫자로 변환)
+    let finalScore = 50;
+    if (parsed.score !== undefined) {
+      finalScore = Number(parsed.score);
+      if (isNaN(finalScore)) finalScore = 50;
+    }
 
     // 만약 제목이 비어있거나 너무 단순하면 원문 제목 활용
     if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
