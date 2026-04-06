@@ -134,8 +134,8 @@
     <BottomNav />
 
     <!-- Edit Profile Modal -->
-    <UModal v-model="isEditModalOpen">
-      <UCard class="bg-slate-900 border-white/10 ring-1 ring-white/10">
+    <UModal v-model:open="isEditModalOpen">
+      <UCard class="bg-slate-900/90 border-white/10 ring-1 ring-white/10 backdrop-blur-xl">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-black text-white">프로필 수정</h3>
@@ -167,6 +167,7 @@ definePageMeta({
 
 const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist, updateProfile } = useStock()
 const user = useSupabaseUser()
+const toast = useToast()
 
 const stats = ref<any>(null)
 const history = ref<any[]>([])
@@ -184,12 +185,24 @@ const handleUpdateProfile = async () => {
   if (!newUsername.value.trim()) return
   
   updating.value = true
-  const success = await updateProfile(newUsername.value.trim())
-  if (success) {
+  const result = await updateProfile(newUsername.value.trim())
+  
+  if (result.success) {
     stats.value = await fetchUserStats()
     isEditModalOpen.value = false
+    toast.add({
+      title: '프로필 업데이트 성공!',
+      description: '닉네임이 성공적으로 변경되었습니다.',
+      color: 'primary',
+      icon: 'i-heroicons-check-circle'
+    })
   } else {
-    alert('프로필 수정에 실패했습니다.')
+    toast.add({
+      title: '프로필 업데이트 실패',
+      description: result.message || '오류가 발생했습니다.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
+    })
   }
   updating.value = false
 }

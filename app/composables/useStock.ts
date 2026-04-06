@@ -677,7 +677,7 @@ export const useStock = () => {
 
   const updateProfile = async (username: string) => {
     const userId = await resolveUserId()
-    if (!userId) return false
+    if (!userId) return { success: false, message: '로그인이 필요합니다.' }
 
     const { error } = await (client
       .from('profiles') as any)
@@ -686,9 +686,12 @@ export const useStock = () => {
 
     if (error) {
       console.error('Error updating profile:', error)
-      return false
+      if (error.code === '23505') {
+        return { success: false, message: '이미 사용 중인 닉네임입니다.' }
+      }
+      return { success: false, message: '프로필 수정에 실패했습니다.' }
     }
-    return true
+    return { success: true }
   }
 
   const fetchUserHistory = async () => {
