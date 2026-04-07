@@ -210,8 +210,10 @@ Deno.serve(async (req) => {
 
         if (irItems.length > 0) {
           type = 'ir'
-          const boardId = topIr.boardId || topIr.id
-          finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+          const boardId = topIr.boardId || topIr.irInfoId || topIr.id
+          finalUrl = boardId 
+            ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+            : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
         } else if (disclosureItems.length > 0) {
           type = 'notice'
           const articleId = topDisc.articleId || topDisc.id

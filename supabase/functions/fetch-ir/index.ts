@@ -185,10 +185,16 @@ Deno.serve(async (req) => {
         score = fallback.score
         console.warn(`IR summary fallback for ${stock.code}:`, e)
       }
+      const latestIrItem = irItems[0]
+      const boardId = latestIrItem?.boardId || latestIrItem?.irInfoId || latestIrItem?.id
+      const finalUrl = boardId
+        ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
+        : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
+
       const { error: insertError } = await supabase.from('ir_info').upsert({
         stock_code: stock.code,
         title,
-        url: `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`,
+        url: finalUrl,
         published_at: new Date().toISOString(),
         content: JSON.stringify(irItems),
         source: '네이버 IR',
@@ -201,7 +207,7 @@ Deno.serve(async (req) => {
         title: title,
         llm_summary: summary,
         ai_score: score,
-        url: `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`,
+        url: finalUrl,
         type: 'ir',
         source: '네이버 IR (Gemini 요약)',
         published_at: new Date().toISOString()
