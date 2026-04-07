@@ -95,7 +95,7 @@
           <!-- Prediction Controls -->
           <div class="flex items-center gap-3 mt-auto">
             <button 
-              @click="onPredict(stock.id, 'up')"
+              @click.stop="onPredict(stock.id, 'up')"
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
@@ -117,7 +117,7 @@
               </span>
             </button>
             <button 
-              @click="onPredict(stock.id, 'down')"
+              @click.stop="onPredict(stock.id, 'down')"
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
@@ -139,7 +139,7 @@
               </span>
             </button>
             <button 
-              @click="toggleHeart(stock.id)"
+              @click.stop="toggleHeart(stock.id)"
               class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
               :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
             >
