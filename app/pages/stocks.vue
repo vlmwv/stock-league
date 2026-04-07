@@ -106,6 +106,12 @@
 
             <!-- 액션 버튼 -->
             <div class="flex items-center gap-2 shrink-0">
+              <NuxtLink
+                :to="'/stocks/' + stock.id"
+                class="px-3 py-2 rounded-xl bg-slate-800 text-[10px] font-black text-slate-400 hover:text-slate-200 transition-colors border border-white/5"
+              >
+                상세
+              </NuxtLink>
               <button
                 @click.stop="handleToggleHeart(stock.id)"
                 class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"

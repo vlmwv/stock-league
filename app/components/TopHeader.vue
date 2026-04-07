@@ -90,7 +90,7 @@
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
                 <button 
-                  @click="handleLogout"
+                  @click.prevent.stop="handleLogout"
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                 >
                   <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
@@ -116,7 +116,6 @@
 <script setup lang="ts">
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
-const router = useRouter()
 const isScrolled = ref(false)
 
 defineEmits(['openGuide'])
@@ -126,8 +125,14 @@ const hasNewNotifications = computed(() => recommendedStocks.value && recommende
 const role = ref('user')
 
 const handleLogout = async () => {
-  await supabase.auth.signOut()
-  router.push('/login')
+  try {
+    await supabase.auth.signOut()
+    await navigateTo('/login', { replace: true })
+  } catch (e) {
+    console.error('Logout error:', e)
+    // Fallback for extreme cases
+    window.location.href = '/login'
+  }
 }
 
 onMounted(async () => {

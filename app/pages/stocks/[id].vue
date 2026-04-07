@@ -153,14 +153,14 @@ const chartOptions = computed(() => ({
     background: 'transparent',
     fontFamily: 'Pretendard, Inter, sans-serif'
   },
-  colors: ['#38bdf8'], // brand-primary color
+  colors: ['#6366f1'], // Indigo 500 (brand-primary)
   fill: {
     type: 'gradient',
     gradient: {
       shadeIntensity: 1,
-      opacityFrom: 0.45,
-      opacityTo: 0.05,
-      stops: [20, 100]
+      opacityFrom: 0.6,
+      opacityTo: 0.1,
+      stops: [0, 100]
     }
   },
   stroke: {

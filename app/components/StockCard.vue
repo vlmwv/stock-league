@@ -41,6 +41,12 @@
             <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter">
               {{ stock.code }}
             </span>
+            <NuxtLink
+              :to="'/stocks/' + stock.id"
+              class="px-2 py-1.5 rounded-lg bg-slate-800 text-[9px] font-black text-slate-400 hover:text-slate-100 transition-colors border border-slate-700/50 uppercase tracking-widest"
+            >
+              상세
+            </NuxtLink>
             <button 
               @click.stop="$emit('toggleHeart', stock.id)" 
               class="w-8 h-8 flex items-center justify-center rounded-full transition-all"

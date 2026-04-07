@@ -121,6 +121,9 @@ const handleOAuthLogin = async (provider: 'google' | 'kakao' | 'naver') => {
       redirectTo: `${window.location.origin}/auth/confirm`
     }
     
+    // 네이버를 커스텀 프로바이더로 등록했으므로 Identifier를 'custom:naver'로 설정
+    const providerId = provider === 'naver' ? 'custom:naver' : provider
+    
     // 카카오의 경우, 비즈니스 인증이 필요한 'account_email'을 강제로 제외하기 위함
     if (provider === 'kakao') {
       options.scopes = 'profile_nickname profile_image'
@@ -128,7 +131,7 @@ const handleOAuthLogin = async (provider: 'google' | 'kakao' | 'naver') => {
     }
     
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider as any,
+      provider: providerId as any,
       options
     })
     if (error) throw error

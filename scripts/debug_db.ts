@@ -60,6 +60,19 @@ async function check() {
   } else {
     console.log('Latest logs:', logs)
   }
+
+  console.log('\nChecking stock_price_history...')
+  const { data: history, error: historyError } = await supabase
+    .from('stock_price_history')
+    .select('*')
+    .order('price_date', { ascending: false })
+    .limit(10)
+  
+  if (historyError) {
+    console.error('Error fetching history:', historyError)
+  } else {
+    console.log('Latest history:', history)
+  }
 }
 
 check()

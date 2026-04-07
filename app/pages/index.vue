@@ -145,6 +145,12 @@
                       </div>
                     </div>
                     
+                    <NuxtLink 
+                      :to="'/stocks/' + stock.id"
+                      class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[8px] font-black text-slate-500 hover:text-slate-100 transition-all border border-white/5 flex items-center justify-center uppercase tracking-widest"
+                    >
+                      상세
+                    </NuxtLink>
                     <button 
                       @click.stop="toggleHeart(stock.id)"
                       class="w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
