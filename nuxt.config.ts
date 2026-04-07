@@ -14,8 +14,12 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
+      htmlAttrs: {
+        lang: 'ko'
+      },
       title: '주식 예측 리그',
       meta: [
+        { name: 'title', content: '주식 예측 리그' },
         { name: 'description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: '주식 예측 리그' },
@@ -26,10 +30,14 @@ export default defineNuxtConfig({
         { property: 'og:image:height', content: '630' },
         { property: 'og:url', content: 'https://ninanoai.com' },
         { property: 'og:locale', content: 'ko_KR' },
+        { property: 'al:web:url', content: 'https://ninanoai.com' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: '주식 예측 리그' },
         { name: 'twitter:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { name: 'twitter:image', content: 'https://ninanoai.com/og-image.png' }
+      ],
+      link: [
+        { rel: 'apple-touch-icon', href: 'https://ninanoai.com/pwa-192x192.png' }
       ]
     }
   },

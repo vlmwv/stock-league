@@ -39,3 +39,8 @@ entrypoint = "./functions/update-krx-top-100/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/update-naver-stocks/index.ts"
+
+[functions.naver-userinfo-proxy]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/naver-userinfo-proxy/index.ts"
