@@ -18,16 +18,18 @@ export default defineNuxtConfig({
       meta: [
         { name: 'description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: '주식 예측 리그' },
         { property: 'og:title', content: '주식 예측 리그' },
         { property: 'og:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
-        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app'}/og-image.png` },
+        { property: 'og:image', content: 'https://ninanoai.com/og-image.png' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
-        { property: 'og:url', content: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app' },
+        { property: 'og:url', content: 'https://ninanoai.com' },
+        { property: 'og:locale', content: 'ko_KR' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: '주식 예측 리그' },
         { name: 'twitter:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
-        { name: 'twitter:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app'}/og-image.png` }
+        { name: 'twitter:image', content: 'https://ninanoai.com/og-image.png' }
       ]
     }
   },
@@ -36,7 +38,7 @@ export default defineNuxtConfig({
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
     supabaseServiceRoleKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://stock-league.up.railway.app',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://ninanoai.com',
       supabase: {
         url: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
         key: process.env.NUXT_PUBLIC_SUPABASE_KEY || ''
