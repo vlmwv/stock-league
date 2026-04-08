@@ -311,6 +311,7 @@ export const useStock = () => {
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
+  const isGuideOpen = useState<boolean>('isGuideOpen', () => false)
   
   // 4. League Status (Closed after 08:00 KST, Open after 21:20 KST)
   const isLeagueOpen = computed(() => {
@@ -1068,6 +1069,7 @@ export const useStock = () => {
     fetchStocksWithStats,
     isLeagueOpen,
     isResultPublished,
+    isGuideOpen,
     updateProfile
   }
 }
