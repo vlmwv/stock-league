@@ -135,7 +135,7 @@
 
     <!-- Edit Profile Modal -->
     <UserProfileModal 
-      v-model="isEditModalOpen" 
+      v-model:open="isEditModalOpen" 
       :current-username="stats?.username || user?.user_metadata?.full_name"
       @success="onProfileUpdate"
     />

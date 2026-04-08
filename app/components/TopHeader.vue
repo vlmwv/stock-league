@@ -117,15 +117,15 @@
         </NuxtLink>
       </template>
     </div>
-
-    <!-- User Profile Modal -->
-    <UserProfileModal 
-      v-if="user"
-      v-model="isProfileModalOpen" 
-      :current-username="userStats?.username || user.user_metadata?.full_name"
-      @success="onProfileUpdate"
-    />
   </header>
+
+  <!-- User Profile Modal -->
+  <UserProfileModal 
+    v-if="user"
+    v-model:open="isProfileModalOpen" 
+    :current-username="userStats?.username || user.user_metadata?.full_name"
+    @success="onProfileUpdate"
+  />
 </template>
 
 <script setup lang="ts">
