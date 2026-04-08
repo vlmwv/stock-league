@@ -13,7 +13,7 @@
 | `fetch-market-news-periodically` | 평일 09:00~16:00 (30분 간격) | 최신 뉴스 수집 및 AI 요약 | `SELECT * FROM news ORDER BY published_at DESC LIMIT 10;` |
 | `process-daily-results` | 매일 20:20 | 당일 주가 확정 및 예측 결과 처리 | `SELECT * FROM daily_stocks WHERE game_date = current_date;` |
 | `calculate-rankings` | 매일 20:30 | 유저별 승률 및 랭킹 산정 | `SELECT * FROM rankings ORDER BY updated_at DESC LIMIT 10;` |
-| `update-krx-top-100` | 매일 20:40 | 시가총액 상위 100종목 갱신 | `SELECT * FROM stocks WHERE market_cap_rank <= 100;` |
+| `update-krx-top-100` | 매일 20:20 | 시가총액 상위 100종목 갱신 | `SELECT * FROM stocks WHERE market_cap_rank <= 100;` |
 | `select-daily-stocks` | 매일 21:20 | 다음 날 게임용 5개 종목 선정 | `SELECT * FROM daily_stocks WHERE game_date = current_date + 1;` |
 
 ---
