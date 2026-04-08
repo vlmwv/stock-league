@@ -420,8 +420,16 @@ export const useStock = () => {
   }
 
   const fetchParticipantCount = async (date?: string) => {
-    let targetDate = date
+    // 1. 전체 회원 수 (total profiles count) - 항상 최신 상태로 유지
+    const { count, error: countError } = await client
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
     
+    if (!countError && count !== null) {
+      totalMemberCount.value = count
+    }
+
+    let targetDate = date
     if (!targetDate) {
       if (stocks.value && (stocks.value as any).length > 0) {
         targetDate = (stocks.value as any)[0].game_date
@@ -430,10 +438,12 @@ export const useStock = () => {
       }
     }
 
-    if (!targetDate) return
+    if (!targetDate) {
+      console.log('[useStock] Skipping participant count RPC: No target date available')
+      return
+    }
 
-    
-    // 1. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
+    // 2. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
     // RLS 정책 때문에 직접 조회 시 본인 데이터만 보이므로 RPC를 사용하여 전체 카운트 조회
     const { data, error } = await (client.rpc as any)('get_participant_count', { p_game_date: targetDate })
     
@@ -443,15 +453,7 @@ export const useStock = () => {
 
     if (!error && data !== null) {
       participantCount.value = Number(data)
-    }
-
-    // 2. 전체 회원 수 (total profiles count)
-    const { count, error: countError } = await client
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-    
-    if (!countError && count !== null) {
-      totalMemberCount.value = count
+      console.log(`[useStock] Participant count for ${targetDate}: ${participantCount.value}, Total members: ${totalMemberCount.value}`)
     }
   }
 
