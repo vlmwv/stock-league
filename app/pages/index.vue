@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg-deep pb-32 overflow-x-hidden selection:bg-brand-primary/30">
+  <div class="min-h-screen bg-bg-deep pb-32 overflow-x-clip selection:bg-brand-primary/30">
     <TopHeader @open-guide="isGuideOpen = true" />
     <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
  
@@ -80,7 +80,14 @@
             <div class="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
               <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-orange-400" />
             </div>
-            <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 추천 종목</h3>
+            <div class="flex flex-col">
+              <h3 class="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+                AI 추천 종목
+                <span v-if="globalAiStats.totalProcessed > 0" class="text-[10px] font-black text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full border border-blue-400/10 backdrop-blur-sm animate-fade-in whitespace-nowrap leading-none pt-[1px]">
+                  {{ globalAiStats.totalWins }}/{{ globalAiStats.totalProcessed }} 적중
+                </span>
+              </h3>
+            </div>
           </div>
           <NuxtLink to="/stocks" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
         </div>
@@ -168,16 +175,11 @@
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
                     {{ stock.ai_score }}점
                   </span>
-                  <!-- AI 추천 및 정답률 라벨 -->
-                  <div class="flex items-center gap-1 shrink-0">
-                    <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-md border border-orange-400/20">
-                      <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
-                      {{ stock.ai_recommendation_count }}회
-                    </span>
-                    <span v-if="stock.ai_processed_count > 0" class="flex items-center gap-1 text-[8px] font-black text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-md border border-blue-400/20">
-                      정답률 {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%
-                    </span>
-                  </div>
+                  <!-- AI 추천 횟수 라벨 -->
+                  <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-md border border-orange-400/20 shrink-0">
+                    <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
+                    {{ stock.ai_recommendation_count }}회
+                  </span>
                   <!-- AI 요약 라벨 삭제됨 -->
                   
                   <!-- 스크롤되는 요약 텍스트 영역 (클릭 시 전체 보기) -->
@@ -320,9 +322,10 @@
  
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, isLeagueOpen, isResultPublished } = useStock()
+const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchGlobalAiStats, isLeagueOpen, isResultPublished } = useStock()
 const isGuideOpen = ref(false)
 const recentNews = ref<any[]>([])
+const globalAiStats = ref({ totalWins: 0, totalProcessed: 0 })
 
 // AI 추천 종목 내비게이션 상태
 const aiScrollContainer = ref<HTMLElement | null>(null)
@@ -401,7 +404,10 @@ onMounted(async () => {
   const targetDate = dailyStocks.value?.[0]?.game_date
   await Promise.all([
     fetchPredictions(targetDate),
-    fetchParticipantCount(targetDate)
+    fetchParticipantCount(targetDate),
+    (async () => {
+      globalAiStats.value = await fetchGlobalAiStats()
+    })()
   ])
 
   const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')

@@ -61,13 +61,10 @@
               <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400" />
               <span class="text-[9px] font-black text-orange-400">AI 추천 {{ stock.ai_recommendation_count }}회</span>
             </div>
-            <div v-if="stock.ai_processed_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20">
-              <span class="text-[9px] font-black text-blue-400">정답률 {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%</span>
-            </div>
           </div>
         </div>
 
-        <div class="text-right shrink-0">
+        <div class="text-right shrink-0 transition-all duration-300" :class="prediction ? 'mt-16' : ''">
           <div class="flex items-baseline justify-end gap-0.5">
             <span class="text-2xl font-black text-slate-100 tabular-nums tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
             <span class="text-[10px] font-bold text-slate-400">원</span>
@@ -116,35 +113,50 @@
         </div>
       </Transition>
 
-      <!-- Prediction Overlay -->
+      <!-- Prediction Overlay (Refined) -->
       <Transition name="fade">
         <div 
           v-if="prediction" 
-          class="absolute inset-0 flex flex-col items-center justify-center glass backdrop-blur-sm z-20 border-2"
-          :class="[prediction === 'up' ? 'border-rose-500/40' : 'border-indigo-500/40']"
+          class="absolute inset-0 z-[40] pointer-events-none"
         >
+          <!-- Border Highlight -->
           <div 
-            class="w-16 h-16 rounded-full flex items-center justify-center shadow-2xl mb-4"
-            :class="[prediction === 'up' ? 'bg-rose-500 shadow-rose-500/30' : 'bg-indigo-500 shadow-indigo-500/30']"
-          >
-            <UIcon :name="prediction === 'up' ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-8 h-8 text-white" />
+            class="absolute inset-0 border-2 rounded-[2.5rem]"
+            :class="[prediction === 'up' ? 'border-rose-500/30' : 'border-indigo-500/30']"
+          ></div>
+          
+          <!-- Animated Badge -->
+          <div class="absolute top-6 right-6 flex flex-col items-end gap-1.5 pointer-events-auto">
+            <div 
+              class="flex items-center gap-2 px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md border animate-bounce-soft"
+              :class="[prediction === 'up' ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' : 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400']"
+            >
+              <UIcon :name="prediction === 'up' ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-4 h-4" />
+              <span class="text-[10px] font-black uppercase tracking-widest">
+                {{ prediction === 'up' ? '상승 예측' : '하락 예측' }}
+              </span>
+            </div>
+            
+            <button 
+              v-if="isLeagueOpen"
+              @click.stop="$emit('cancelPrediction', stock.id)"
+              class="px-2 py-1 rounded-lg bg-slate-900/80 border border-white/5 text-[8px] font-black text-slate-500 hover:text-rose-400 hover:border-rose-500/30 transition-all uppercase tracking-widest backdrop-blur-sm"
+            >
+              취소하기
+            </button>
+            <span v-else class="text-[8px] font-bold text-slate-600 uppercase tracking-widest px-2 opacity-60">
+              마감됨
+            </span>
           </div>
-          <span 
-            class="text-lg font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-b"
-            :class="[prediction === 'up' ? 'from-rose-400 to-rose-600' : 'from-indigo-400 to-indigo-600']"
-          >
-            {{ prediction === 'up' ? '상승 예측 ↑' : '하락 예측 ↓' }}
-          </span>
-          <button 
-            v-if="isLeagueOpen"
-            @click.stop="$emit('cancelPrediction', stock.id)"
-            class="mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors py-2 px-4 rounded-full border border-slate-700/50"
-          >
-            취소하기
-          </button>
-          <p v-else class="mt-6 text-[9px] font-bold text-slate-600 uppercase tracking-widest">
-            마감되었습니다
-          </p>
+
+          <!-- Subtle Indicator Icon in corner -->
+          <div class="absolute bottom-6 right-8 opacity-10">
+            <UIcon 
+              :name="prediction === 'up' ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" 
+              class="w-24 h-24" 
+              :class="prediction === 'up' ? 'text-rose-500' : 'text-indigo-500'"
+            />
+          </div>
         </div>
       </Transition>
     </div>
@@ -260,5 +272,13 @@ const triggerPrediction = (type: 'up' | 'down') => {
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
   transform: scale(0.95) translateY(10px);
+}
+
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
 }
 </style>

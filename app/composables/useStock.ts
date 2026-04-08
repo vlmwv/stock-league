@@ -1011,6 +1011,19 @@ export const useStock = () => {
     return data
   }
 
+  const fetchGlobalAiStats = async () => {
+    const { data, error } = await client
+      .from('stocks')
+      .select('ai_win_count, ai_processed_count')
+    
+    if (error) return { totalWins: 0, totalProcessed: 0 }
+    
+    const totalWins = (data as any[]).reduce((sum, s) => sum + (s.ai_win_count || 0), 0)
+    const totalProcessed = (data as any[]).reduce((sum, s) => sum + (s.ai_processed_count || 0), 0)
+    
+    return { totalWins, totalProcessed }
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
@@ -1031,6 +1044,7 @@ export const useStock = () => {
     fetchNews,
     fetchStockById,
     fetchPriceHistory,
+    fetchGlobalAiStats,
     toggleHeart,
     predict,
     fetchRankings,

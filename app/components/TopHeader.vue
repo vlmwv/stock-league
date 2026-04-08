@@ -90,13 +90,6 @@
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
                 <button 
-                  @click.prevent="isProfileModalOpen = true"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/5 rounded-lg transition-all"
-                >
-                  <UIcon name="i-heroicons-user-circle" class="w-4 h-4" />
-                  프로필 수정
-                </button>
-                <button 
                   @click.prevent="handleLogout"
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                 >
@@ -118,21 +111,12 @@
       </template>
     </div>
   </header>
-
-  <!-- User Profile Modal -->
-  <UserProfileModal 
-    v-if="user"
-    v-model:open="isProfileModalOpen" 
-    :current-username="userStats?.username || user.user_metadata?.full_name"
-    @success="onProfileUpdate"
-  />
 </template>
 
 <script setup lang="ts">
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isScrolled = ref(false)
-const isProfileModalOpen = ref(false)
 const userStats = ref<any>(null)
 
 defineEmits(['openGuide'])
@@ -150,10 +134,6 @@ const handleLogout = async () => {
     console.error('Logout error:', e)
     window.location.href = '/login'
   }
-}
-
-const onProfileUpdate = async () => {
-  userStats.value = await fetchUserStats()
 }
 
 onMounted(async () => {

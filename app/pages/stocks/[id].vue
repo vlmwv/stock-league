@@ -75,12 +75,7 @@
             <p class="text-lg font-black text-slate-200">{{ stock.wishlist_count || 0 }}명</p>
           </div>
           <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em]">AI 추천</p>
-              <span v-if="stock.ai_processed_count > 0" class="text-[9px] font-black text-blue-400 bg-blue-400/10 px-1 py-0.5 rounded-md">
-                {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%
-              </span>
-            </div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">AI 추천</p>
             <p class="text-lg font-black text-slate-200">{{ stock.ai_recommendation_count || 0 }}회</p>
           </div>
         </div>
