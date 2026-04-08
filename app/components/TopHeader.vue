@@ -31,7 +31,7 @@
       <template v-if="user">
         <UPopover 
           :popper="{ placement: 'bottom-end', offsetDistance: 12 }" 
-          :ui="{ popper: { zIndex: 'z-[9999]' } }"
+          :ui="{ content: 'z-[9999]' }"
           class="relative z-30"
         >
           <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
@@ -85,7 +85,7 @@
           </div>
           <UPopover 
             :popper="{ placement: 'bottom-end' }"
-            :ui="{ popper: { zIndex: 'z-[9999]' } }"
+            :ui="{ content: 'z-[9999]' }"
           >
             <button class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden">
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
