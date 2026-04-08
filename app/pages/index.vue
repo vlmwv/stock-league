@@ -62,7 +62,7 @@
                 @click="handleParticipation"
                 class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
-                {{ isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : '리그 마감 (결과 대기 중)') }}
+                {{ isLeagueOpen ? '참여하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : (isResultPublished ? '오늘의 결과 확인하기' : '리그 마감 (결과 대기 중)')) }}
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               </button>
             </div>
@@ -322,6 +322,10 @@
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
 const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchGlobalAiStats, isLeagueOpen, isResultPublished, isGuideOpen } = useStock()
+
+const kstTime = useState<{ hour: number, minute: number, timeVal: number }>('kst_time')
+const getKstTimeVal = () => kstTime.value?.timeVal || 0
+
 const recentNews = ref<any[]>([])
 const globalAiStats = ref({ totalWins: 0, totalProcessed: 0 })
 

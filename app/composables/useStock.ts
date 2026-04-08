@@ -48,6 +48,19 @@ export const useStock = () => {
     return { hour: parseInt(hour), minute: parseInt(minute), timeVal: parseInt(hour) * 100 + parseInt(minute) }
   }
 
+  const getActiveLeagueDate = () => {
+    const today = getKstDate()
+    const { timeVal } = getKstHourMinute()
+    
+    // 21:20 이후라면 다음날 리그가 활성 대상입니다.
+    if (timeVal >= 2120) {
+      const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
+      const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+      return new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
+    }
+    return today
+  }
+
   // 실시간 상태 업데이트를 위한 시간 Ref (30초마다 갱신)
   const kstTime = useState('kst_time', () => getKstHourMinute())
   if (process.client) {
@@ -393,20 +406,19 @@ export const useStock = () => {
     let targetDate = date
     
     if (!targetDate) {
-      // dailyStocks 데이터가 있으면 그 날짜를 사용 (현재 화면에 보이는 종목 기준)
-      if (stocks.value && (stocks.value as any).length > 0) {
+      // 참여 가능 시간대(21:20~08:00)에는 다음 리그 날짜를 우선 타겟팅합니다.
+      const activeDate = getActiveLeagueDate()
+      const { timeVal } = kstTime.value
+      
+      // 만약 21:20 이후인데 현재 로드된 stocks가 오늘 날짜라면(내일 데이터 미생성 시)
+      // participantCount는 내일(0명)을 기준으로 가져오도록 강제합니다.
+      if (timeVal >= 2120) {
+        targetDate = activeDate
+      } else if (stocks.value && (stocks.value as any).length > 0) {
+        // 그 외 시간대에는 현재 화면에 보이는 종목 기준 날짜 사용
         targetDate = (stocks.value as any)[0].game_date
       } else {
-        // 데이터가 아직 로드 전이라면 현재 시간 기준 활성 게임 날짜 계산
-        const today = getKstDate()
-        const { hour, minute } = getKstHourMinute()
-        if (hour * 100 + minute >= 2120) {
-          const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
-          const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
-          targetDate = new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
-        } else {
-          targetDate = today
-        }
+        targetDate = activeDate
       }
     }
 
@@ -700,7 +712,7 @@ export const useStock = () => {
     // 1. Get points and profile
     const { data: profile } = await client
       .from('profiles')
-      .select('username, avatar_url, points, role')
+      .select('username, email, avatar_url, points, role')
       .eq('id', userId)
       .single()
 
@@ -762,6 +774,7 @@ export const useStock = () => {
 
     return {
       username: (profile as any)?.username,
+      email: (profile as any)?.email,
       avatarUrl: (profile as any)?.avatar_url,
       points: (profile as any)?.points || 0,
       role: (profile as any)?.role || 'user',
@@ -783,9 +796,6 @@ export const useStock = () => {
 
     if (error) {
       console.error('Error updating profile:', error)
-      if (error.code === '23505') {
-        return { success: false, message: '이미 사용 중인 닉네임입니다.' }
-      }
       return { success: false, message: '프로필 수정에 실패했습니다.' }
     }
     return { success: true }

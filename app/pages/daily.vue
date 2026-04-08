@@ -17,7 +17,7 @@
             League Date: {{ gameDateDisplay }}
           </span>
         </div>
-        <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : 'text-slate-500'">
+        <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : (statusMessage.includes('준비 중') ? 'text-orange-400' : 'text-slate-500')">
           {{ statusMessage }}
         </p>
       </header>
@@ -155,7 +155,7 @@
 
           <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
             <span class="px-4 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-black text-slate-400 uppercase tracking-widest shadow-2xl">
-              응모 마감
+              {{ (getKstDate() === stock.game_date && getKstTimeVal() >= 2120) ? '내일 종목 준비 중' : '응모 마감' }}
             </span>
           </div>
 
@@ -174,7 +174,7 @@
         <h3 class="text-xl font-black text-slate-100">예측 완료!</h3>
         <p class="text-xs text-slate-400">
           오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>
-          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : '오늘 20:30에 공개됩니다.' }}
+          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : (isTomorrow ? '내일 20:30에 공개됩니다.' : '오늘 20:30에 공개됩니다.') }}
         </p>
         <NuxtLink 
           to="/ranking"
@@ -204,6 +204,9 @@ const getKstDate = () => {
   return new Intl.DateTimeFormat('sv-SE', options).format(new Date())
 }
 
+const kstTime = useState<{ hour: number, minute: number, timeVal: number }>('kst_time')
+const getKstTimeVal = () => kstTime.value?.timeVal || 0
+
 const isTomorrow = computed(() => {
   const firstStock = dailyStocks.value?.[0]
   if (!firstStock) return false
@@ -222,13 +225,21 @@ const statusMessage = computed(() => {
   
   const today = getKstDate()
   const gameDate = (firstStock as any).game_date
+  const timeVal = getKstTimeVal()
   
   if (gameDate > today) {
-    return '내일의 종목 응모가 시작되었습니다! 지금 바로 참여해 보세요.'
+    if (isLeagueOpen.value) {
+      return '내일의 종목 응모가 시작되었습니다! 지금 바로 참여해 보세요.'
+    } else {
+      return '응모 시간이 아닙니다. 다음 종목 응모는 21:20분부터 가능합니다.'
+    }
   } else if (gameDate === today) {
     if (isLeagueOpen.value) {
       return '오늘의 5종목을 예측해 보세요.'
     } else {
+      if (timeVal >= 2120) {
+        return '내일의 리그 종목을 준비 중입니다. 잠시만 기다려 주세요.'
+      }
       return '오늘의 예측이 마감되었습니다. 다음 종목 응모는 21시 20분부터 진행할 수 있습니다.'
     }
   } else {
