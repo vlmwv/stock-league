@@ -404,11 +404,20 @@ export const useStock = () => {
 
   const fetchParticipantCount = async (date?: string) => {
     let targetDate = date
+    const today = getKstDate()
+    const { timeVal } = kstTime.value
+
+    console.log(`[useStock] fetchParticipantCount called with: ${date}, current timeVal: ${timeVal}, today: ${today}`)
+
+    // 21:20 이후인데 오늘 날짜가 들어왔다면, 내일 리그 참여 인원(0명)을 보여주기 위해 타겟 변경
+    if (timeVal >= 2120 && targetDate === today) {
+      targetDate = getActiveLeagueDate()
+      console.log(`[useStock] Transition window override: changing targetDate to ${targetDate}`)
+    }
     
     if (!targetDate) {
       // 참여 가능 시간대(21:20~08:00)에는 다음 리그 날짜를 우선 타겟팅합니다.
       const activeDate = getActiveLeagueDate()
-      const { timeVal } = kstTime.value
       
       // 만약 21:20 이후인데 현재 로드된 stocks가 오늘 날짜라면(내일 데이터 미생성 시)
       // participantCount는 내일(0명)을 기준으로 가져오도록 강제합니다.
@@ -830,7 +839,15 @@ export const useStock = () => {
       return []
     }
 
-    return (data || []).map((p: any) => ({
+    // 리그 종목인 것만 필터링 (result가 pending인데 game_date가 과거인 경우는 제외하는 방식 또는 daily_stocks 존재 여부 확인)
+    // 여기서는 간단하게 pending이면서 과거 날짜인 것은 제외하고 보여줌 (사용자 피드백 반영)
+    const today = getKstDate()
+    return (data || [])
+      .filter((p: any) => {
+        if (p.result === 'pending' && p.game_date < today) return false
+        return true
+      })
+      .map((p: any) => ({
       id: p.id,
       game_date: p.game_date,
       prediction_type: p.prediction_type,

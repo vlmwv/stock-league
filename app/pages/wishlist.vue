@@ -43,12 +43,15 @@
       <!-- Wishlist Stack -->
       <div v-else class="space-y-6 mt-8">
         <StockCard 
-          v-for="stock in heartedStocks" 
+          v-for="(stock, idx) in heartedStocks" 
           :key="stock.id"
           :stock="stock"
           :is-hearted="hearts.includes(Number(stock.id))"
           :is-league-open="isLeagueOpen"
+          :is-predictable="isLeagueStock(stock.id)"
           :prediction="getPrediction(stock.id)"
+          :is-top="idx === 0"
+          :index="idx"
           @predict="onPredict"
           @toggle-heart="toggleHeart"
           @cancel-prediction="cancelPrediction"
@@ -72,7 +75,7 @@ definePageMeta({
   middleware: 'auth'
 })
 const router = useRouter()
-const { wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions, isLeagueOpen } = useStock()
+const { dailyStocks, wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions, isLeagueOpen, refresh } = useStock()
 
 const heartedStocks = computed(() => wishlistStocks.value || [])
 
@@ -81,11 +84,15 @@ const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
 
 const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
+const isLeagueStock = (id: number) => dailyStocks.value?.some((s: any) => s.id === id) || false
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
   const stock = (wishlistStocks.value || []).find((s: any) => s.id === id)
   if (stock) {
-    predict(id, prediction)
+    // Only allow prediction if it's a league stock
+    if (!isLeagueStock(id)) return
+    
+    predict(id, prediction, (stock as any).game_date)
     selectedStockName.value = stock.name
     selectedPrediction.value = prediction
     isResultOpen.value = true
@@ -101,6 +108,7 @@ const cancelPrediction = (id: number) => {
 
 onMounted(async () => {
   await Promise.all([
+    refresh(),
     fetchWishlist(),
     fetchPredictions()
   ])

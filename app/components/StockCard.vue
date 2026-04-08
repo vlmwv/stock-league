@@ -1,39 +1,43 @@
 <template>
   <div 
     ref="cardRef"
-    class="relative group cursor-grab active:cursor-grabbing transition-transform duration-500 ease-out"
+    class="relative group transition-transform duration-500 ease-out"
+    :class="{ 'cursor-grab active:cursor-grabbing': isPredictable && isLeagueOpen }"
     :style="cardStyle"
   >
     <!-- Background Glow -->
     <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     
     <div class="relative glass-dark rounded-[2.5rem] p-7 shadow-2xl overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
-      <div 
-        class="absolute inset-x-0 top-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/up"
-        @click.stop="onMaskClick('up')"
-      >
+      <!-- Swipe/Click Masks (Only shown if predictable and league open) -->
+      <template v-if="isPredictable && isLeagueOpen">
         <div 
-          class="absolute inset-x-0 top-0 h-2 bg-rose-500 blur-md scale-x-50 group-hover/up:scale-x-100 transition-transform duration-500"
-          :class="{ 'opacity-100 blur-lg': swipeEffect === 'up' }"
-        ></div>
-        <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
-          <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500 animate-bounce" />
-          <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
+          class="absolute inset-x-0 top-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/up"
+          @click.stop="onMaskClick('up')"
+        >
+          <div 
+            class="absolute inset-x-0 top-0 h-2 bg-rose-500 blur-md scale-x-50 group-hover/up:scale-x-100 transition-transform duration-500"
+            :class="{ 'opacity-100 blur-lg': swipeEffect === 'up' }"
+          ></div>
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
+            <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500 animate-bounce" />
+            <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
+          </div>
         </div>
-      </div>
-      <div 
-        class="absolute inset-x-0 bottom-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/down"
-        @click.stop="onMaskClick('down')"
-      >
         <div 
-          class="absolute inset-x-0 bottom-0 h-2 bg-indigo-500 blur-md scale-x-50 group-hover/down:scale-x-100 transition-transform duration-500"
-          :class="{ 'opacity-100 blur-lg': swipeEffect === 'down' }"
-        ></div>
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
-          <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
-          <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400 animate-bounce" />
+          class="absolute inset-x-0 bottom-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/down"
+          @click.stop="onMaskClick('down')"
+        >
+          <div 
+            class="absolute inset-x-0 bottom-0 h-2 bg-indigo-500 blur-md scale-x-50 group-hover/down:scale-x-100 transition-transform duration-500"
+            :class="{ 'opacity-100 blur-lg': swipeEffect === 'down' }"
+          ></div>
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
+            <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
+            <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400 animate-bounce" />
+          </div>
         </div>
-      </div>
+      </template>
 
       <div class="flex justify-between items-start mb-6">
         <div class="space-y-1">
@@ -95,17 +99,22 @@
       <Transition name="fade">
         <div v-if="!prediction" class="mt-6 flex items-center justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
           <template v-if="isLeagueOpen">
-            <div class="flex flex-col items-center gap-1">
-              <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
-              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
-            </div>
-            <div class="h-px w-8 bg-slate-800"></div>
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
-            <div class="h-px w-8 bg-slate-800"></div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
-              <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
-            </div>
+            <template v-if="isPredictable">
+              <div class="flex flex-col items-center gap-1">
+                <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
+                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
+              </div>
+              <div class="h-px w-8 bg-slate-800"></div>
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
+              <div class="h-px w-8 bg-slate-800"></div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
+                <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
+              </div>
+            </template>
+            <p v-else class="text-[9px] font-black text-slate-600 uppercase tracking-widest italic opacity-60">
+              오늘의 리그 종목이 아닙니다
+            </p>
           </template>
           <template v-else>
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">오늘의 예측이 마감되었습니다</p>
@@ -164,14 +173,19 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   stock: any
   isHearted: boolean
   prediction: 'up' | 'down' | null
   isLeagueOpen: boolean
+  isPredictable?: boolean
   isTop?: boolean
   index?: number
-}>()
+}>(), {
+  isPredictable: true,
+  isTop: false,
+  index: 0
+})
 
 const emit = defineEmits(['predict', 'toggleHeart', 'cancelPrediction'])
 
@@ -194,7 +208,7 @@ onMounted(() => {
     const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
       threshold: 30, // Reduced threshold for better responsiveness
       onSwipe: () => {
-        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
+        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
         
         // Follow finger with slight resistance
         translateY.value = lengthY.value * 0.8
@@ -209,7 +223,7 @@ onMounted(() => {
         }
       },
       onSwipeEnd: (e, direction) => {
-        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
+        if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
 
         const threshold = 120 // Distance needed to trigger prediction
         
@@ -230,7 +244,7 @@ onMounted(() => {
 
   // Keyboard support for the top card
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
+    if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
     
     if (e.key === 'ArrowUp') {
       triggerPrediction('up')
@@ -246,7 +260,7 @@ onMounted(() => {
 })
 
 const onMaskClick = (type: 'up' | 'down') => {
-  if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen) return
+  if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
   triggerPrediction(type)
 }
 
