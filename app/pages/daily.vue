@@ -174,7 +174,7 @@
         <h3 class="text-xl font-black text-slate-100">예측 완료!</h3>
         <p class="text-xs text-slate-400">
           오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>
-          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : '오늘 20:20에 공개됩니다.' }}
+          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : '오늘 20:30에 공개됩니다.' }}
         </p>
         <NuxtLink 
           to="/ranking"

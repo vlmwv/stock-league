@@ -53,7 +53,7 @@
                       <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">결과 발표</span>
                       <UIcon name="i-heroicons-megaphone" class="w-3.5 h-3.5 text-brand-secondary" />
                     </div>
-                    <span class="text-xs font-bold text-brand-secondary tracking-tight">당일 20:20 <span class="text-slate-400">발표</span></span>
+                    <span class="text-xs font-bold text-brand-secondary tracking-tight">당일 20:30 <span class="text-slate-400">발표</span></span>
                   </div>
                 </div>
               </div>

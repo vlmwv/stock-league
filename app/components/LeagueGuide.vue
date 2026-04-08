@@ -61,7 +61,7 @@
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
                   <h4 class="text-xs font-black text-slate-200 uppercase tracking-tight">3단계. 결과 확인 및 랭킹</h4>
-                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-secondary/20 text-[8px] font-black text-brand-secondary uppercase">Result at 20:20</span>
+                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-secondary/20 text-[8px] font-black text-brand-secondary uppercase">Result at 20:30</span>
                 </div>
                 <p class="text-xs text-slate-400 leading-relaxed">정확한 예측으로 포인트를 획득하고 <span class="text-slate-200 font-bold">주간/월간 랭킹 상위권</span>에 도전하세요!</p>
               </div>

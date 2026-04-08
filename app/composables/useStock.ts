@@ -341,7 +341,7 @@ export const useStock = () => {
     return isInOpenWindow
   })
 
-  // 5. Result Status (Published after 20:20 KST)
+  // 5. Result Status (Published after 20:30 KST)
   const isResultPublished = computed(() => {
     const { timeVal: currentTimeVal } = kstTime.value
     const today = getKstDate()
@@ -352,9 +352,9 @@ export const useStock = () => {
       // 과거 데이터는 항상 결과 발표됨
       if (firstStockDate < today) return true
       
-      // 오늘 데이터인 경우 20:20 이후면 발표됨
+      // 오늘 데이터인 경우 20:30 이후면 발표됨
       if (firstStockDate === today) {
-        return currentTimeVal >= 2020
+        return currentTimeVal >= 2030
       }
     }
 
