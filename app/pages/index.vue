@@ -24,12 +24,16 @@
                     <div v-if="participantCount > 3" class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
                   </div>
                   <p class="text-xs text-slate-100 font-bold tracking-tight">
-                    {{ participantCount.toLocaleString() }}명의 투자자가 예측 완료
+                    오늘 {{ participantCount.toLocaleString() }}명 예측 완료
+                    <span class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여 중)</span>
                   </p>
                 </div>
                 <div v-else class="flex items-center gap-2">
                   <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
-                  <p class="text-xs text-slate-400 font-bold tracking-tight">가장 먼저 예측에 참여해 보세요!</p>
+                  <p class="text-xs text-slate-100 font-bold tracking-tight">
+                    가장 먼저 예측에 참여해 보세요!
+                    <span v-if="totalMemberCount > 0" class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여 중)</span>
+                  </p>
                 </div>
               </div>
 
