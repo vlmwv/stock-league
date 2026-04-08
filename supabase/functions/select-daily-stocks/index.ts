@@ -51,7 +51,7 @@ async function analyzeStockWithGemini(newsItems: any[], disclosureItems: any[], 
     prompt += `\n(특이 뉴스나 공시가 적은 상태입니다. 섹터의 업황과 일반적인 시장 기대치를 반영하여 보수적으로 평가해 주세요.)\n`
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -71,7 +71,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 `
 
   // 최신 모델 우선, 실패 시 레거시 모델로 1회 폴백
-  const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash']
+  const candidateModels = ['gemini-flash-latest', 'gemini-2.0-flash']
   let response: Response | null = null
   let lastErrorBody = ''
 

@@ -407,12 +407,10 @@ export const useStock = () => {
     const today = getKstDate()
     const { timeVal } = kstTime.value
 
-    console.log(`[useStock] fetchParticipantCount called with: ${date}, current timeVal: ${timeVal}, today: ${today}`)
 
     // 21:20 이후인데 오늘 날짜가 들어왔다면, 내일 리그 참여 인원(0명)을 보여주기 위해 타겟 변경
     if (timeVal >= 2120 && targetDate === today) {
       targetDate = getActiveLeagueDate()
-      console.log(`[useStock] Transition window override: changing targetDate to ${targetDate}`)
     }
     
     if (!targetDate) {
@@ -431,7 +429,6 @@ export const useStock = () => {
       }
     }
 
-    console.log(`[useStock] Fetching participant count for date: ${targetDate}`)
     
     // 1. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
     const { data, error } = await client

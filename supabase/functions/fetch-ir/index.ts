@@ -46,7 +46,7 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 [목록]
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}`
 
-  const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash']
+  const candidateModels = ['gemini-flash-latest', 'gemini-2.0-flash']
   let response: Response | null = null
   let lastErrorBody = ''
   for (const model of candidateModels) {
