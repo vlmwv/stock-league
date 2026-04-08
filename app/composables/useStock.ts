@@ -421,41 +421,28 @@ export const useStock = () => {
 
   const fetchParticipantCount = async (date?: string) => {
     let targetDate = date
-    const today = getKstDate()
-    const { timeVal } = kstTime.value
-
-
-    // 21:20 이후인데 오늘 날짜가 들어왔다면, 내일 리그 참여 인원(0명)을 보여주기 위해 타겟 변경
-    if (timeVal >= 2120 && targetDate === today) {
-      targetDate = getActiveLeagueDate()
-    }
     
     if (!targetDate) {
-      // 참여 가능 시간대(21:20~08:00)에는 다음 리그 날짜를 우선 타겟팅합니다.
-      const activeDate = getActiveLeagueDate()
-      
-      // 만약 21:20 이후인데 현재 로드된 stocks가 오늘 날짜라면(내일 데이터 미생성 시)
-      // participantCount는 내일(0명)을 기준으로 가져오도록 강제합니다.
-      if (timeVal >= 2120) {
-        targetDate = activeDate
-      } else if (stocks.value && (stocks.value as any).length > 0) {
-        // 그 외 시간대에는 현재 화면에 보이는 종목 기준 날짜 사용
+      if (stocks.value && (stocks.value as any).length > 0) {
         targetDate = (stocks.value as any)[0].game_date
       } else {
-        targetDate = activeDate
+        targetDate = getActiveLeagueDate()
       }
     }
 
+    if (!targetDate) return
+
     
     // 1. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
-    const { data, error } = await client
-      .from('predictions')
-      .select('user_id')
-      .eq('game_date', targetDate as any)
+    // RLS 정책 때문에 직접 조회 시 본인 데이터만 보이므로 RPC를 사용하여 전체 카운트 조회
+    const { data, error } = await (client.rpc as any)('get_participant_count', { p_game_date: targetDate })
     
-    if (!error && data) {
-      const uniqueUsers = new Set(data.map((p: any) => p.user_id)).size
-      participantCount.value = uniqueUsers
+    if (error) {
+      console.error('[useStock] Error fetching participant count via RPC:', error)
+    }
+
+    if (!error && data !== null) {
+      participantCount.value = Number(data)
     }
 
     // 2. 전체 회원 수 (total profiles count)

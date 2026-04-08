@@ -16,23 +16,21 @@
             </h2>
             <div class="flex flex-col gap-2 mt-4">
               <div class="flex items-center gap-2">
-                <div class="flex -space-x-2">
-                  <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
-                    <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
+                <div v-if="participantCount > 0" class="flex items-center gap-2">
+                  <div class="flex -space-x-2">
+                    <div v-for="i in Math.min(participantCount, 3)" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
+                      <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456 + participantCount}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
+                    </div>
+                    <div v-if="participantCount > 3" class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
                   </div>
-                  <div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
+                  <p class="text-xs text-slate-100 font-bold tracking-tight">
+                    {{ participantCount.toLocaleString() }}명의 투자자가 예측 완료
+                  </p>
                 </div>
-                <p class="text-xs text-slate-400 font-bold tracking-tight">
-                  <span class="text-slate-100">{{ totalMemberCount.toLocaleString() }}명</span>의 투자자가 참여 중
-                </p>
-              </div>
-              
-              <div v-if="participantCount > 0" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-primary/10 border border-brand-primary/20 w-fit">
-                <span class="flex h-2 w-2 relative">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
-                </span>
-                <p class="text-[10px] text-brand-primary font-black uppercase tracking-widest">오늘 {{ participantCount.toLocaleString() }}명 예측 완료</p>
+                <div v-else class="flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
+                  <p class="text-xs text-slate-400 font-bold tracking-tight">가장 먼저 예측에 참여해 보세요!</p>
+                </div>
               </div>
 
               <!-- League Schedule Info (Premium Redesign) -->
