@@ -143,7 +143,7 @@
 const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats } = useStock()
 
 const searchQuery = ref('')
-const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation'>('marketCap')
+const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested'>('marketCap')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
@@ -157,6 +157,7 @@ const sentinel = ref<HTMLElement | null>(null)
 
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
+  { key: 'interested', label: '관심' },
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },
   { key: 'aiRecommendation', label: 'AI 추천' }
@@ -174,6 +175,12 @@ const handleToggleHeart = async (stockId: number) => {
     if (stock) {
       stock.wishlist_count = Math.max(0, (stock.wishlist_count || 0) + (nowHearted ? 1 : -1))
     }
+    
+    // 관심 탭인 경우 목록에서 제거 (선택 사항이나 보통은 즉시 반영 선호)
+    if (currentSort.value === 'interested' && !nowHearted) {
+       allStocks.value = allStocks.value.filter(s => s.id !== stockId)
+       totalCount.value = Math.max(0, totalCount.value - 1)
+    }
   }
 }
 
@@ -189,6 +196,7 @@ const loadStocks = async (isAppend = false) => {
 
     const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count'> = {
       marketCap: 'market_cap_rank',
+      interested: 'market_cap_rank', // 관심 탭도 시총순으로 정렬
       wishlist: 'wishlist_count',
       prediction: 'win_count',
       aiRecommendation: 'ai_recommendation_count'
@@ -198,7 +206,8 @@ const loadStocks = async (isAppend = false) => {
       sortMap[currentSort.value], 
       page.value, 
       pageSize, 
-      searchQuery.value
+      searchQuery.value,
+      currentSort.value === 'interested'
     )
     
     const newData = response.data || []

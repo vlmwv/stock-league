@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-[100] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
+  <header class="sticky top-0 z-[500] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
         <span class="text-white font-black text-xs leading-none">SL</span>
@@ -29,14 +29,18 @@
       </NuxtLink>
 
       <template v-if="user">
-        <UPopover :popper="{ placement: 'bottom-end', offsetDistance: 12 }" class="relative z-30">
+        <UPopover 
+          :popper="{ placement: 'bottom-end', offsetDistance: 12 }" 
+          :ui="{ popper: { zIndex: 'z-[9999]' } }"
+          class="relative z-30"
+        >
           <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
             <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300 group-hover:text-brand-primary transition-colors" />
             <span v-if="hasNewNotifications" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
           </button>
 
           <template #content>
-            <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-[110]">
+            <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-[9999]">
               <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
                 <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
                 <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/20 px-2 py-0.5 rounded-full border border-brand-primary/30">New</span>
@@ -79,12 +83,15 @@
           <div class="text-right hidden xs:block">
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
-          <UPopover :popper="{ placement: 'bottom-end' }">
+          <UPopover 
+            :popper="{ placement: 'bottom-end' }"
+            :ui="{ popper: { zIndex: 'z-[9999]' } }"
+          >
             <button class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden">
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>
-              <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[110]">
+              <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[9999]">
                 <div class="px-3 py-2 border-b border-slate-700/50 mb-1">
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>

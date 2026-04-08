@@ -834,7 +834,8 @@ export const useStock = () => {
     orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' = 'market_cap_rank',
     page = 1,
     pageSize = 10,
-    searchQuery = ''
+    searchQuery = '',
+    onlyHearted = false
   ) => {
     try {
       const from = (page - 1) * pageSize
@@ -848,6 +849,14 @@ export const useStock = () => {
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
         query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
+      }
+
+      if (onlyHearted) {
+        if (hearts.value.length > 0) {
+          query = query.in('id', hearts.value)
+        } else {
+          return { data: [], count: 0 }
+        }
       }
 
       const { data: stocksData, error: stocksError, count } = await query
@@ -866,6 +875,14 @@ export const useStock = () => {
         if (searchQuery.trim()) {
           const q = searchQuery.trim()
           fallbackQuery = fallbackQuery.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
+        }
+
+        if (onlyHearted) {
+          if (hearts.value.length > 0) {
+            fallbackQuery = fallbackQuery.in('id', hearts.value)
+          } else {
+            return { data: [], count: 0 }
+          }
         }
 
         const fallbackOrderBy = orderBy === 'market_cap_rank' ? 'market_cap_rank' : 'market_cap_rank'

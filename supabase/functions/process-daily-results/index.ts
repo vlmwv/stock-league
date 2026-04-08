@@ -48,47 +48,24 @@ Deno.serve(async (req) => {
       })
     }
 
-    console.log(`Found ${dailyStocks.length} daily stocks for today. Fetching real-time prices from Naver...`)
-
-    // 2. 네이버 API를 통해 현재 시가 가져오기
-    const codes = dailyStocks.map((ds: any) => ds.stocks.code).join(',')
-    const naverApiUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${codes}`
-    
-    const response = await fetch(naverApiUrl)
-    if (!response.ok) {
-      throw new Error(`Naver API responded with status: ${response.status}`)
-    }
-
-    const responseData = await response.json()
-    
-    if (!responseData.datas || responseData.datas.length === 0) {
-      throw new Error('No data returned from Naver API')
-    }
-
+    // 2. 이미 update-krx-top-100 / update-naver-stocks를 통해 갱신된 
+    //    stocks의 change_amount를 바로 사용하여 승패를 판정합니다. (Naver API 연동 제거)
     let processedCount = 0;
 
-    for (const data of responseData.datas) {
-      const code = data.itemCode;
-      const last_price = parseInt(data.closePriceRaw, 10);
-      const change_amount = parseInt(data.compareToPreviousClosePriceRaw, 10);
-      const change_rate = parseFloat(data.fluctuationsRatioRaw);
-      const updated_at = new Date().toISOString();
+    for (const dailyStock of dailyStocks) {
+      if (!dailyStock.stocks) continue;
 
-      const dailyStock = dailyStocks.find((ds: any) => ds.stocks.code === code);
-      if (!dailyStock) continue;
-
+      const code = dailyStock.stocks.code;
+      const change_amount = dailyStock.stocks.change_amount || 0;
       const stock_id = dailyStock.stock_id;
 
       let resultOutcome = 'draw';
       if (change_amount > 0) resultOutcome = 'up';
       else if (change_amount < 0) resultOutcome = 'down';
 
-      // 3. stocks 테이블 업데이트 및 stock_price_history 삽입
+      // 3. stocks 테이블 업데이트 (AI 예측 성공 여부 추가 기록 등)
+      //    (현재가/변화량은 이미 이전 배치에서 업데이트 되었으므로 제외)
       const updateData: any = {
-        last_price,
-        change_amount,
-        change_rate,
-        updated_at,
         ai_processed_count: (dailyStock.stocks.ai_processed_count || 0) + 1
       };
 
@@ -97,25 +74,10 @@ Deno.serve(async (req) => {
       }
 
       const { error: updateError } = await supabase.from('stocks').update(updateData).eq('id', stock_id);
-       if (updateError) {
+      if (updateError) {
         console.error(`Error updating stocks for ${code}:`, updateError.message);
       } else {
-        console.log(`Successfully updated stock price for ${code}`);
-      }
-
-      // (선택) stock_price_history에 기록 (upsert 방식으로 당일 데이터 중복 방지)
-      const { error: historyError } = await supabase.from('stock_price_history').upsert({
-        stock_id,
-        price_date: dailyStock.game_date,
-        close_price: last_price,
-        change_amount,
-        change_rate
-      }, { onConflict: 'stock_id, price_date' });
-
-      if (historyError) {
-        console.error(`Error upserting stock_price_history for ${code}:`, historyError.message);
-      } else {
-        console.log(`Successfully saved stock_price_history for ${code}`);
+        console.log(`Successfully updated AI processed stats for ${code}`);
       }
 
       // 4. predictions(유저 예측 내역) 결과 처리
