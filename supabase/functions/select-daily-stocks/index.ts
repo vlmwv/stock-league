@@ -10,84 +10,66 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
  * Gemini를 사용하여 종목 요약 및 추천 점수 산출
  */
 async function analyzeStockWithGemini(newsItems: any[], disclosureItems: any[], stockName: string, sector: string): Promise<{ summary: string, score: number }> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is not set')
-  }
+  if (!GEMINI_API_KEY) return { summary: '환경 변수(GEMINI_API_KEY)가 설정되지 않았습니다.', score: 50 }
 
-  let prompt = `당신은 주식 예측 게임의 전문가이자 전문 퀀트 분석가입니다. 
-다음 제공되는 '${stockName}'(${sector || '기타'} 섹터) 관련 뉴스 및 공시 정보를 분석하여, **익일(다음 영업일) 주가 상승 가능성**을 평가하고 요약해 주세요.
+  const newsSummary = newsItems.length > 0 
+    ? newsItems.map(item => `- ${item.tit}`).join('\n')
+    : '최근 주요 뉴스 없음'
+  
+  const disclosureSummary = disclosureItems.length > 0
+    ? disclosureItems.map(item => `- ${item.title}`).join('\n')
+    : '최근 공시 없음'
 
-[분석 지표]
-1. 수익 실질 영향도: 해당 이슈가 기업 수익성에 즉각적이고 긍정적인 영향을 미치는가?
-2. 신규성: 이미 시장에 알려진 내용인가, 아니면 새로운 호재인가?
-3. 기술적/테마 모멘텀: 거래량 급등이나 강력한 테마 형성이 동반되는가?
+  const prompt = `주식 ${stockName} (${sector || '일반'})의 최근 뉴스/공시입니다.
+  
+[최근 뉴스]
+${newsSummary}
 
-[응답 지침]
-1. 요약(summary): 핵심 이슈를 **딱 1문장(50자 내외)**으로 짧고 강렬하게 작성하세요. 종목명은 생략하고 마침표(.)로 끝내세요.
-2. 점수(score): 0점에서 100점 사이의 정수로 산출하세요. (100점에 가까울수록 강력한 상승 시그널)
-3. 반드시 아래 JSON 형식으로만 응답하세요:
+[최근 공시]
+${disclosureSummary}
+
+위 정보를 바탕으로 다음 영업일 주가 상승 모멘텀을 분석해 주세요.
+반드시 아래 JSON 형식으로만 응답하세요.
 {
-  "summary": "분석 요약 문장.",
-  "score": 85
-}
+  "summary": "핵심 이슈 한 줄 요약 (50자 이내).",
+  "score": 0~100 사이의 점수
+}`
 
-`
-  
-  if (newsItems && newsItems.length > 0) {
-    prompt += `[최근 뉴스]\n`
-    newsItems.slice(0, 3).forEach((n: any) => {
-      prompt += `- ${n.tit}\n`
-    })
-  }
-
-  if (disclosureItems && disclosureItems.length > 0) {
-    prompt += `\n[최근 공시]\n`
-    disclosureItems.slice(0, 2).forEach((d: any) => {
-      prompt += `- ${d.title}\n`
-    })
-  }
-
-  if (!newsItems.length && !disclosureItems.length) {
-    prompt += `\n(특이 뉴스나 공시가 적은 상태입니다. 섹터의 업황과 일반적인 시장 기대치를 반영하여 보수적으로 평가해 주세요.)\n`
-  }
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 200,
-        response_mime_type: "application/json"
-      }
-    })
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Gemini API failed: ${response.status} - ${errorText}`)
-  }
-
-  const data = await response.json()
-  let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'
-  
-  // Markdown ```json ... ``` wrapper 제거 고도화
-  resultText = resultText.replace(/```json\n?|```/g, '').trim()
-  
   try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 200,
+          response_mime_type: "application/json"
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Gemini API Error (${response.status}):`, errorText)
+      return { summary: '최근 주요 뉴스 및 공시 내용을 분석 중입니다.', score: 50 }
+    }
+
+    const data = await response.json()
+    let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'
+    
+    // JSON 추출
+    const jsonMatch = resultText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) resultText = jsonMatch[0]
+    
     const parsed = JSON.parse(resultText)
     return {
-      summary: parsed.summary || '종목의 최근 이슈를 분석 중입니다.',
+      summary: parsed.summary || '종목의 최근 모멘텀을 분석 중입니다.',
       score: typeof parsed.score === 'number' ? parsed.score : 50
     }
-  } catch (e) {
-    console.error('Gemini JSON Parse Error. Raw Text:', resultText)
-    // 파싱 조차 실패할 경우, 최소한의 텍스트가 있다면 그것이라도 사용 시도
-    if (resultText && resultText.length > 10) {
-       return { summary: resultText.substring(0, 100), score: 50}
-    }
-    return { summary: '최근 뉴스를 분석하여 주가 모멘텀을 산출 중입니다.', score: 50 }
+  } catch (err) {
+    console.error('Gemini Analysis Exception:', err)
+    return { summary: '섹터 업황 및 최근 뉴스를 종합적으로 분석 중입니다.', score: 50 }
   }
 }
 
@@ -181,10 +163,13 @@ Deno.serve(async (req: any) => {
 
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
-    const scoredStocks = []
+    const scoredStocks: any[] = []
+    const limit = 10 // 분석 종목 수 축소 (안정성 우선)
 
-    // 한 번에 너무 많은 API 요청을 보내지 않기 위해 순차 또는 소규모 병렬 처리
-    for (const stock of allStocks.slice(0, 30)) { // 최대 30개 분석
+    const stocksToAnalyze = allStocks.slice(0, limit)
+    
+    for (const stock of stocksToAnalyze) {
+      console.log(`Analyzing ${stock.name}...`)
       try {
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
         const discUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
@@ -194,8 +179,8 @@ Deno.serve(async (req: any) => {
 
         try {
           const [newsRes, discRes] = await Promise.all([
-            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3000) }),
-            fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3000) })
+            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) }),
+            fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
           ])
           if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
           if (discRes.ok) disclosureItems = (await discRes.json()) || []
@@ -203,6 +188,9 @@ Deno.serve(async (req: any) => {
 
         const { summary, score } = await analyzeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
         scoredStocks.push({ ...stock, summary, score })
+        
+        // Rate Limit(free tier) 준수를 위한 지연 (1초)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
       } catch (err: any) {
         console.warn(`Failed to analyze ${stock.name}:`, err.message)

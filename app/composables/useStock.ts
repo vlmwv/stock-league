@@ -326,6 +326,13 @@ export const useStock = () => {
   const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
   const isGuideOpen = useState<boolean>('isGuideOpen', () => false)
   
+  // 참여 완료 여부 (현재 활성화된 리그 기준)
+  const allPredicted = computed(() => {
+    if (!dailyStocks.value || dailyStocks.value.length === 0) return false
+    // myPredictions가 현재 표시된 종목들을 모두 포함하는지 확인
+    return dailyStocks.value.every(s => myPredictions.value.some(p => p.stockId === s.id))
+  })
+
   // 4. League Status (Closed after 08:00 KST, Open after 21:20 KST)
   const isLeagueOpen = computed(() => {
     const { hour, timeVal: currentTimeVal } = kstTime.value
@@ -400,6 +407,16 @@ export const useStock = () => {
         result: p.result
       }))
     }
+  }
+
+  const refreshAll = async () => {
+    await refresh()
+    const targetDate = dailyStocks.value?.[0]?.game_date
+    await Promise.all([
+      fetchPredictions(targetDate),
+      fetchParticipantCount(targetDate),
+      fetchWishlist()
+    ])
   }
 
   const fetchParticipantCount = async (date?: string) => {
@@ -836,12 +853,18 @@ export const useStock = () => {
       return []
     }
 
-    // 리그 종목인 것만 필터링 (result가 pending인데 game_date가 과거인 경우는 제외하는 방식 또는 daily_stocks 존재 여부 확인)
-    // 여기서는 간단하게 pending이면서 과거 날짜인 것은 제외하고 보여줌 (사용자 피드백 반영)
+    // 리그 종목인 것만 필터링 (사용자 피드백 반영)
+    // 1. result가 pending인데 game_date가 과거인 경우 제외
+    // 2. 오늘 날짜(game_date === today)인데 결과 발표 시간(20:30)이 지났는데도 pending인 경우 제외 (리그 종목이라면 결과가 나왔어야 함)
     const today = getKstDate()
+    const { timeVal } = getKstHourMinute()
+    
     return (data || [])
       .filter((p: any) => {
-        if (p.result === 'pending' && p.game_date < today) return false
+        if (p.result === 'pending') {
+          if (p.game_date < today) return false
+          if (p.game_date === today && timeVal >= 2030) return false
+        }
         return true
       })
       .map((p: any) => ({
@@ -1094,6 +1117,11 @@ export const useStock = () => {
     isLeagueOpen,
     isResultPublished,
     isGuideOpen,
+    allPredicted,
+    refreshAll,
+    isHearted: (id: number) => hearts.value.includes(Number(id)),
+    getPrediction: (id: number) => myPredictions.value.find(p => p.stockId === id) || null,
+    getPredictionValue: (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null,
     updateProfile
   }
 }

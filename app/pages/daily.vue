@@ -52,18 +52,18 @@
 
           <div class="flex justify-between items-start mb-4">
             <div class="flex-1">
-              <div class="flex items-center gap-3 mb-1">
+              <div class="flex items-center gap-2 mb-1">
                 <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                 
-                <!-- AI Stats (Vertical Boxes) -->
-                <div v-if="stock.ai_recommendation_count > 0" class="flex flex-col items-center justify-center min-w-[36px] px-2 py-1 rounded-xl bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-colors">
+                <!-- AI Stats (Compact Iconic Badges) -->
+                <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-all">
                   <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5 text-orange-400" />
-                  <span class="text-[8px] font-black text-orange-400 leading-none mt-0.5">{{ stock.ai_recommendation_count }}회</span>
+                  <span class="text-[10px] font-black text-orange-400 leading-none">{{ stock.ai_recommendation_count }}</span>
                 </div>
                 
                 <div 
                   v-if="stock.ai_score" 
-                  class="flex flex-col items-center justify-center min-w-[36px] px-2 py-1 rounded-xl border transition-colors shadow-sm"
+                  class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border transition-all shadow-sm"
                   :class="[
                     stock.ai_score > 55 ? 'bg-rose-400/10 border-rose-400/20 text-rose-400 group-hover:bg-rose-400/20' : 
                     stock.ai_score < 45 ? 'bg-indigo-400/10 border-indigo-400/20 text-indigo-400 group-hover:bg-indigo-400/20' : 
@@ -71,7 +71,7 @@
                   ]"
                 >
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
-                  <span class="text-[8px] font-black leading-none mt-0.5">{{ stock.ai_score }}점</span>
+                  <span class="text-[10px] font-black leading-none">{{ stock.ai_score }}</span>
                 </div>
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
@@ -199,7 +199,7 @@
 </template>
 
 <script setup lang="ts">
-const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished } = useStock()
+const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished, allPredicted, isHearted, getPrediction, getPredictionValue } = useStock()
 
 const getKstDate = () => {
   const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
@@ -240,9 +240,9 @@ const statusMessage = computed(() => {
       return '오늘의 5종목을 예측해 보세요.'
     } else {
       if (timeVal >= 2120) {
-        return '내일의 리그 종목을 준비 중입니다. 잠시만 기다려 주세요.'
+        return allPredicted.value ? '내일 리그 응모를 완료했습니다! 결과 발표를 기다려 주세요.' : '내일의 리그 종목을 준비 중입니다. 잠시만 기다려 주세요.'
       }
-      return '오늘의 예측이 마감되었습니다. 다음 종목 응모는 21시 20분부터 진행할 수 있습니다.'
+      return allPredicted.value ? '오늘의 예측을 완료했습니다! 결과 발표를 기다려 주세요.' : '오늘의 예측이 마감되었습니다. 다음 종목 응모는 21시 20분부터 진행할 수 있습니다.'
     }
   } else {
     return '해당 날짜의 리그가 종료되었습니다.'
@@ -252,15 +252,6 @@ const isGuideOpen = ref(false)
 const isResultOpen = ref(false)
 const selectedStockName = ref('')
 const selectedPrediction = ref<'up' | 'down' | null>(null)
-
-const isHearted = (id: number) => hearts.value.includes(Number(id))
-const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id) || null
-const getPredictionValue = (id: number) => getPrediction(id)?.prediction || null
-
-const allPredicted = computed(() => {
-  if (!dailyStocks.value || dailyStocks.value.length === 0) return false
-  return dailyStocks.value.every(s => myPredictions.value.some(p => p.stockId === s.id))
-})
 
 const onPredict = async (id: number, prediction: 'up' | 'down') => {
   if (!isLeagueOpen.value) return
