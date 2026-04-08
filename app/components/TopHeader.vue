@@ -11,12 +11,14 @@
 
     <div class="flex items-center gap-3">
       <button 
-        @click="$emit('openGuide')"
+        @click="isGuideOpen = true"
         class="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95"
         title="가이드 보기"
       >
         <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
       </button>
+
+      <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
 
       <!-- Admin Dashboard Link (Only for Admins) -->
       <NuxtLink 
@@ -51,12 +53,13 @@
                   <div 
                     v-for="news in recommendedStocks.slice(0, 5)" 
                     :key="news.id"
+                    @click="navigateTo('/stocks/' + news.id)"
                     class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
                   >
                     <div class="flex flex-col gap-1">
                       <div class="flex justify-between items-start gap-2">
                         <span class="text-[10px] font-black text-brand-primary uppercase tracking-tight">{{ news.name }}</span>
-                        <span class="text-[10px] text-slate-500 font-medium">방금 전</span>
+                        <span class="text-[10px] text-slate-500 font-medium">실시간</span>
                       </div>
                       <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
                         {{ news.summary }}
@@ -68,12 +71,6 @@
                   <UIcon name="i-heroicons-bell-slash" class="w-8 h-8 text-slate-700 mx-auto mb-2" />
                   <p class="text-xs text-slate-500 font-medium">새로운 소식이 없습니다.</p>
                 </div>
-              </div>
-
-              <div class="p-2 bg-slate-900/50 border-t border-white/5">
-                <button class="w-full py-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors">
-                  모든 알림 보기
-                </button>
               </div>
             </div>
           </template>

@@ -409,6 +409,11 @@ export const useStock = () => {
       }
     }
 
+    if (!targetDate) {
+      participantCount.value = 0
+      return
+    }
+
     console.log(`[useStock] Fetching participant count for date: ${targetDate}`)
     
     // 1. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
@@ -420,6 +425,9 @@ export const useStock = () => {
     if (!error && data) {
       const uniqueUsers = new Set(data.map((p: any) => p.user_id)).size
       participantCount.value = uniqueUsers
+    } else {
+      // 에러가 발생했거나 데이터가 없는 경우 초기화
+      participantCount.value = 0
     }
 
     // 2. 전체 회원 수 (total profiles count)

@@ -84,7 +84,7 @@
               <h3 class="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
                 AI 추천 종목
                 <span v-if="globalAiStats.totalProcessed > 0" class="text-[9px] font-black text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full border border-blue-400/10 backdrop-blur-sm animate-fade-in whitespace-nowrap leading-none">
-                  총 {{ globalAiStats.totalProcessed }}종목 추천 / {{ globalAiStats.totalWins }}종목 적중
+                  총 {{ globalAiStats.totalProcessed }}개 중 {{ globalAiStats.totalWins }}개 적중 ({{ Math.round((globalAiStats.totalWins / globalAiStats.totalProcessed) * 100) }}%)
                 </span>
               </h3>
             </div>
