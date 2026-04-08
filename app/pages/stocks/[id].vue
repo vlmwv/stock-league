@@ -65,14 +65,23 @@
         </section>
 
         <!-- 정보 카드들 -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="glass-dark rounded-3xl p-5 border border-white/5">
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">시가총액 순위</p>
-            <p class="text-xl font-black text-slate-200">{{ stock.market_cap_rank || '-' }}위</p>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">시총 순위</p>
+            <p class="text-lg font-black text-slate-200">{{ stock.market_cap_rank || '-' }}위</p>
           </div>
-          <div class="glass-dark rounded-3xl p-5 border border-white/5">
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">찜한 사용자</p>
-            <p class="text-xl font-black text-slate-200">{{ stock.wishlist_count || 0 }}명</p>
+          <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">찜한 사용자</p>
+            <p class="text-lg font-black text-slate-200">{{ stock.wishlist_count || 0 }}명</p>
+          </div>
+          <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em]">AI 추천</p>
+              <span v-if="stock.ai_processed_count > 0" class="text-[9px] font-black text-blue-400 bg-blue-400/10 px-1 py-0.5 rounded-md">
+                {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%
+              </span>
+            </div>
+            <p class="text-lg font-black text-slate-200">{{ stock.ai_recommendation_count || 0 }}회</p>
           </div>
         </div>
 

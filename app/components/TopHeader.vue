@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-[60] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
+  <header class="sticky top-0 z-[100] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
         <span class="text-white font-black text-xs leading-none">SL</span>
@@ -29,14 +29,14 @@
       </NuxtLink>
 
       <template v-if="user">
-        <UPopover :popper="{ placement: 'bottom-end', offsetDistance: 12 }">
+        <UPopover :popper="{ placement: 'bottom-end', offsetDistance: 12 }" class="relative z-30">
           <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
             <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300 group-hover:text-brand-primary transition-colors" />
             <span v-if="hasNewNotifications" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
           </button>
 
           <template #content>
-            <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-[110]">
               <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
                 <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
                 <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/20 px-2 py-0.5 rounded-full border border-brand-primary/30">New</span>
@@ -75,7 +75,7 @@
           </template>
         </UPopover>
         
-        <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50">
+        <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50 relative z-20">
           <div class="text-right hidden xs:block">
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
@@ -84,13 +84,20 @@
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>
-              <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10">
+              <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[110]">
                 <div class="px-3 py-2 border-b border-slate-700/50 mb-1">
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
                 <button 
-                  @click.prevent.stop="handleLogout"
+                  @click.prevent="isProfileModalOpen = true"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-white/5 rounded-lg transition-all"
+                >
+                  <UIcon name="i-heroicons-user-circle" class="w-4 h-4" />
+                  프로필 수정
+                </button>
+                <button 
+                  @click.prevent="handleLogout"
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                 >
                   <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
@@ -110,6 +117,14 @@
         </NuxtLink>
       </template>
     </div>
+
+    <!-- User Profile Modal -->
+    <UserProfileModal 
+      v-if="user"
+      v-model="isProfileModalOpen" 
+      :current-username="userStats?.username || user.user_metadata?.full_name"
+      @success="onProfileUpdate"
+    />
   </header>
 </template>
 
@@ -117,6 +132,8 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isScrolled = ref(false)
+const isProfileModalOpen = ref(false)
+const userStats = ref<any>(null)
 
 defineEmits(['openGuide'])
 
@@ -127,20 +144,24 @@ const role = ref('user')
 const handleLogout = async () => {
   try {
     await supabase.auth.signOut()
-    await navigateTo('/login', { replace: true })
+    // window.location.href를 사용하여 확실하게 상태를 초기화하고 로그인 페이지로 이동
+    window.location.href = '/login'
   } catch (e) {
     console.error('Logout error:', e)
-    // Fallback for extreme cases
     window.location.href = '/login'
   }
+}
+
+const onProfileUpdate = async () => {
+  userStats.value = await fetchUserStats()
 }
 
 onMounted(async () => {
   await refreshRecommended()
   
   if (user.value) {
-    const stats = await fetchUserStats()
-    if (stats) role.value = stats.role
+    userStats.value = await fetchUserStats()
+    if (userStats.value) role.value = userStats.value.role
   }
 
   window.addEventListener('scroll', () => {

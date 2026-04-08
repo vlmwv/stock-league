@@ -101,6 +101,15 @@
                   <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
                   {{ stock.win_count ?? 0 }}
                 </span>
+                <div v-else-if="currentSort === 'aiRecommendation'" class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-600 flex items-center gap-0.5">
+                    <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400/60" />
+                    {{ stock.ai_recommendation_count ?? 0 }}회
+                  </span>
+                  <span v-if="stock.ai_processed_count > 0" class="text-[9px] font-black text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-md border border-blue-400/10 scale-90 origin-left">
+                    {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%
+                  </span>
+                </div>
               </div>
             </div>
 

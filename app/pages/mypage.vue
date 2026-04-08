@@ -76,7 +76,7 @@
       <!-- Prediction History Header -->
       <div class="px-2 mb-6 flex justify-between items-center">
         <h3 class="text-xl font-black text-slate-200 tracking-tight">최근 예측 기록</h3>
-        <button class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">전체 보기</button>
+        <NuxtLink to="/history" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">전체 보기</NuxtLink>
       </div>
 
       <!-- History List -->
@@ -134,29 +134,11 @@
     <BottomNav />
 
     <!-- Edit Profile Modal -->
-    <UModal v-model:open="isEditModalOpen">
-      <UCard class="bg-slate-900/90 border-white/10 ring-1 ring-white/10 backdrop-blur-xl">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-black text-white">프로필 수정</h3>
-            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isEditModalOpen = false" />
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <UFormGroup label="닉네임" name="username">
-            <UInput v-model="newUsername" placeholder="새 닉네임을 입력하세요" color="neutral" variant="outline" size="lg" />
-          </UFormGroup>
-        </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton color="neutral" variant="ghost" @click="isEditModalOpen = false">취소</UButton>
-            <UButton color="primary" :loading="updating" @click="handleUpdateProfile">저장하기</UButton>
-          </div>
-        </template>
-      </UCard>
-    </UModal>
+    <UserProfileModal 
+      v-model="isEditModalOpen" 
+      :current-username="stats?.username || user?.user_metadata?.full_name"
+      @success="onProfileUpdate"
+    />
   </div>
 </template>
 
@@ -165,46 +147,20 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist, updateProfile } = useStock()
+const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist } = useStock()
 const user = useSupabaseUser()
-const toast = useToast()
 
 const stats = ref<any>(null)
 const history = ref<any[]>([])
 const loading = ref(true)
-const updating = ref(false)
 const isEditModalOpen = ref(false)
-const newUsername = ref('')
 
 const openEditModal = () => {
-  newUsername.value = stats.value?.username || user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0] || ''
   isEditModalOpen.value = true
 }
 
-const handleUpdateProfile = async () => {
-  if (!newUsername.value.trim()) return
-  
-  updating.value = true
-  const result = await updateProfile(newUsername.value.trim())
-  
-  if (result.success) {
-    stats.value = await fetchUserStats()
-    isEditModalOpen.value = false
-    toast.add({
-      title: '프로필 업데이트 성공!',
-      description: '닉네임이 성공적으로 변경되었습니다.',
-      color: 'primary',
-      icon: 'i-heroicons-check-circle'
-    })
-  } else {
-    toast.add({
-      title: '프로필 업데이트 실패',
-      description: result.message || '오류가 발생했습니다.',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
-  }
-  updating.value = false
+const onProfileUpdate = async () => {
+  stats.value = await fetchUserStats()
 }
 
 onMounted(async () => {

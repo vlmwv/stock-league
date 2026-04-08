@@ -13,6 +13,8 @@ interface Stock {
   wishlist_count?: number
   win_count?: number
   ai_recommendation_count?: number
+  ai_win_count?: number
+  ai_processed_count?: number
   ai_score?: number
 }
 
@@ -118,7 +120,9 @@ export const useStock = () => {
           last_price,
           change_amount,
           change_rate,
-          ai_recommendation_count
+          ai_recommendation_count,
+          ai_win_count,
+          ai_processed_count
         )
       `)
       .eq('game_date', targetDate as any)
@@ -147,7 +151,10 @@ export const useStock = () => {
               name,
               last_price,
               change_amount,
-              change_rate
+              change_rate,
+              ai_recommendation_count,
+              ai_win_count,
+              ai_processed_count
             ),
             ai_score
           `)
@@ -175,6 +182,8 @@ export const useStock = () => {
       change_amount: ds.stocks.change_amount || 0,
       change_rate: ds.stocks.change_rate || 0,
       ai_recommendation_count: ds.stocks.ai_recommendation_count || 0,
+      ai_win_count: ds.stocks.ai_win_count || 0,
+      ai_processed_count: ds.stocks.ai_processed_count || 0,
       ai_score: ds.ai_score || 0,
       summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
@@ -197,7 +206,9 @@ export const useStock = () => {
           last_price,
           change_amount,
           change_rate,
-          ai_recommendation_count
+          ai_recommendation_count,
+          ai_win_count,
+          ai_processed_count
         )
       `)
       .eq('game_date', today as any)
@@ -213,6 +224,8 @@ export const useStock = () => {
         change_amount: d.stocks.change_amount || 0,
         change_rate: d.stocks.change_rate || 0,
         ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
+        ai_win_count: d.stocks.ai_win_count || 0,
+        ai_processed_count: d.stocks.ai_processed_count || 0,
         ai_score: d.ai_score || 0,
         summary: decodeHtmlEntities(d.llm_summary)
       }))
@@ -231,7 +244,9 @@ export const useStock = () => {
           last_price,
           change_amount,
           change_rate,
-          ai_recommendation_count
+          ai_recommendation_count,
+          ai_win_count,
+          ai_processed_count
         )
       `)
       .order('published_at', { ascending: false })
@@ -246,6 +261,8 @@ export const useStock = () => {
       change_amount: n.stocks.change_amount || 0,
       change_rate: n.stocks.change_rate || 0,
       ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
+      ai_win_count: n.stocks.ai_win_count || 0,
+      ai_processed_count: n.stocks.ai_processed_count || 0,
       ai_score: n.ai_score || 0,
       summary: decodeHtmlEntities(n.llm_summary)
     }))
@@ -269,6 +286,8 @@ export const useStock = () => {
       change_rate: s.change_rate || 0,
       market_cap_rank: s.market_cap_rank,
       ai_recommendation_count: s.ai_recommendation_count || 0,
+      ai_win_count: s.ai_win_count || 0,
+      ai_processed_count: s.ai_processed_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
   })
@@ -369,14 +388,34 @@ export const useStock = () => {
     }
   }
 
-  const fetchParticipantCount = async () => {
-    const today = getKstDate()
+  const fetchParticipantCount = async (date?: string) => {
+    let targetDate = date
     
-    // 1. 오늘 참여자 수 (unique user_ids who made predictions today)
+    if (!targetDate) {
+      // dailyStocks 데이터가 있으면 그 날짜를 사용 (현재 화면에 보이는 종목 기준)
+      if (stocks.value && (stocks.value as any).length > 0) {
+        targetDate = (stocks.value as any)[0].game_date
+      } else {
+        // 데이터가 아직 로드 전이라면 현재 시간 기준 활성 게임 날짜 계산
+        const today = getKstDate()
+        const { hour, minute } = getKstHourMinute()
+        if (hour * 100 + minute >= 2120) {
+          const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
+          const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+          targetDate = new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
+        } else {
+          targetDate = today
+        }
+      }
+    }
+
+    console.log(`[useStock] Fetching participant count for date: ${targetDate}`)
+    
+    // 1. 해당 날짜 참여자 수 (unique user_ids who made predictions for that game_date)
     const { data, error } = await client
       .from('predictions')
       .select('user_id')
-      .eq('game_date', today as any)
+      .eq('game_date', targetDate as any)
     
     if (!error && data) {
       const uniqueUsers = new Set(data.map((p: any) => p.user_id)).size
@@ -441,6 +480,8 @@ export const useStock = () => {
       change_amount: s.change_amount || 0,
       change_rate: s.change_rate || 0,
       ai_recommendation_count: s.ai_recommendation_count || 0,
+      ai_win_count: s.ai_win_count || 0,
+      ai_processed_count: s.ai_processed_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
   }, { watch: [hearts] })
@@ -586,6 +627,8 @@ export const useStock = () => {
         throw error
       }
       
+      // 참여자 수 갱신
+      await fetchParticipantCount(targetDate)
       return true
     } catch (err: any) {
       console.error('[useStock] Prediction failed:', err.message || err)
@@ -747,11 +790,11 @@ export const useStock = () => {
     return { success: true }
   }
 
-  const fetchUserHistory = async () => {
+  const fetchUserHistory = async (limit: number | null = 10) => {
     const userId = await resolveUserId()
     if (!userId) return []
 
-    const { data, error } = await client
+    let query = client
       .from('predictions')
       .select(`
         id,
@@ -766,7 +809,12 @@ export const useStock = () => {
       `)
       .eq('user_id', userId)
       .order('game_date', { ascending: false })
-      .limit(10)
+
+    if (limit !== null) {
+      query = query.limit(limit)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching history:', error)
@@ -797,7 +845,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -844,7 +892,9 @@ export const useStock = () => {
             summary: decodeHtmlEntities(s.summary || ''),
             wishlist_count: 0,
             win_count: 0,
-            ai_recommendation_count: 0
+            ai_recommendation_count: 0,
+            ai_win_count: 0,
+            ai_processed_count: 0
           })),
           count: fallbackCount || 0
         }
@@ -864,7 +914,9 @@ export const useStock = () => {
           summary: decodeHtmlEntities(s.summary || ''),
           wishlist_count: s.wishlist_count || 0,
           win_count: s.win_count || 0,
-          ai_recommendation_count: s.ai_recommendation_count || 0
+          ai_recommendation_count: s.ai_recommendation_count || 0,
+          ai_win_count: s.ai_win_count || 0,
+          ai_processed_count: s.ai_processed_count || 0
         })),
         count: count || 0
       }

@@ -168,6 +168,16 @@
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
                     {{ stock.ai_score }}점
                   </span>
+                  <!-- AI 추천 및 정답률 라벨 -->
+                  <div class="flex items-center gap-1 shrink-0">
+                    <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-md border border-orange-400/20">
+                      <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
+                      {{ stock.ai_recommendation_count }}회
+                    </span>
+                    <span v-if="stock.ai_processed_count > 0" class="flex items-center gap-1 text-[8px] font-black text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded-md border border-blue-400/20">
+                      정답률 {{ Math.round((stock.ai_win_count / stock.ai_processed_count) * 100) }}%
+                    </span>
+                  </div>
                   <!-- AI 요약 라벨 삭제됨 -->
                   
                   <!-- 스크롤되는 요약 텍스트 영역 (클릭 시 전체 보기) -->
@@ -381,7 +391,6 @@ onMounted(async () => {
     refresh(),
     fetchWishlist(),
     refreshMarketCap(),
-    fetchParticipantCount(),
     (async () => {
       const response = await fetchNews(5)
       recentNews.value = response.data || []
@@ -390,7 +399,10 @@ onMounted(async () => {
   
   // 종목 데이터가 로드된 후, 해당 종목들의 game_date를 기준으로 예측 데이터를 조회합니다.
   const targetDate = dailyStocks.value?.[0]?.game_date
-  await fetchPredictions(targetDate)
+  await Promise.all([
+    fetchPredictions(targetDate),
+    fetchParticipantCount(targetDate)
+  ])
 
   const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
   if (!hasSeenGuide) {

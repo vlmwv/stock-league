@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
     const { data: dailyStocks, error: fetchDailyError } = await supabase
       .from('daily_stocks')
-      .select('*, stocks:stock_id (code, name)')
+      .select('*, stocks:stock_id (code, name, ai_win_count, ai_processed_count)')
       .lte('game_date', currentDateStr)
       .in('status', ['pending', 'closing'])
 
@@ -84,14 +84,20 @@ Deno.serve(async (req) => {
       else if (change_amount < 0) resultOutcome = 'down';
 
       // 3. stocks 테이블 업데이트 및 stock_price_history 삽입
-      const { error: updateError } = await supabase.from('stocks').update({
+      const updateData: any = {
         last_price,
         change_amount,
         change_rate,
-        updated_at
-      }).eq('id', stock_id);
+        updated_at,
+        ai_processed_count: (dailyStock.stocks.ai_processed_count || 0) + 1
+      };
 
-      if (updateError) {
+      if (change_amount > 0) {
+        updateData.ai_win_count = (dailyStock.stocks.ai_win_count || 0) + 1;
+      }
+
+      const { error: updateError } = await supabase.from('stocks').update(updateData).eq('id', stock_id);
+       if (updateError) {
         console.error(`Error updating stocks for ${code}:`, updateError.message);
       } else {
         console.log(`Successfully updated stock price for ${code}`);
