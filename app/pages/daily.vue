@@ -52,25 +52,27 @@
 
           <div class="flex justify-between items-start mb-4">
             <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
+              <div class="flex items-center gap-3 mb-1">
                 <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
-                <span class="text-[10px] font-bold text-brand-primary uppercase tracking-widest bg-brand-primary/5 px-2 py-0.5 rounded-md">Trending</span>
-                <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 text-[10px] font-black text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-md border border-orange-400/20">
-                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
-                  추천 {{ stock.ai_recommendation_count }}회
-                </span>
-                <span 
+                
+                <!-- AI Stats (Vertical Boxes) -->
+                <div v-if="stock.ai_recommendation_count > 0" class="flex flex-col items-center justify-center min-w-[36px] px-2 py-1 rounded-xl bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-colors">
+                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5 text-orange-400" />
+                  <span class="text-[8px] font-black text-orange-400 leading-none mt-0.5">{{ stock.ai_recommendation_count }}회</span>
+                </div>
+                
+                <div 
                   v-if="stock.ai_score" 
-                  class="flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-md border shadow-sm"
+                  class="flex flex-col items-center justify-center min-w-[36px] px-2 py-1 rounded-xl border transition-colors shadow-sm"
                   :class="[
-                    stock.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 
-                    stock.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' : 
-                    'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                    stock.ai_score > 55 ? 'bg-rose-400/10 border-rose-400/20 text-rose-400 group-hover:bg-rose-400/20' : 
+                    stock.ai_score < 45 ? 'bg-indigo-400/10 border-indigo-400/20 text-indigo-400 group-hover:bg-indigo-400/20' : 
+                    'bg-emerald-400/10 border-emerald-400/20 text-emerald-400 group-hover:bg-emerald-400/20'
                   ]"
                 >
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
-                  AI 점수 {{ stock.ai_score }}점
-                </span>
+                  <span class="text-[8px] font-black leading-none mt-0.5">{{ stock.ai_score }}점</span>
+                </div>
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
             </div>
