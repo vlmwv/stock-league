@@ -790,11 +790,14 @@ export const useStock = () => {
     return { success: true }
   }
 
-  const fetchUserHistory = async (limit: number | null = 10) => {
+  const fetchUserHistory = async (page = 1, pageSize = 20) => {
     const userId = await resolveUserId()
     if (!userId) return []
 
-    let query = client
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    const { data, error } = await client
       .from('predictions')
       .select(`
         id,
@@ -809,12 +812,7 @@ export const useStock = () => {
       `)
       .eq('user_id', userId)
       .order('game_date', { ascending: false })
-
-    if (limit !== null) {
-      query = query.limit(limit)
-    }
-
-    const { data, error } = await query
+      .range(from, to)
 
     if (error) {
       console.error('Error fetching history:', error)

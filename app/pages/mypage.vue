@@ -166,7 +166,7 @@ const onProfileUpdate = async () => {
 onMounted(async () => {
   const [statsData, historyData] = await Promise.all([
     fetchUserStats(),
-    fetchUserHistory(),
+    fetchUserHistory(1, 10),
     fetchWishlist()
   ])
   stats.value = statsData

@@ -82,6 +82,11 @@
                </p>
             </div>
           </div>
+
+          <!-- Infinite Scroll Trigger -->
+          <div ref="loadMoreTrigger" class="h-10 flex items-center justify-center mt-4">
+            <div v-if="moreLoading" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+          </div>
         </div>
       </div>
     </main>
@@ -99,10 +104,49 @@ const router = useRouter()
 const { fetchUserHistory } = useStock()
 const history = ref<any[]>([])
 const loading = ref(true)
+const moreLoading = ref(false)
+const page = ref(1)
+const hasMore = ref(true)
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+
+const loadHistory = async (isInitial = false) => {
+  if (isInitial) {
+    loading.value = true
+  } else {
+    moreLoading.value = true
+  }
+
+  const newData = await fetchUserHistory(page.value, 20)
+  
+  if (newData.length < 20) {
+    hasMore.value = false
+  }
+
+  if (isInitial) {
+    history.value = newData
+    loading.value = false
+  } else {
+    history.value = [...history.value, ...newData]
+    moreLoading.value = false
+  }
+}
 
 onMounted(async () => {
-  // Fetch all history (no limit)
-  history.value = await fetchUserHistory(null)
-  loading.value = false
+  await loadHistory(true)
+
+  // Infinite Scroll with Intersection Observer
+  if (process.client) {
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      if (entry && entry.isIntersecting && !moreLoading.value && hasMore.value) {
+        page.value++
+        loadHistory()
+      }
+    }, { threshold: 0.1 })
+
+    if (loadMoreTrigger.value) {
+      observer.observe(loadMoreTrigger.value)
+    }
+  }
 })
 </script>
