@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen bg-bg-deep pb-32 overflow-x-clip selection:bg-brand-primary/30">
-    <TopHeader @open-guide="isGuideOpen = true" />
-    <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
+    <TopHeader />
  
     <main class="max-w-md mx-auto">
       <!-- Hero Section (Premium Gradient) -->
@@ -322,8 +321,7 @@
  
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchGlobalAiStats, isLeagueOpen, isResultPublished } = useStock()
-const isGuideOpen = ref(false)
+const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchGlobalAiStats, isLeagueOpen, isResultPublished, isGuideOpen } = useStock()
 const recentNews = ref<any[]>([])
 const globalAiStats = ref({ totalWins: 0, totalProcessed: 0 })
 

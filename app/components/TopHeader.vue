@@ -18,8 +18,6 @@
         <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
       </button>
 
-      <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
-
       <!-- Admin Dashboard Link (Only for Admins) -->
       <NuxtLink 
         v-if="user && role === 'admin'"
@@ -123,9 +121,8 @@ const supabase = useSupabaseClient()
 const isScrolled = ref(false)
 const userStats = ref<any>(null)
 
-defineEmits(['openGuide'])
 
-const { recommendedStocks, refreshRecommended, fetchUserStats } = useStock()
+const { recommendedStocks, refreshRecommended, fetchUserStats, isGuideOpen } = useStock()
 const hasNewNotifications = computed(() => recommendedStocks.value && recommendedStocks.value.length > 0)
 const role = ref('user')
 

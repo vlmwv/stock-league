@@ -4,11 +4,13 @@
       <NuxtPage />
     </NuxtLayout>
     <KakaoBrowserGuide />
+    <LeagueGuide :is-open="isGuideOpen" @close="isGuideOpen = false" />
   </UApp>
 </template>
 
 <script setup lang="ts">
 // Global functionality can be added here
+const { isGuideOpen } = useStock()
 useSeoMeta({
   title: '주식 예측 리그',
   ogTitle: '주식 예측 리그',
