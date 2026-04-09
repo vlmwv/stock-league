@@ -1,18 +1,18 @@
 <template>
   <header class="sticky top-0 z-[500] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
+    <div class="flex items-center gap-1.5">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20 flex-shrink-0">
         <span class="text-white font-black text-xs leading-none">SL</span>
       </div>
       <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent tracking-tight truncate max-w-[150px] sm:max-w-none">
-        주식 예측 리그
+        주식예측게임
       </h1>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-1.5 sm:gap-3">
       <button 
         @click="isGuideOpen = true"
-        class="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95"
+        class="p-1.5 sm:p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95 flex-shrink-0"
         title="가이드 보기"
       >
         <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
@@ -22,7 +22,7 @@
       <NuxtLink 
         v-if="user && role === 'admin'"
         to="/admin"
-        class="p-2 rounded-xl bg-brand-primary/10 hover:bg-brand-primary/20 transition-all border border-brand-primary/30 active:scale-95 group"
+        class="p-1.5 sm:p-2 rounded-xl bg-brand-primary/10 hover:bg-brand-primary/20 transition-all border border-brand-primary/30 active:scale-95 group flex-shrink-0"
         title="관리자 대시보드"
       >
         <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-brand-primary group-hover:scale-110 transition-transform" />
@@ -35,9 +35,9 @@
           overlay
           class="relative z-30"
         >
-          <button class="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group">
+          <button class="relative p-1.5 sm:p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group flex-shrink-0">
             <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300 group-hover:text-brand-primary transition-colors" />
-            <span v-if="hasNewNotifications" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
+            <span v-if="hasNewNotifications" class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
           </button>
 
           <template #content>
@@ -75,8 +75,8 @@
           </template>
         </UPopover>
         
-        <div class="flex items-center gap-2 pl-2 border-l border-slate-700/50 relative z-20">
-          <div class="text-right hidden xs:block">
+        <div class="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-700/50 relative z-20">
+          <div class="text-right hidden sm:block">
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
           <UPopover 
@@ -84,7 +84,7 @@
             :ui="{ content: 'z-[9999]' }"
             overlay
           >
-            <button class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden">
+            <button class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden flex-shrink-0">
               <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
             </button>
             <template #content>

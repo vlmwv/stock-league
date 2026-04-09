@@ -7,9 +7,34 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 /**
+ * 시장 지수(KOSPI, KOSDAQ) 정보 수집
+ */
+async function fetchMarketIndices(): Promise<string> {
+  try {
+    const url = 'https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI,KOSDAQ'
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3000) })
+    if (!res.ok) return '시장 지수 정보를 가져올 수 없습니다.'
+    const data = await res.json()
+    const indices = data?.datas || []
+    return indices.map((idx: any) => 
+      `${idx.nm}: ${idx.clssv} (${idx.cr >= 0 ? '+' : ''}${idx.cr}%)`
+    ).join(', ')
+  } catch (e) {
+    return '시장 지수 정보가 제공되지 않았습니다.'
+  }
+}
+
+/**
  * Gemini를 사용하여 종목 요약 및 추천 점수 산출
  */
-async function analyzeStockWithGemini(newsItems: any[], disclosureItems: any[], stockName: string, sector: string): Promise<{ summary: string, score: number }> {
+async function analyzeStockWithGemini(
+  newsItems: any[], 
+  disclosureItems: any[], 
+  priceHistory: any[],
+  stockName: string, 
+  sector: string,
+  marketContext: string
+): Promise<{ summary: string, score: number }> {
   if (!GEMINI_API_KEY) return { summary: '환경 변수(GEMINI_API_KEY)가 설정되지 않았습니다.', score: 50 }
 
   const newsSummary = newsItems.length > 0 
@@ -20,19 +45,37 @@ async function analyzeStockWithGemini(newsItems: any[], disclosureItems: any[], 
     ? disclosureItems.map(item => `- ${item.title}`).join('\n')
     : '최근 공시 없음'
 
-  const prompt = `주식 ${stockName} (${sector || '일반'})의 최근 뉴스/공시입니다.
-  
-[최근 뉴스]
+  const priceSummary = priceHistory.length > 0
+    ? priceHistory.map((h: any) => `- ${h.price_date}: ${h.close_price}원 (${h.change_rate >= 0 ? '+' : ''}${h.change_rate}%)`).join('\n')
+    : '최근 시세 데이터 없음'
+
+  const prompt = `주식 전문 분석가로서 ${stockName} (${sector || '일반'}) 종목에 대해 다음 영업일의 주가 방향성을 분석해 주세요.
+
+[현재 시장 상황]
+${marketContext}
+
+[최근 7일 주가 흐름]
+${priceSummary}
+
+[최근 주요 뉴스]
 ${newsSummary}
 
-[최근 공시]
+[최근 주요 공시]
 ${disclosureSummary}
 
-위 정보를 바탕으로 다음 영업일 주가 상승 모멘텀을 분석해 주세요.
+분석 지침:
+1. **기술적 분석**: 최근 주가 흐름(상승/하락/횡보)과 변동성을 고려하여 단기적인 기술적 반등 또는 추세 지속 가능성을 평가하세요.
+2. **재료적 분석**: 뉴스 및 공시의 강도와 시장 영향력을 분석하세요. 최근 이슈가 주가에 이미 반영되었는지(선반영), 아니면 추가 상승 동력이 될 수 있는지 판단하세요.
+3. **종합 판단**: 위 정보를 종합하여 다음 영업일의 주가 상승 가능성을 0~100점 사이의 점수로 산출하세요.
+   - 80점 이상: 강력한 상승 모멘텀 보유
+   - 60~79점: 상승 가능성 높음 (완만한 상승 또는 기술적 반등)
+   - 40~59점: 중립 (뚜렷한 방향성 없음)
+   - 40점 미만: 하락 리스크 또는 조정 가능성 높음
+
 반드시 아래 JSON 형식으로만 응답하세요.
 {
-  "summary": "핵심 이슈 한 줄 요약 (50자 이내).",
-  "score": 0~100 사이의 점수
+  "summary": "기술적 분석과 호재/악재를 결합한 핵심 요약 (50자 이내)",
+  "score": 산출된 점수
 }`
 
   try {
@@ -82,8 +125,6 @@ async function fetchRankingStocks(category: string): Promise<string[]> {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
     if (!res.ok) return []
     const data = await res.json()
-    // data는 보통 { stocks: [...] } 또는 배열 형태일 수 있음. 
-    // 네이버 모바일 API 특성상 구조 확인 필요. 보통 items 아래에 있음.
     const items = data?.items || []
     return items.map((item: any) => item.cd).filter(Boolean)
   } catch (e: any) {
@@ -108,12 +149,13 @@ Deno.serve(async (req: any) => {
       .select()
       .single()
     
-    // 1. 후보 종목군 수집 (시총 상위 + 거래대금 상위 + 상승률 상위)
+    // 1. 후보 종목군 수집 (시총 상위 + 거래대금 상위 + 상승률 상위 + 시장 지수)
     console.log('Collecting candidate stocks...')
     
-    const [topTrading, topGainers] = await Promise.all([
+    const [topTrading, topGainers, marketContext] = await Promise.all([
       fetchRankingStocks('TOP_TRADING'),
-      fetchRankingStocks('TOP_GAIN')
+      fetchRankingStocks('TOP_GAIN'),
+      fetchMarketIndices()
     ])
 
     const { data: topMarketCapStocks } = await supabase
@@ -134,7 +176,7 @@ Deno.serve(async (req: any) => {
       .from('stocks')
       .select('id, code, name, sector')
       .in('code', Array.from(candidateCodes))
-      .limit(50) // 너무 많으면 API 부하가 크므로 제한
+      .limit(50) 
     
     if (fetchError) throw fetchError
     if (!allStocks || allStocks.length === 0) throw new Error('No stocks found in DB.')
@@ -164,7 +206,7 @@ Deno.serve(async (req: any) => {
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
     const scoredStocks: any[] = []
-    const limit = 10 // 분석 종목 수 축소 (안정성 우선)
+    const limit = 10 
 
     const stocksToAnalyze = allStocks.slice(0, limit)
     
@@ -176,8 +218,19 @@ Deno.serve(async (req: any) => {
         
         let newsItems = []
         let disclosureItems = []
+        let priceHistory: any[] = []
 
         try {
+          // 일주일치 시세 데이터 조회
+          const { data: history } = await supabase
+            .from('stock_price_history')
+            .select('price_date, close_price, change_rate')
+            .eq('stock_id', stock.id)
+            .order('price_date', { ascending: false })
+            .limit(7)
+          
+          priceHistory = history || []
+
           const [newsRes, discRes] = await Promise.all([
             fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) }),
             fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
@@ -186,7 +239,14 @@ Deno.serve(async (req: any) => {
           if (discRes.ok) disclosureItems = (await discRes.json()) || []
         } catch (e) { /* ignore fetch errors */ }
 
-        const { summary, score } = await analyzeStockWithGemini(newsItems, disclosureItems, stock.name, stock.sector)
+        const { summary, score } = await analyzeStockWithGemini(
+          newsItems, 
+          disclosureItems, 
+          priceHistory,
+          stock.name, 
+          stock.sector, 
+          marketContext
+        )
         scoredStocks.push({ ...stock, summary, score })
         
         // Rate Limit(free tier) 준수를 위한 지연 (1초)
@@ -224,7 +284,7 @@ Deno.serve(async (req: any) => {
         .update({
           status: 'success',
           processed_count: processedCount,
-          message: `Selected ${processedCount} stocks with scoring.`,
+          message: `Selected ${processedCount} stocks with advanced scoring.`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntry.id)
