@@ -27,7 +27,7 @@
         <div 
           v-for="stock in dailyStocks" 
           :key="stock.id"
-          @click="navigateTo('/stocks/' + stock.id)"
+          @click="navigateTo('/stocks/' + stock.code)"
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5"
           :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
@@ -141,7 +141,7 @@
               </span>
             </button>
             <NuxtLink 
-              :to="'/stocks/' + stock.id"
+              :to="'/stocks/' + stock.code"
               class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-slate-100 transition-all"
             >
               <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />

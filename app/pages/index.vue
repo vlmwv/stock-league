@@ -117,7 +117,7 @@
             <div 
               v-for="(stock, idx) in recommendedStocks" 
               :key="stock.id"
-              @click="navigateTo('/stocks/' + stock.id)"
+              @click="navigateTo('/stocks/' + stock.code)"
               class="w-[240px] flex-shrink-0 bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-3 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 snap-center cursor-pointer"
             >
               <!-- Subtle Background Glow -->
@@ -148,7 +148,7 @@
                     </div>
                     
                     <NuxtLink 
-                      :to="'/stocks/' + stock.id"
+                      :to="'/stocks/' + stock.code"
                       class="w-6.5 h-6.5 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/5"
                     >
                       <UIcon name="i-heroicons-plus-20-solid" class="w-3.5 h-3.5 text-slate-500 hover:text-slate-100" />

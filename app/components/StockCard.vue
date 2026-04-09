@@ -46,7 +46,7 @@
               {{ stock.code }}
             </span>
             <NuxtLink
-              :to="'/stocks/' + stock.id"
+              :to="'/stocks/' + stock.code"
               class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-all border border-slate-700/50"
             >
               <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />

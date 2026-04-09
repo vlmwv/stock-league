@@ -986,7 +986,7 @@ export const useStock = () => {
       return { data: [], count: 0 }
     }
   }
-  const fetchNews = async (pageSize = 20, page = 1, type?: string) => {
+  const fetchNews = async (pageSize = 20, page = 1, type?: string, stockId?: number) => {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
@@ -1009,6 +1009,10 @@ export const useStock = () => {
         )
       `, { count: 'exact' })
     
+    if (stockId) {
+      query = query.eq('stock_id', stockId)
+    }
+
     if (type && type !== 'all') {
       query = query.eq('type', type)
     } else {
@@ -1052,6 +1056,20 @@ export const useStock = () => {
     
     if (error) {
       console.error('Error fetching stock by id:', error)
+      return null
+    }
+    return data
+  }
+
+  const fetchStockByCode = async (code: string) => {
+    const { data, error } = await client
+      .from('stocks')
+      .select('*')
+      .eq('code', code)
+      .maybeSingle()
+    
+    if (error) {
+      console.error('Error fetching stock by code:', error)
       return null
     }
     return data
@@ -1104,6 +1122,7 @@ export const useStock = () => {
     fetchParticipantCount,
     fetchNews,
     fetchStockById,
+    fetchStockByCode,
     fetchPriceHistory,
     fetchGlobalAiStats,
     toggleHeart,

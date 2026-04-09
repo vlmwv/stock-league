@@ -68,7 +68,7 @@
           <div
             v-for="(stock, index) in allStocks"
             :key="stock.id"
-            @click="navigateTo('/stocks/' + stock.id)"
+            @click="navigateTo('/stocks/' + stock.code)"
             class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
           >
             <!-- 순위 -->
@@ -111,7 +111,7 @@
             <!-- 액션 버튼 -->
             <div class="flex items-center gap-2 shrink-0">
               <NuxtLink
-                :to="'/stocks/' + stock.id"
+                :to="'/stocks/' + stock.code"
                 class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors border border-white/5"
               >
                 <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />

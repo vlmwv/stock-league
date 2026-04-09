@@ -49,12 +49,12 @@
               
               <div class="max-h-[320px] overflow-y-auto no-scrollbar">
                 <template v-if="recommendedStocks && recommendedStocks.length > 0">
-                  <div 
-                    v-for="news in recommendedStocks.slice(0, 5)" 
-                    :key="news.id"
-                    @click="navigateTo('/stocks/' + news.id)"
-                    class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
-                  >
+                    <div 
+                      v-for="news in recommendedStocks.slice(0, 5)" 
+                      :key="news.id"
+                      @click="navigateTo('/stocks/' + news.code)"
+                      class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
+                    >
                     <div class="flex flex-col gap-1">
                       <div class="flex justify-between items-start gap-2">
                         <span class="text-[10px] font-black text-brand-primary uppercase tracking-tight">{{ news.name }}</span>
