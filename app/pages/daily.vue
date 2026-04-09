@@ -142,13 +142,13 @@
             </button>
             <NuxtLink 
               :to="'/stocks/' + stock.id"
-              class="h-14 px-4 rounded-2xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-[10px] font-black text-slate-400 hover:text-slate-100 transition-all uppercase tracking-widest"
+              class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-slate-100 transition-all"
             >
-              상세
+              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />
             </NuxtLink>
             <button 
               @click.stop="toggleHeart(stock.id)"
-              class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
+              class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
               :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
             >
               <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />

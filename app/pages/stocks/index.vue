@@ -140,6 +140,7 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
 const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats } = useStock()
 
 const searchQuery = ref('')
@@ -263,6 +264,12 @@ useIntersectionObserver(
 )
 
 onMounted(() => {
+  // URL 쿼리 파라미터(tab)가 있으면 해당 탭 활성화
+  const tab = route.query.tab as string
+  if (tab && sortTabs.some(t => t.key === tab)) {
+    currentSort.value = tab as any
+  }
+
   // 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
   Promise.all([
     fetchWishlist(),

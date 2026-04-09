@@ -17,13 +17,13 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'ko'
       },
-      title: '주식 예측 리그',
+      title: '주식예측게임',
       meta: [
-        { name: 'title', content: '주식 예측 리그' },
+        { name: 'title', content: '주식예측게임' },
         { name: 'description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: '주식 예측 리그' },
-        { property: 'og:title', content: '주식 예측 리그' },
+        { property: 'og:site_name', content: '주식예측게임' },
+        { property: 'og:title', content: '주식예측게임' },
         { property: 'og:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { property: 'og:image', content: 'https://ninanoai.com/og-image-v2.png' },
         { property: 'og:image:width', content: '1200' },
@@ -32,7 +32,7 @@ export default defineNuxtConfig({
         { property: 'og:locale', content: 'ko_KR' },
         { property: 'al:web:url', content: 'https://ninanoai.com' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: '주식 예측 리그' },
+        { name: 'twitter:title', content: '주식예측게임' },
         { name: 'twitter:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
         { name: 'twitter:image', content: 'https://ninanoai.com/og-image-v2.png' }
       ],
@@ -58,7 +58,7 @@ export default defineNuxtConfig({
   },
   pwa: {
     manifest: {
-      name: '주식 예측 리그',
+      name: '주식예측게임',
       short_name: '주식예측',
       description: '매일 즐기는 주식 상승/하락 예측 게임',
       theme_color: '#ffffff',

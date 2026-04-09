@@ -10,7 +10,7 @@
           <span class="text-white font-black text-2xl">SL</span>
         </div>
         <h1 class="text-3xl font-bold text-white mb-2">반가워요!</h1>
-        <p class="text-slate-400">주식 예측 리그에 오신 것을 환영합니다</p>
+        <p class="text-slate-400">주식예측게임에 오신 것을 환영합니다</p>
       </div>
 
       <div class="glass-dark p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">

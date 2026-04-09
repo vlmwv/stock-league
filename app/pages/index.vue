@@ -90,7 +90,7 @@
               </h3>
             </div>
           </div>
-          <NuxtLink to="/stocks" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
+          <NuxtLink to="/stocks?tab=aiRecommendation" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
         </div>
         
         <div class="relative">

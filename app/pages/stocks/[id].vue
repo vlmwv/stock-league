@@ -126,7 +126,7 @@ const priceHistory = ref<any[]>([])
 // SSR 단계에서 종목 정보 로드 (SMS 링크 미리보기 등 SEO 목적)
 const { data: ssrStock } = await useAsyncData<any>(`stock-seo-${id}`, () => fetchStockById(id))
 if (ssrStock.value) {
-  const title = `[${ssrStock.value.name}] 주식 예측 리그`
+  const title = `[${ssrStock.value.name}] 주식예측게임`
   const description = ssrStock.value.summary || '해당 종목의 상세 정보와 주가 예측을 확인해보세요.'
   
   useSeoMeta({

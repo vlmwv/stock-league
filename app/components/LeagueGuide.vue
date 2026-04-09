@@ -18,7 +18,7 @@
           </div>
           
           <h2 class="text-3xl font-black text-slate-100 mb-2 leading-tight tracking-tighter">
-            주식 예측 리그에 <br/>
+            주식예측게임에 <br/>
             <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">참여하는 방법</span>
           </h2>
           <p class="text-[10px] text-slate-400 font-bold mb-10 uppercase tracking-[0.2em]">3 EASY STEPS TO WIN</p>
