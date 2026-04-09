@@ -31,9 +31,11 @@ async function analyzeStockWithGemini(
   newsItems: any[], 
   disclosureItems: any[], 
   priceHistory: any[],
+  stockCode: string,
   stockName: string, 
   sector: string,
-  marketContext: string
+  marketContext: string,
+  targetDate: string
 ): Promise<{ summary: string, score: number }> {
   if (!GEMINI_API_KEY) return { summary: '환경 변수(GEMINI_API_KEY)가 설정되지 않았습니다.', score: 50 }
 
@@ -74,9 +76,11 @@ ${disclosureSummary}
 
 반드시 아래 JSON 형식으로만 응답하세요.
 {
-  "summary": "기술적 분석과 호재/악재를 결합한 핵심 요약 (50자 이내)",
+  "summary": "핵심 요약 (50자 이내)",
   "score": 산출된 점수
-}`
+}
+
+참고: 50점은 절대적인 중립을 의미합니다. 데이터에 근거하여 가급적 0~45 또는 55~100 사이의 변별력 있는 점수를 산출해 주세요.`
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
@@ -95,7 +99,18 @@ ${disclosureSummary}
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`Gemini API Error (${response.status}):`, errorText)
-      return { summary: '최근 주요 뉴스 및 공시 내용을 분석 중입니다.', score: 50 }
+      
+      // 로그 저장 (실패)
+      await supabase.from('ai_analysis_logs').insert({
+        stock_code: stockCode,
+        stock_name: stockName,
+        prompt: prompt,
+        response_raw: { error: errorText, status: response.status },
+        ai_score: 50,
+        game_date: targetDate
+      })
+
+      return { summary: `분석 API 호출 실패 (${response.status})`, score: 50 }
     }
 
     const data = await response.json()
@@ -105,14 +120,45 @@ ${disclosureSummary}
     const jsonMatch = resultText.match(/\{[\s\S]*\}/)
     if (jsonMatch) resultText = jsonMatch[0]
     
-    const parsed = JSON.parse(resultText)
-    return {
-      summary: parsed.summary || '종목의 최근 모멘텀을 분석 중입니다.',
-      score: typeof parsed.score === 'number' ? parsed.score : 50
+    let parsed: any = {}
+    try {
+      parsed = JSON.parse(resultText)
+    } catch (e) {
+      console.error('JSON Parse Error:', resultText)
+      parsed = { summary: '응답 파싱 오류', score: 50 }
     }
-  } catch (err) {
+
+    const finalScore = isNaN(Number(parsed.score)) ? 50 : Number(parsed.score)
+    const finalSummary = parsed.summary || '종목의 최근 모멘텀을 분석 중입니다.'
+
+    // 로그 저장 (성공)
+    await supabase.from('ai_analysis_logs').insert({
+      stock_code: stockCode,
+      stock_name: stockName,
+      prompt: prompt,
+      response_raw: data,
+      ai_score: finalScore,
+      game_date: targetDate
+    })
+
+    return {
+      summary: finalSummary,
+      score: finalScore
+    }
+  } catch (err: any) {
     console.error('Gemini Analysis Exception:', err)
-    return { summary: '섹터 업황 및 최근 뉴스를 종합적으로 분석 중입니다.', score: 50 }
+
+    // 로그 저장 (예외)
+    await supabase.from('ai_analysis_logs').insert({
+      stock_code: stockCode,
+      stock_name: stockName,
+      prompt: prompt,
+      response_raw: { exception: err.message },
+      ai_score: 50,
+      game_date: targetDate
+    })
+
+    return { summary: `분석 중 오류 발생: ${err.message}`, score: 50 }
   }
 }
 
@@ -200,6 +246,17 @@ Deno.serve(async (req: any) => {
       .eq('game_date', targetDateStr)
     
     if (existingCount && existingCount >= 5) {
+      if (logEntry) {
+        await supabase
+          .from('batch_execution_logs')
+          .update({
+            status: 'success',
+            processed_count: 0,
+            message: `Already selected for ${targetDateStr}.`,
+            finished_at: new Date().toISOString()
+          })
+          .eq('id', logEntry.id)
+      }
       return new Response(JSON.stringify({ message: 'Already selected.', game_date: targetDateStr }), { status: 200 })
     }
 
@@ -243,9 +300,11 @@ Deno.serve(async (req: any) => {
           newsItems, 
           disclosureItems, 
           priceHistory,
+          stock.code,
           stock.name, 
           stock.sector, 
-          marketContext
+          marketContext,
+          targetDateStr
         )
         scoredStocks.push({ ...stock, summary, score })
         
@@ -298,6 +357,30 @@ Deno.serve(async (req: any) => {
     
   } catch (err: any) {
     console.error('Fatal Error:', err.message)
+    // 에러 발생 시 로그 업데이트 시도
+    try {
+      // logEntry를 찾기 위해 startTime으로 쿼리 (또는 위상에서 변수 접근)
+      const { data: latestLog } = await supabase
+        .from('batch_execution_logs')
+        .select('id')
+        .eq('function_name', 'select-daily-stocks')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      if (latestLog) {
+        await supabase
+          .from('batch_execution_logs')
+          .update({
+            status: 'fail',
+            message: err.message,
+            finished_at: new Date().toISOString()
+          })
+          .eq('id', latestLog.id)
+      }
+    } catch (logErr) {
+      console.error('Failed to update fail log:', logErr)
+    }
     return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 })
