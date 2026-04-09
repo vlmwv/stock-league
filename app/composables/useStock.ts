@@ -692,7 +692,28 @@ export const useStock = () => {
       query = query.order('points', { ascending: false })
     }
     
-    const { data, error } = await query.limit(limitNum)
+    let { data, error } = await query.limit(limitNum)
+    
+    // gender 컬럼이 없을 경우 재시도
+    if (error && error.code === '42703') {
+      console.warn('[useStock] gender column missing, retrying without it...')
+      const fallbackQuery = client
+        .from('profiles')
+        .select(`
+          username,
+          avatar_url,
+          points,
+          rankings(prediction_count, win_rate, win_count)
+        `)
+      
+      if (sortBy === 'rank') {
+        fallbackQuery.order('points', { ascending: false })
+      }
+      
+      const retry = await fallbackQuery.limit(limitNum)
+      data = retry.data
+      error = retry.error
+    }
     
     if (error) {
       console.error('Error fetching rankings:', error)
@@ -730,11 +751,23 @@ export const useStock = () => {
     if (!userId) return null
 
     // 1. Get points and profile
-    const { data: profile } = await client
+    let { data: profile, error: profileError } = await client
       .from('profiles')
       .select('username, email, avatar_url, points, role, gender')
       .eq('id', userId)
       .single()
+
+    // 컬럼 부재로 인한 에러 시 재시도 (gender 또는 role 제외)
+    if (profileError && profileError.code === '42703') {
+      console.warn('[useStock] Some columns missing in profiles, retrying with basic columns...')
+      const retry = await client
+        .from('profiles')
+        .select('username, email, avatar_url, points')
+        .eq('id', userId)
+        .single()
+      profile = retry.data
+      profileError = retry.error
+    }
 
     // 2. Get rank (number of users with more points + 1)
     const { count: higherRankCount } = await client
