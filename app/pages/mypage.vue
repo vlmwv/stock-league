@@ -9,8 +9,11 @@
           <div class="relative z-10">
             <div class="relative inline-block mb-6">
               <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"></div>
-              <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden">
-                <img :src="user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
+              <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden flex items-center justify-center">
+                <img v-if="stats?.avatarUrl" :src="stats.avatarUrl" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
+                <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
+                  <UIcon :name="stats?.gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
+                </div>
               </div>
               <div @click="openEditModal" class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-white" />
@@ -120,6 +123,7 @@
     <UserProfileModal 
       v-model:open="isEditModalOpen" 
       :current-username="stats?.username || user?.user_metadata?.full_name"
+      :current-gender="stats?.gender"
       @success="onProfileUpdate"
     />
   </div>

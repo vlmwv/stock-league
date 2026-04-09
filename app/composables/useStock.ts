@@ -358,7 +358,12 @@ export const useStock = () => {
       }
     }
 
-    // stocks 데이터가 없더라도 참여 가능 시간대이면 오픈으로 표시
+    // stocks 데이터가 없거나, 아직 내일 종목이 준비되지 않은 21:20 이후라면 false 반환
+    // (모의 데이터 상태에서는 isInOpenWindow를 따라가지 않도록 함)
+    if (currentTimeVal >= 2120 && (!stocks.value || stocks.value.length === 0 || (stocks.value[0]?.game_date <= today))) {
+      return false
+    }
+
     return isInOpenWindow
   })
 
@@ -379,7 +384,8 @@ export const useStock = () => {
       }
     }
 
-    return false
+    // 만약 데이터가 없더라도 오늘 20:30 이후라면 결과 발표 화면을 보여줄 수 있도록 함
+    return currentTimeVal >= 2030
   })
 
   const fetchPredictions = async (date?: string) => {
@@ -676,6 +682,7 @@ export const useStock = () => {
       .select(`
         username,
         avatar_url,
+        gender,
         points,
         rankings(prediction_count, win_rate, win_count)
       `)
@@ -697,6 +704,7 @@ export const useStock = () => {
       return {
         username: p.username,
         avatar_url: p.avatar_url,
+        gender: p.gender,
         points: p.points,
         prediction_count: stats.prediction_count,
         win_rate: stats.win_rate,
@@ -724,7 +732,7 @@ export const useStock = () => {
     // 1. Get points and profile
     const { data: profile } = await client
       .from('profiles')
-      .select('username, email, avatar_url, points, role')
+      .select('username, email, avatar_url, points, role, gender')
       .eq('id', userId)
       .single()
 
@@ -790,6 +798,7 @@ export const useStock = () => {
       avatarUrl: (profile as any)?.avatar_url,
       points: (profile as any)?.points || 0,
       role: (profile as any)?.role || 'user',
+      gender: (profile as any)?.gender,
       rank,
       winRate,
       totalGames,
@@ -797,13 +806,13 @@ export const useStock = () => {
     }
   }
 
-  const updateProfile = async (username: string) => {
+  const updateProfile = async (username: string, gender?: string) => {
     const userId = await resolveUserId()
     if (!userId) return { success: false, message: '로그인이 필요합니다.' }
 
     const { error } = await (client
       .from('profiles') as any)
-      .update({ username })
+      .update({ username, gender })
       .eq('id', userId)
 
     if (error) {

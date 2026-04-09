@@ -39,7 +39,8 @@ export default defineEventHandler(async (event) => {
       rank,
       profiles (
         username,
-        avatar_url
+        avatar_url,
+        gender
       )
     `)
     .eq('ranking_type', type)

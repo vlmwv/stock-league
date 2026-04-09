@@ -70,8 +70,7 @@ const loadMore = () => {
 }
 
 const getAvatar = (user: any) => {
-  if (user.avatar_url) return user.avatar_url
-  return `https://api.dicebear.com/7.x/notionists/svg?seed=${user.username}`
+  return user.avatar_url || null
 }
 
 const myRankingInfo = computed(() => {
@@ -116,8 +115,11 @@ onMounted(async () => {
             {{ myRankingInfo.rank }}
           </div>
           <div class="flex-1 flex items-center gap-3 ml-4">
-            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-brand-primary/30 overflow-hidden shrink-0">
-               <img :src="getAvatar(myRankingInfo)" alt="me" class="w-full h-full object-cover" />
+            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-brand-primary/30 overflow-hidden shrink-0 flex items-center justify-center">
+               <img v-if="myRankingInfo.avatar_url" :src="myRankingInfo.avatar_url" alt="me" class="w-full h-full object-cover" />
+               <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
+                 <UIcon :name="myRankingInfo.gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-7 h-7" />
+               </div>
             </div>
             <div class="min-w-0">
               <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.username }}</p>
@@ -182,8 +184,11 @@ onMounted(async () => {
           <!-- 2nd Place -->
           <div v-if="topThree[1]" class="flex-1 flex flex-col items-center group">
             <div class="relative mb-4">
-              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all">
-                <img :src="getAvatar(topThree[1])" alt="2nd" class="w-full h-full rounded-xl" />
+              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
+                <img v-if="topThree[1].avatar_url" :src="topThree[1].avatar_url" alt="2nd" class="w-full h-full rounded-xl" />
+                <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
+                  <UIcon :name="topThree[1].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
+                </div>
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-400 border-4 border-bg-deep flex items-center justify-center font-black text-slate-900 text-xs shadow-lg">2</div>
             </div>
@@ -202,8 +207,11 @@ onMounted(async () => {
           <div v-if="topThree[0]" class="flex-1 flex flex-col items-center group -translate-y-4">
             <div class="relative mb-4 scale-125">
                <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
-              <div class="relative w-16 h-16 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1">
-                <img :src="getAvatar(topThree[0])" alt="1st" class="w-full h-full rounded-xl" />
+              <div class="relative w-16 h-16 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1 flex items-center justify-center">
+                <img v-if="topThree[0].avatar_url" :src="topThree[0].avatar_url" alt="1st" class="w-full h-full rounded-xl" />
+                <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
+                  <UIcon :name="topThree[0].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
+                </div>
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-brand-primary border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">1</div>
             </div>
@@ -221,8 +229,11 @@ onMounted(async () => {
           <!-- 3rd Place -->
           <div v-if="topThree[2]" class="flex-1 flex flex-col items-center group">
             <div class="relative mb-4">
-              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all">
-                <img :src="getAvatar(topThree[2])" alt="3rd" class="w-full h-full rounded-xl" />
+              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
+                <img v-if="topThree[2].avatar_url" :src="topThree[2].avatar_url" alt="3rd" class="w-full h-full rounded-xl" />
+                <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
+                  <UIcon :name="topThree[2].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
+                </div>
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-700 border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">3</div>
             </div>
@@ -263,8 +274,11 @@ onMounted(async () => {
 
             <!-- Profile & Name -->
             <div class="flex-1 flex items-center gap-3 ml-4">
-              <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0">
-                 <img :src="getAvatar(rankingUser)" alt="user" class="w-full h-full object-cover" />
+              <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0 flex items-center justify-center">
+                 <img v-if="rankingUser.avatar_url" :src="rankingUser.avatar_url" alt="user" class="w-full h-full object-cover" />
+                 <div v-else class="w-full h-full flex items-center justify-center text-slate-700">
+                   <UIcon :name="rankingUser.gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-5 h-5" />
+                 </div>
               </div>
               <div class="min-w-0">
                 <p class="text-sm font-bold text-slate-200 truncate">{{ rankingUser.username }}</p>

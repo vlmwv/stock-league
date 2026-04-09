@@ -263,7 +263,7 @@ Deno.serve(async (req: any) => {
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
     const scoredStocks: any[] = []
-    const limit = 10 
+    const limit = 3 // 타임아웃 방지를 위해 분석 종목 수 축소
 
     const stocksToAnalyze = allStocks.slice(0, limit)
     
@@ -308,8 +308,8 @@ Deno.serve(async (req: any) => {
         )
         scoredStocks.push({ ...stock, summary, score })
         
-        // Rate Limit(free tier) 준수를 위한 지연 (1초)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Rate Limit(free tier) 준수를 위한 지연 제거 (타임아웃 방지 우선)
+        // await new Promise(resolve => setTimeout(resolve, 1000))
         
       } catch (err: any) {
         console.warn(`Failed to analyze ${stock.name}:`, err.message)
@@ -321,6 +321,12 @@ Deno.serve(async (req: any) => {
     const finalSelection = scoredStocks.slice(0, 5)
 
     console.log(`Final Selection: ${finalSelection.map(s => `${s.name}(${s.score})`).join(', ')}`)
+    
+    if (logEntry) {
+      await supabase.from('batch_execution_logs').update({
+        message: `Analyzing completed. Inserting ${finalSelection.length} stocks...`
+      }).eq('id', logEntry.id)
+    }
 
     let processedCount = 0
     for (const stock of finalSelection) {

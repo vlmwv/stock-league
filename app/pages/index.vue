@@ -17,12 +17,6 @@
             <div class="flex flex-col gap-2 mt-4">
               <div class="flex items-center gap-2">
                 <div v-if="participantCount > 0" class="flex items-center gap-2">
-                  <div class="flex -space-x-2">
-                    <div v-for="i in Math.min(participantCount, 3)" :key="i" class="w-6 h-6 rounded-full border-2 border-slate-900 overflow-hidden shadow-lg">
-                      <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123 + 456 + participantCount}`" alt="user" class="w-full h-full object-cover bg-slate-800" />
-                    </div>
-                    <div v-if="participantCount > 3" class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">+</div>
-                  </div>
                   <p class="text-xs text-slate-100 font-bold tracking-tight">
                     오늘 {{ participantCount.toLocaleString() }}명 예측 완료
                     <span class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여 중)</span>
@@ -64,7 +58,7 @@
                 @click="handleParticipation"
                 class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
-                {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : (isResultPublished ? '오늘의 결과 확인하기' : '리그 마감 (결과 대기 중)'))) }}
+                {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : '리그 마감 (결과 대기 중)'))) }}
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               </button>
             </div>

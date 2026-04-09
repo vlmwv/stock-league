@@ -32,6 +32,23 @@ Deno.serve(async (req) => {
     const kstDate = new Date(now.getTime() + kstOffset);
     const currentDateStr = kstDate.toISOString().split('T')[0];
 
+    // 0. 리그 외 종목에 대한 비정상 예측(Stray Predictions) 처리
+    //    리그에 선정되지 않은 종목에 예측을 한 경우, 'pending'으로 남지 않도록 'draw' 처리합니다.
+    const { data: strayPredictions, error: strayError } = await supabase
+      .from('predictions')
+      .select('id')
+      .lte('game_date', currentDateStr)
+      .eq('result', 'pending');
+
+    if (!strayError && strayPredictions && strayPredictions.length > 0) {
+      console.log(`Processing ${strayPredictions.length} stray predictions...`);
+      const strayIds = strayPredictions.map(p => p.id);
+      await supabase
+        .from('predictions')
+        .update({ result: 'draw', points_awarded: 0 })
+        .in('id', strayIds);
+    }
+
     // 1. 오늘의 daily_stocks 조회 (상태가 pending이거나 closing인 경우만)
     // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
     const { data: dailyStocks, error: fetchDailyError } = await supabase

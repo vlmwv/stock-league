@@ -13,7 +13,7 @@
               </button>
             </div>
 
-            <div class="space-y-6">
+             <div class="space-y-6">
               <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">닉네임</label>
                 <div class="relative">
@@ -25,6 +25,29 @@
                     @keyup.enter="handleUpdateProfile"
                     autofocus
                   />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 구분용)</label>
+                <div class="grid grid-cols-3 gap-3">
+                  <button 
+                    v-for="g in [
+                      { value: 'male', label: '남성', icon: 'i-heroicons-user' },
+                      { value: 'female', label: '여성', icon: 'i-heroicons-user-circle' },
+                      { value: 'none', label: '선택 안함', icon: 'i-heroicons-minus' }
+                    ]"
+                    :key="g.value"
+                    @click="gender = g.value"
+                    type="button"
+                    class="h-14 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1"
+                    :class="gender === g.value 
+                      ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
+                      : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
+                  >
+                    <UIcon :name="g.icon" class="w-5 h-5" />
+                    <span class="text-[10px] font-bold">{{ g.label }}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -56,6 +79,7 @@
 const props = defineProps<{
   open: boolean
   currentUsername?: string
+  currentGender?: string
 }>()
 
 const emit = defineEmits(['update:open', 'success'])
@@ -64,30 +88,32 @@ const { updateProfile } = useStock()
 const toast = useToast()
 
 const newUsername = ref('')
+const gender = ref('none')
 const updating = ref(false)
 
 watch(() => props.open, (val) => {
   if (val) {
     newUsername.value = props.currentUsername || ''
+    gender.value = props.currentGender || 'none'
   }
 })
 
 const handleUpdateProfile = async () => {
   const trimmedName = newUsername.value.trim()
-  if (!trimmedName || trimmedName === props.currentUsername) {
-    emit('update:open', false)
+  if (!trimmedName) {
+    toast.add({ title: '닉네임을 입력해주세요.', color: 'error' })
     return
   }
   
   updating.value = true
-  const result = await updateProfile(trimmedName)
+  const result = await updateProfile(trimmedName, gender.value === 'none' ? undefined : gender.value)
   
   if (result.success) {
-    emit('success', trimmedName)
+    emit('success')
     emit('update:open', false)
     toast.add({
       title: '프로필 업데이트 성공!',
-      description: '닉네임이 성공적으로 변경되었습니다.',
+      description: '프로필 정보가 성공적으로 변경되었습니다.',
       color: 'primary',
       icon: 'i-heroicons-check-circle'
     })
