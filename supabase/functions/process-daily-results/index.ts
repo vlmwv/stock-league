@@ -32,38 +32,59 @@ Deno.serve(async (req) => {
     const kstDate = new Date(now.getTime() + kstOffset);
     const currentDateStr = kstDate.toISOString().split('T')[0];
 
-    // 0. 리그 외 종목에 대한 비정상 예측(Stray Predictions) 처리
-    //    리그에 선정되지 않은 종목에 예측을 한 경우, 'pending'으로 남지 않도록 'draw' 처리합니다.
-    const { data: strayPredictions, error: strayError } = await supabase
+    // 1. 오늘의 daily_stocks 조회 (상태가 pending이거나 closing인 경우만)
+    // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
+    const { data: dailyStocks, error: fetchDailyError } = await supabase
+      .from('daily_stocks')
+      .select('*, stocks:stock_id (code, name, change_amount, ai_win_count, ai_processed_count)')
+      .lte('game_date', currentDateStr)
+      .in('status', ['pending', 'closing'])
+
+    if (fetchDailyError) throw fetchDailyError
+    if (!dailyStocks || dailyStocks.length === 0) {
+      // 대기 중인 리그 종목이 없더라도, 리그 외 종목(Stray)은 모두 무승부 처리
+      await supabase
+        .from('predictions')
+        .update({ result: 'draw', points_awarded: 0 })
+        .lte('game_date', currentDateStr)
+        .eq('result', 'pending');
+
+      return new Response(JSON.stringify({ message: `No pending daily stocks found for today (${currentDateStr}). All stray predictions marked as draw.` }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
+    // --- [버그 수정 및 복구 로직 시작] ---
+    // 1.1 리그 종목이지만 이미 'draw'로 잘못 처리된 기록들을 'pending'으로 복구
+    const leagueStockIds = dailyStocks.map(ds => ds.stock_id);
+    console.log(`Resetting wrongly marked 'draw' to 'pending' for ${leagueStockIds.length} league stocks...`);
+    
+    await supabase
+      .from('predictions')
+      .update({ result: 'pending' })
+      .in('stock_id', leagueStockIds)
+      .lte('game_date', currentDateStr)
+      .eq('result', 'draw');
+
+    // 1.2 리그 외 종목(Stray Predictions) 처리
+    //     현재 처리 대상인 리그 종목을 제외한 나머지 'pending' 예측들을 'draw'로 처리합니다.
+    const { data: strayPredictions } = await supabase
       .from('predictions')
       .select('id')
       .lte('game_date', currentDateStr)
-      .eq('result', 'pending');
+      .eq('result', 'pending')
+      .not('stock_id', 'in', `(${leagueStockIds.join(',')})`);
 
-    if (!strayError && strayPredictions && strayPredictions.length > 0) {
-      console.log(`Processing ${strayPredictions.length} stray predictions...`);
+    if (strayPredictions && strayPredictions.length > 0) {
+      console.log(`Processing ${strayPredictions.length} actual stray predictions...`);
       const strayIds = strayPredictions.map(p => p.id);
       await supabase
         .from('predictions')
         .update({ result: 'draw', points_awarded: 0 })
         .in('id', strayIds);
     }
-
-    // 1. 오늘의 daily_stocks 조회 (상태가 pending이거나 closing인 경우만)
-    // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
-    const { data: dailyStocks, error: fetchDailyError } = await supabase
-      .from('daily_stocks')
-      .select('*, stocks:stock_id (code, name, ai_win_count, ai_processed_count)')
-      .lte('game_date', currentDateStr)
-      .in('status', ['pending', 'closing'])
-
-    if (fetchDailyError) throw fetchDailyError
-    if (!dailyStocks || dailyStocks.length === 0) {
-      return new Response(JSON.stringify({ message: `No pending daily stocks found for today (${currentDateStr})` }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
+    // --- [버그 수정 및 복구 로직 끝] ---
 
     // 2. 이미 update-krx-top-100 / update-naver-stocks를 통해 갱신된 
     //    stocks의 change_amount를 바로 사용하여 승패를 판정합니다. (Naver API 연동 제거)
