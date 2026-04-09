@@ -76,7 +76,7 @@
         </UPopover>
         
         <div class="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-700/50 relative z-20">
-          <div class="text-right hidden sm:block">
+          <div class="text-right hidden xs:block">
             <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
           <UPopover 
@@ -84,8 +84,11 @@
             :ui="{ content: 'z-[9999]' }"
             overlay
           >
-            <button class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 p-[2px] shadow-inner overflow-hidden flex-shrink-0">
-              <img :src="user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`" alt="Avatar" class="w-full h-full rounded-[10px] object-cover" />
+            <button class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-brand-primary/50 transition-all">
+              <img v-if="user.user_metadata?.avatar_url" :src="user.user_metadata.avatar_url" alt="Avatar" class="w-full h-full object-cover" />
+              <div v-else class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
+                <UIcon :name="userStats?.gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-6 h-6 sm:w-7 sm:h-7" />
+              </div>
             </button>
             <template #content>
               <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[9999]">
