@@ -85,9 +85,8 @@
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <NuxtLink to="/daily-history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-all flex items-center gap-1.5 ring-1 ring-white/5 px-2 py-1 rounded-lg bg-white/5">
-              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-brand-primary" />
-              이력
+            <NuxtLink to="/daily-history" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm">
+              <UIcon name="i-heroicons-clock" class="w-4 h-4" />
             </NuxtLink>
             <NuxtLink to="/stocks?tab=aiRecommendation" class="w-7 h-7 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg shadow-brand-primary/10">
               <UIcon name="i-heroicons-plus-20-solid" class="w-4 h-4" />
@@ -169,12 +168,10 @@
                 <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2 gap-1.5">
                   <!-- AI 점수 라벨 (고정) -->
                   <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center gap-1 text-[8px] font-black text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-md shrink-0 border border-emerald-400/20">
-                    <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
                     {{ stock.ai_score }}점
                   </span>
                   <!-- AI 추천 횟수 라벨 -->
                   <span v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-md border border-orange-400/20 shrink-0">
-                    <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
                     {{ stock.ai_recommendation_count }}회
                   </span>
                   <!-- AI 요약 라벨 삭제됨 -->

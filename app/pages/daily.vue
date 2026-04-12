@@ -18,9 +18,8 @@
               League Date: {{ gameDateDisplay }}
             </span>
           </div>
-          <NuxtLink to="/daily-history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-colors flex items-center gap-1">
-            <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
-            AI 추천 이력 보기
+          <NuxtLink to="/daily-history" class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm">
+            <UIcon name="i-heroicons-clock" class="w-5 h-5" />
           </NuxtLink>
         </div>
         <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : (statusMessage.includes('준비 중') ? 'text-orange-400' : 'text-slate-500')">
@@ -65,7 +64,6 @@
                 
                 <!-- AI Stats (Compact Iconic Badges) -->
                 <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-all">
-                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5 text-orange-400" />
                   <span class="text-[10px] font-black text-orange-400 leading-none">{{ stock.ai_recommendation_count }}</span>
                 </div>
                 
@@ -78,11 +76,9 @@
                     'bg-emerald-400/10 border-emerald-400/20 text-emerald-400 group-hover:bg-emerald-400/20'
                   ]"
                 >
-                  <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
-                  <span class="text-[10px] font-black leading-none">{{ stock.ai_score }}</span>
+                  <span class="text-[10px] font-black leading-none">{{ stock.ai_score }}P</span>
                 </div>
 
-                <!-- AI 예측 결과 배지 -->
                 <div 
                   v-if="isResultPublished && (stock as any).ai_result && (stock as any).ai_result !== 'pending'" 
                   class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-sm"
@@ -92,7 +88,6 @@
                     'bg-slate-400/10 border-slate-400/20 text-slate-400'
                   ]"
                 >
-                  <UIcon :name="(stock as any).ai_result === 'win' ? 'i-heroicons-sparkles-20-solid' : 'i-heroicons-x-circle-20-solid'" class="w-3.5 h-3.5" />
                   <span class="text-[10px] font-black leading-none">AI {{ (stock as any).ai_result === 'win' ? '성공' : ((stock as any).ai_result === 'lose' ? '실패' : '무승부') }}</span>
                 </div>
               </div>

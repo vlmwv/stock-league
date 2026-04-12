@@ -54,8 +54,7 @@
                     v-if="item.ai_score" 
                     class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-emerald-400/20 bg-emerald-400/5 text-emerald-400"
                   >
-                    <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3" />
-                    <span class="text-[10px] font-black leading-none">{{ item.ai_score }}</span>
+                    <span class="text-[10px] font-black leading-none">{{ item.ai_score }}P</span>
                   </div>
                 </div>
                 <h4 class="text-xl font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ item.name }}</h4>
