@@ -18,7 +18,7 @@
               League Date: {{ gameDateDisplay }}
             </span>
           </div>
-          <NuxtLink to="/daily/history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-colors flex items-center gap-1">
+          <NuxtLink to="/daily-history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-colors flex items-center gap-1">
             <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
             AI 추천 이력 보기
           </NuxtLink>
@@ -42,16 +42,18 @@
             :class="[
               getPrediction(stock.id)?.result === 'win' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
               getPrediction(stock.id)?.result === 'lose' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+              getPrediction(stock.id)?.result === 'draw' ? 'bg-slate-500/20 text-slate-400 border-slate-500/30' :
               getPrediction(stock.id)?.prediction === 'up' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
             ]"
           >
             <UIcon 
-              :name="getPrediction(stock.id)?.result === 'win' ? 'i-heroicons-sparkles' : (getPrediction(stock.id)?.result === 'lose' ? 'i-heroicons-x-circle' : 'i-heroicons-check-circle-20-solid')" 
+              :name="getPrediction(stock.id)?.result === 'win' ? 'i-heroicons-sparkles' : (getPrediction(stock.id)?.result === 'lose' ? 'i-heroicons-x-circle' : (getPrediction(stock.id)?.result === 'draw' ? 'i-heroicons-minus-circle' : 'i-heroicons-check-circle-20-solid'))" 
               class="w-3.5 h-3.5" 
             />
             {{ 
               getPrediction(stock.id)?.result === 'win' ? '예측 성공' : 
               getPrediction(stock.id)?.result === 'lose' ? '예측 실패' : 
+              getPrediction(stock.id)?.result === 'draw' ? '무승부' :
               (getPrediction(stock.id)?.prediction === 'up' ? '상승 선택됨' : '하락 선택됨') 
             }}
           </div>

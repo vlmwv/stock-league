@@ -32,114 +32,100 @@ Deno.serve(async (req) => {
     const kstDate = new Date(now.getTime() + kstOffset);
     const currentDateStr = kstDate.toISOString().split('T')[0];
 
-    // 1. 오늘의 daily_stocks 조회 (상태가 pending이거나 closing인 경우만)
-    // .lte('game_date', currentDateStr)를 통해 과거에 누락된 데이터도 함께 가져옴
-    const { data: dailyStocks, error: fetchDailyError } = await supabase
-      .from('daily_stocks')
-      .select('*, stocks:stock_id (code, name, change_amount, ai_win_count, ai_processed_count)')
+    // 1. 처리 대상인 모든 pending 예측의 주식 ID 및 날짜 목록 가져오기
+    const { data: pendingStocks, error: pendingError } = await supabase
+      .from('predictions')
+      .select('stock_id, game_date')
       .lte('game_date', currentDateStr)
-      .in('status', ['pending', 'closing'])
+      .eq('result', 'pending');
 
-    if (fetchDailyError) throw fetchDailyError
-    if (!dailyStocks || dailyStocks.length === 0) {
-      // 대기 중인 리그 종목이 없더라도, 리그 외 종목(Stray)은 모두 무승부 처리
-      await supabase
-        .from('predictions')
-        .update({ result: 'draw', points_awarded: 0 })
+    if (pendingError) throw pendingError;
+    
+    // 유니크한 (stock_id, game_date) 쌍 추출
+    const uniquePairs = Array.from(new Set(pendingStocks?.map(p => `${p.stock_id}_${p.game_date}`)));
+    
+    if (uniquePairs.length === 0) {
+      // 대기 중인 예측이 없으면 daily_stocks만 마감 처리 시도
+      const { data: openLeagues } = await supabase
+        .from('daily_stocks')
+        .select('id')
         .lte('game_date', currentDateStr)
-        .eq('result', 'pending');
+        .in('status', ['pending', 'closing']);
+      
+      if (openLeagues && openLeagues.length > 0) {
+        await supabase.from('daily_stocks').update({ status: 'closed' }).in('id', openLeagues.map(l => l.id));
+      }
 
-      return new Response(JSON.stringify({ message: `No pending daily stocks found for today (${currentDateStr}). All stray predictions marked as draw.` }), {
+      return new Response(JSON.stringify({ message: `No pending predictions found for today (${currentDateStr}).` }), {
         headers: { 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // --- [버그 수정 및 복구 로직 시작] ---
-    // 1.1 리그 종목이지만 이미 'draw'로 잘못 처리된 기록들을 'pending'으로 복구
-    const leagueStockIds = dailyStocks.map(ds => ds.stock_id);
-    console.log(`Resetting wrongly marked 'draw' to 'pending' for ${leagueStockIds.length} league stocks...`);
-    
-    await supabase
-      .from('predictions')
-      .update({ result: 'pending' })
-      .in('stock_id', leagueStockIds)
-      .lte('game_date', currentDateStr)
-      .eq('result', 'draw');
+    // 2. 해당 주식들의 정보와 리그 참여 여부 가져오기
+    const stockIds = Array.from(new Set(pendingStocks?.map(p => p.stock_id)));
+    const { data: stocksInfo } = await supabase
+      .from('stocks')
+      .select('id, code, name, change_amount, ai_win_count, ai_processed_count')
+      .in('id', stockIds);
 
-    // 1.2 리그 외 종목(Stray Predictions) 처리
-    //     현재 처리 대상인 리그 종목을 제외한 나머지 'pending' 예측들을 'draw'로 처리합니다.
-    const { data: strayPredictions } = await supabase
-      .from('predictions')
-      .select('id')
-      .lte('game_date', currentDateStr)
-      .eq('result', 'pending')
-      .not('stock_id', 'in', `(${leagueStockIds.join(',')})`);
+    const { data: dailyStocks } = await supabase
+      .from('daily_stocks')
+      .select('id, stock_id, game_date, ai_score')
+      .lte('game_date', currentDateStr);
 
-    if (strayPredictions && strayPredictions.length > 0) {
-      console.log(`Processing ${strayPredictions.length} actual stray predictions...`);
-      const strayIds = strayPredictions.map(p => p.id);
-      await supabase
-        .from('predictions')
-        .update({ result: 'draw', points_awarded: 0 })
-        .in('id', strayIds);
-    }
-    // --- [버그 수정 및 복구 로직 끝] ---
-
-    // 2. 이미 update-krx-top-100 / update-naver-stocks를 통해 갱신된 
-    //    stocks의 change_amount를 바로 사용하여 승패를 판정합니다. (Naver API 연동 제거)
     let processedCount = 0;
+    const leagueMap = new Map(dailyStocks?.map(ds => [`${ds.stock_id}_${ds.game_date}`, ds]));
 
-    for (const dailyStock of dailyStocks) {
-      if (!dailyStock.stocks) continue;
+    console.log(`Processing ${uniquePairs.length} unique stock-date pairs...`);
 
-      const code = dailyStock.stocks.code;
-      const change_amount = dailyStock.stocks.change_amount || 0;
-      const stock_id = dailyStock.stock_id;
+    for (const pair of uniquePairs) {
+      const [stockIdStr, gameDate] = pair.split('_');
+      const stockId = parseInt(stockIdStr);
+      const stock = stocksInfo?.find(s => s.id === stockId);
+      if (!stock) continue;
 
+      const change_amount = stock.change_amount || 0;
       let resultOutcome = 'draw';
       if (change_amount > 0) resultOutcome = 'up';
       else if (change_amount < 0) resultOutcome = 'down';
 
-      // 3. stocks 테이블 업데이트 (AI 예측 성공 여부 추가 기록 등)
-      //    (현재가/변화량은 이미 이전 배치에서 업데이트 되었으므로 제외)
-      const updateData: any = {
-        ai_processed_count: (dailyStock.stocks.ai_processed_count || 0) + 1
-      };
+      // 해당 종목이 리그 종목인지 확인
+      const dailyStock = leagueMap.get(pair);
 
-      if (change_amount > 0) {
-        updateData.ai_win_count = (dailyStock.stocks.ai_win_count || 0) + 1;
+      // 3. stocks 테이블 업데이트 (AI 관련 스태츠는 리그 종목일 때만 갱신하거나 혹은 전체 종목에 대해 갱신)
+      // 여기서는 리그 종목일 때만 AI 통계를 갱신합니다.
+      if (dailyStock) {
+        const updateData: any = {
+          ai_processed_count: (stock.ai_processed_count || 0) + 1
+        };
+        if (change_amount > 0) {
+          updateData.ai_win_count = (stock.ai_win_count || 0) + 1;
+        }
+        await supabase.from('stocks').update(updateData).eq('id', stockId);
       }
 
-      const { error: updateError } = await supabase.from('stocks').update(updateData).eq('id', stock_id);
-      if (updateError) {
-        console.error(`Error updating stocks for ${code}:`, updateError.message);
-      } else {
-        console.log(`Successfully updated AI processed stats for ${code}`);
-      }
-
-      // 4. predictions(유저 예측 내역) 결과 처리
-      const { data: predictions, error: predError } = await supabase
+      // 4. 해당 주식/날짜의 모든 pending 예측 처리
+      const { data: predictions } = await supabase
         .from('predictions')
         .select('*')
-        .eq('stock_id', stock_id)
-        .lte('game_date', dailyStock.game_date as any)
+        .eq('stock_id', stockId)
+        .eq('game_date', gameDate)
         .eq('result', 'pending');
 
-      if (!predError && predictions && predictions.length > 0) {
+      if (predictions && predictions.length > 0) {
         for (const pred of predictions) {
           let userResult = 'draw';
-          let pointsAwarded = POINTS_FOR_DRAW;
+          let pointsAwarded = 0;
 
           if (resultOutcome === 'draw') {
             userResult = 'draw';
-            pointsAwarded = POINTS_FOR_DRAW;
           } else if (pred.prediction_type === resultOutcome) {
             userResult = 'win';
-            pointsAwarded = POINTS_FOR_WIN;
+            // 리그 종목일 때만 포인트 지급
+            if (dailyStock) pointsAwarded = POINTS_FOR_WIN;
           } else {
             userResult = 'lose';
-            pointsAwarded = POINTS_FOR_LOSE;
           }
 
           // prediction 결과 업데이트
@@ -148,7 +134,7 @@ Deno.serve(async (req) => {
             points_awarded: pointsAwarded
           }).eq('id', pred.id);
 
-          // 유저 프로필 포인트 업데이트 (승리해서 포인트가 0보다 클 때만)
+          // 포인트가 있으면 유저 프로필 업데이트
           if (pointsAwarded > 0) {
             const { data: profileData } = await supabase
               .from('profiles')
@@ -158,32 +144,34 @@ Deno.serve(async (req) => {
             
             if (profileData) {
               await supabase.from('profiles').update({
-                points: profileData.points + pointsAwarded
+                points: (profileData.points || 0) + pointsAwarded
               }).eq('id', pred.user_id);
             }
           }
         }
       }
 
-      // 5. daily_stocks 마감 처리 및 AI 결과 기록
-      let aiResult = 'draw';
-      if (resultOutcome === 'draw') {
-        aiResult = 'draw';
-      } else {
-        const aiPrediction = (dailyStock.ai_score || 50) > 50 ? 'up' : ((dailyStock.ai_score || 50) < 50 ? 'down' : 'draw');
-        if (aiPrediction === 'draw') {
+      // 5. 리그 종목이었다면 daily_stocks 마감 처리 및 AI 결과 기록
+      if (dailyStock) {
+        let aiResult = 'draw';
+        if (resultOutcome === 'draw') {
           aiResult = 'draw';
-        } else if (aiPrediction === resultOutcome) {
-          aiResult = 'win';
         } else {
-          aiResult = 'lose';
+          const aiPrediction = (dailyStock.ai_score || 50) > 50 ? 'up' : ((dailyStock.ai_score || 50) < 50 ? 'down' : 'draw');
+          if (aiPrediction === 'draw') {
+            aiResult = 'draw';
+          } else if (aiPrediction === resultOutcome) {
+            aiResult = 'win';
+          } else {
+            aiResult = 'lose';
+          }
         }
-      }
 
-      await supabase.from('daily_stocks').update({
-        status: 'closed',
-        ai_result: aiResult
-      }).eq('id', dailyStock.id);
+        await supabase.from('daily_stocks').update({
+          status: 'closed',
+          ai_result: aiResult
+        }).eq('id', dailyStock.id);
+      }
 
       processedCount++;
     }

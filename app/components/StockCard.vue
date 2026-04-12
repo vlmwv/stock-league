@@ -112,7 +112,8 @@
                 <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
               </div>
             </template>
-            <p v-else class="text-[9px] font-black text-slate-600 uppercase tracking-widest italic opacity-60">
+            <p v-else class="text-[9px] font-black text-rose-400/80 uppercase tracking-widest italic flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/5 border border-rose-500/10">
+              <UIcon name="i-heroicons-lock-closed" class="w-3 h-3" />
               오늘의 리그 종목이 아닙니다
             </p>
           </template>

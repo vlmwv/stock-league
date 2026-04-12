@@ -623,6 +623,13 @@ export const useStock = () => {
   }, { immediate: true })
 
   const predict = async (stockId: number, prediction: 'up' | 'down', gameDate?: string) => {
+    // 0. 리그 종목 여부 검증 (사용자가 임의로 다른 종목을 예측하지 못하도록 제한)
+    const isLeagueStock = dailyStocks.value.some(s => Number(s.id) === Number(stockId))
+    if (!isLeagueStock) {
+      alert('오늘의 리그 종목이 아닙니다.')
+      return false
+    }
+
     if (!isLeagueOpen.value) {
       alert('오늘의 예측은 08:00에 마감되었습니다.')
       return false
