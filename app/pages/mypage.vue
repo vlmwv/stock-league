@@ -2,10 +2,10 @@
   <div class="min-h-screen bg-bg-deep pb-32 overflow-x-clip">
     <TopHeader />
 
-    <main class="max-w-md mx-auto px-6 py-8">
+    <main class="max-w-sm mx-auto px-4 py-6">
       <!-- User Profile Card -->
-      <section class="mb-10">
-        <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-900/40 via-slate-800/40 to-slate-900/40 border border-white/10 p-8 pt-12 shadow-3xl text-center">
+      <section class="mb-6">
+        <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-900/40 via-slate-800/40 to-slate-900/40 border border-white/10 p-4 pt-6 shadow-3xl text-center">
           <div class="relative z-10">
             <div class="relative inline-block mb-6">
               <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"></div>
