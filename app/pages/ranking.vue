@@ -107,7 +107,6 @@ onMounted(async () => {
       <!-- My Rank (Sticky/Top) -->
       <div v-if="user && myRankingInfo" class="mb-10 animate-fade-in">
         <p class="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
           나의 현재 순위
         </p>
         <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/10 rounded-3xl p-4 border border-brand-primary/30 flex items-center shadow-lg shadow-brand-primary/5">

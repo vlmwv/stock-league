@@ -8,7 +8,6 @@
         <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-6 shadow-3xl">
           <div class="relative z-10">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4 animate-pulse-soft">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tighter text-slate-100">
@@ -72,9 +71,6 @@
       <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-4 mb-10 relative group/ai-section">
         <div class="flex justify-between items-end mb-4 px-2">
           <div class="flex items-center gap-2">
-            <div class="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-              <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-orange-400" />
-            </div>
             <div class="flex flex-col">
               <h3 class="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
                 AI 추천 종목

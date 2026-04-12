@@ -6,7 +6,6 @@
     <main class="max-w-md mx-auto px-6 py-8">
       <header class="mb-8">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4">
-          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
           <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Today's League</span>
         </div>
         <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
