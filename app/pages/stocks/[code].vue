@@ -332,23 +332,29 @@ const chartOptions = computed(() => ({
 }))
 
 onMounted(async () => {
-  const stockData = await fetchStockByCode(code)
-  
-  if (!stockData) {
-    alert('존재하지 않는 종목입니다.')
-    router.back()
-    return
+  // 1. SSR 데이터가 있으면 즉시 반영하여 사용자 체감 속도 개선
+  if (ssrStock.value) {
+    stock.value = ssrStock.value
+  }
+
+  // 2. 종목 정보가 없다면 가져오기 (SSR 실패 대비)
+  if (!stock.value) {
+    const stockData = await fetchStockByCode(code)
+    if (!stockData) {
+      // 로딩 상태를 고려하여 약간의 지연 후에도 없으면 알림
+      alert('존재하지 않는 종목입니다.')
+      router.back()
+      return
+    }
+    stock.value = stockData
   }
   
-  stock.value = stockData
-  
-  const [historyData] = await Promise.all([
-    fetchPriceHistory(stock.value.id),
+  // 3. 관련 데이터(이력, 찜, 뉴스)를 병렬로 한 번에 로드
+  await Promise.all([
+    fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent()
   ])
-  
-  priceHistory.value = historyData
 })
 </script>
 

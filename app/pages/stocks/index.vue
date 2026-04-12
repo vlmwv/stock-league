@@ -3,13 +3,9 @@
     <TopHeader />
 
     <main class="max-w-md mx-auto">
-      <!-- 헤더 & 검색창 -->
-      <section class="px-6 pt-8 pb-4 flex items-center gap-4">
-        <div class="shrink-0">
-          <h2 class="text-2xl font-black text-slate-100 tracking-tight">종목</h2>
-        </div>
-
-        <div class="flex-1 relative">
+      <!-- 검색창 -->
+      <section class="px-6 pt-8 pb-4">
+        <div class="relative">
           <UIcon name="i-heroicons-magnifying-glass-20-solid" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
           <input
             v-model="searchQuery"

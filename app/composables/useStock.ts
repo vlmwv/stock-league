@@ -607,20 +607,23 @@ export const useStock = () => {
     }
   }
 
-  // 사용자 상태 감시: 로그인/로그아웃 시 데이터 동기화 (함수 정의 후로 이동)
-  watch(user, async (newUser) => {
-    if (newUser?.id) {
-      console.log('[useStock] User session detected, syncing data...')
-      await Promise.all([
-        fetchWishlist(),
-        fetchPredictions()
-      ])
-    } else if (!newUser) {
-      console.log('[useStock] No user session, clearing heartbeat/predictions')
-      hearts.value = []
-      myPredictions.value = []
-    }
-  }, { immediate: true })
+  // 사용자 상태 감시 (클라이언트 측에서만 1회 실행 유도)
+  if (process.client) {
+    watch(user, async (newUser, oldUser) => {
+      // 실제 유저 아이디가 변경된 경우에만 동기화
+      if (newUser?.id && newUser.id !== oldUser?.id) {
+        console.log('[useStock] User session changed, syncing data...')
+        await Promise.all([
+          fetchWishlist(),
+          fetchPredictions()
+        ])
+      } else if (!newUser && oldUser) {
+        console.log('[useStock] User logged out, clearing data')
+        hearts.value = []
+        myPredictions.value = []
+      }
+    }, { immediate: true })
+  }
 
   const predict = async (stockId: number, prediction: 'up' | 'down', gameDate?: string) => {
     // 0. 리그 종목 여부 검증 (사용자가 임의로 다른 종목을 예측하지 못하도록 제한)
@@ -1111,7 +1114,7 @@ export const useStock = () => {
   const fetchStockByCode = async (code: string) => {
     const { data, error } = await client
       .from('stocks')
-      .select('*')
+      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, sector, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count')
       .eq('code', code)
       .maybeSingle()
     

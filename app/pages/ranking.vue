@@ -135,7 +135,6 @@ onMounted(async () => {
       <!-- Filters -->
       <div class="flex gap-3 mb-8">
         <div class="flex-1">
-          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">연도</label>
           <div class="relative">
             <select v-model="selectedYear" class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer">
               <option v-for="year in years" :key="year" :value="year">{{ year === '전체' ? '전체 연도' : `${year}년` }}</option>
@@ -144,7 +143,6 @@ onMounted(async () => {
           </div>
         </div>
         <div class="flex-1">
-          <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">월</label>
           <div class="relative" :class="{ 'opacity-50 pointer-events-none': selectedYear === '전체' }">
             <select v-model="selectedMonth" class="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer">
               <option v-for="month in months" :key="month" :value="month">{{ month }}</option>
@@ -156,7 +154,6 @@ onMounted(async () => {
 
       <!-- Sorting Criteria -->
       <div class="mb-8 animate-fade-in" style="animation-delay: 0.1s">
-        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">정렬 기준</label>
         <div class="flex p-1 bg-slate-800/40 rounded-2xl border border-white/5 backdrop-blur-sm">
           <button 
             v-for="opt in sortOptions" 
