@@ -6,7 +6,6 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "fetch-ir": "deno run -A supabase/functions/fetch-ir/index.ts",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",

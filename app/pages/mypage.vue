@@ -122,6 +122,23 @@
            </div>
         </div>
       </div>
+
+      <!-- AI 추천 이력 바로가기 (마이페이지 하단) -->
+      <div class="mt-8 px-2">
+          <NuxtLink 
+            to="/daily/history" 
+            class="w-full py-4 rounded-3xl bg-slate-800/30 border border-white/5 flex items-center justify-center gap-3 group hover:bg-white/5 transition-all"
+          >
+            <div class="p-2 rounded-xl bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-all">
+              <UIcon name="i-heroicons-sparkles-20-solid" class="w-4 h-4 text-orange-400" />
+            </div>
+            <div class="text-left">
+              <p class="text-xs font-black text-slate-200">AI 추천 이력 확인하기</p>
+              <p class="text-[10px] font-bold text-slate-500">AI의 과거 예측 성과를 한눈에 보세요</p>
+            </div>
+            <UIcon name="i-heroicons-chevron-right-20-solid" class="ml-auto mr-4 w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+          </NuxtLink>
+      </div>
     </main>
 
     <BottomNav />

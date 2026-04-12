@@ -155,7 +155,6 @@ const batchFunctions = ref([
   { id: 'process-daily-results', name: '결과 판정', isRunning: false },
   { id: 'select-daily-stocks', name: '종목 선정', isRunning: false },
   { id: 'update-krx-stocks', name: '주가 업데이트', isRunning: false },
-  { id: 'fetch-ir', name: 'IR 정보 수집', isRunning: false },
   { id: 'update-krx-top-100', name: 'KRX Top 100 갱신', isRunning: false }
 ])
 

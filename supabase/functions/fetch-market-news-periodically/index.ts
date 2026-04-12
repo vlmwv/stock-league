@@ -6,13 +6,13 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'ir'): { title: string, summary: string, score: number } {
+function buildFallbackSummary(items: any[], stockName: string): { title: string, summary: string, score: number } {
   const first = items[0] || {}
   const second = items[1] || {}
   const rawTitle1 = String(first.title || first.tit || '').trim()
   const rawTitle2 = String(second.title || second.tit || '').trim()
 
-  const baseTitle = rawTitle1 || `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트`
+  const baseTitle = rawTitle1 || `${stockName} 뉴스 업데이트`
   const title = `${baseTitle.substring(0, 22)}${baseTitle.length > 22 ? '...' : ''} (요약)`
 
   if (rawTitle1 && rawTitle2) {
@@ -26,14 +26,14 @@ function buildFallbackSummary(items: any[], stockName: string, type: 'news' | 'i
   if (rawTitle1) {
     return {
       title,
-      summary: `${rawTitle1} 관련 이슈가 확인되었습니다. 세부 공시/원문 내용을 기준으로 단기 변동성 확대 가능성을 점검하세요.`,
+      summary: `${rawTitle1} 관련 이슈가 확인되었습니다. 단기 변동성 확대 가능성을 점검하세요.`,
       score: 50
     }
   }
 
   return {
     title,
-    summary: `${stockName} ${type === 'ir' ? 'IR' : '뉴스'} 업데이트가 확인되었습니다.`,
+    summary: `${stockName} 뉴스 업데이트가 확인되었습니다.`,
     score: 50
   }
 }
@@ -212,15 +212,12 @@ Deno.serve(async (req) => {
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
-      const irUrl = `https://m.stock.naver.com/api/stock/${stock.code}/irInfo?pageSize=3&page=1`
 
-      const [newsRes, irRes] = await Promise.all([
-        fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-        fetch(irUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+      const [newsRes] = await Promise.all([
+        fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
       ])
 
       const newsData = await newsRes.json()
-      const irData = await irRes.json()
 
       // 최신 API 스펙: 여러 언론사가 모인 묶음(Cluster) 뉴스는 배열 요소 안의 items 배열에 들어있음
       let newsItems = []
@@ -241,28 +238,14 @@ Deno.serve(async (req) => {
         newsItems = newsData?.items || []
       }
 
-      const irItems = Array.isArray(irData) ? irData : (irData?.items || [])
-      
       // 개별 상세 URL 생성을 위한 헬퍼 로직
       let finalUrl = `https://m.stock.naver.com/domestic/stock/${stock.code}/news`
-      let type: 'news' | 'ir' = 'news'
+      let type: 'news' = 'news'
       let primaryItem: any = null
 
       const latestNewsItem = newsItems[0]
-      const latestIrItem = irItems[0]
-      const latestNewsAt = latestNewsItem?.datetime ? new Date(latestNewsItem.datetime).getTime() : 0
-      const latestIrAt = latestIrItem?.writeDate ? new Date(latestIrItem.writeDate).getTime() : 0
 
-      // 최신 시각 기준으로 타입 결정 (뉴스가 최신이면 뉴스 아이콘 유지)
-      if (latestIrItem && latestIrAt > latestNewsAt) {
-        type = 'ir'
-        primaryItem = latestIrItem
-        const boardId = primaryItem.boardId || primaryItem.irInfoId || primaryItem.id
-        finalUrl = boardId
-          ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
-          : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
-      } else if (latestNewsItem) {
-        type = 'news'
+      if (latestNewsItem) {
         primaryItem = latestNewsItem
         const officeId = primaryItem.officeId || primaryItem.oid
         const articleId = primaryItem.articleId || primaryItem.aid
@@ -271,16 +254,9 @@ Deno.serve(async (req) => {
         } else if (primaryItem.mobileNewsUrl) {
           finalUrl = primaryItem.mobileNewsUrl
         }
-      } else if (latestIrItem) {
-        type = 'ir'
-        primaryItem = latestIrItem
-        const boardId = primaryItem.boardId || primaryItem.irInfoId || primaryItem.id
-        finalUrl = boardId
-          ? `https://m.stock.naver.com/domestic/stock/${stock.code}/ir/${boardId}`
-          : `https://m.stock.naver.com/domestic/stock/${stock.code}/ir`
       }
 
-      const allItems = type === 'ir' ? [...irItems, ...newsItems] : [...newsItems, ...irItems]
+      const allItems = newsItems
       if (allItems.length === 0) continue
 
       let title = ''
@@ -293,7 +269,7 @@ Deno.serve(async (req) => {
         score = summarized.score
       } catch (summaryError) {
         // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
-        const fallback = buildFallbackSummary(allItems, stock.name, type)
+        const fallback = buildFallbackSummary(allItems, stock.name)
         title = fallback.title
         summary = fallback.summary
         score = fallback.score
@@ -309,7 +285,7 @@ Deno.serve(async (req) => {
           ai_score: score,
           url: finalUrl,
           type: type,
-          source: '네이버 시황/뉴스/IR (Gemini 요약)',
+          source: '네이버 뉴스 (Gemini 요약)',
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' })
 

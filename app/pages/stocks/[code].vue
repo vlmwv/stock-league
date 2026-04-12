@@ -125,8 +125,8 @@
             </div>
             
             <div v-else-if="currentNewsItems.length === 0" class="py-20 text-center flex flex-col items-center justify-center glass-dark rounded-3xl border border-dashed border-white/10">
-              <UIcon :name="activeTab === 'news' ? 'i-heroicons-newspaper' : 'i-heroicons-presentation-chart-line'" class="w-12 h-12 text-slate-800 mb-4" />
-              <p class="text-sm text-slate-600 font-medium italic">등록된 {{ activeTab === 'news' ? '뉴스' : 'IR/공시' }}가 없습니다.</p>
+              <UIcon name="i-heroicons-newspaper" class="w-12 h-12 text-slate-800 mb-4" />
+              <p class="text-sm text-slate-600 font-medium italic">등록된 뉴스가 없습니다.</p>
             </div>
 
             <div v-else class="space-y-4">
@@ -140,14 +140,10 @@
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                       <div 
-                        class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
-                        :class="{
-                          'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
-                          'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
-                        }"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                       >
                         <UIcon 
-                          :name="item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper'" 
+                          name="i-heroicons-newspaper" 
                           class="w-4.5 h-4.5" 
                         />
                       </div>
@@ -197,17 +193,15 @@ const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
 const tabs = [
   { key: 'history', label: '주가 이력' },
-  { key: 'news', label: '종목 뉴스' },
-  { key: 'ir', label: '종목 IR' }
+  { key: 'news', label: '종목 뉴스' }
 ]
 
 const newsItems = ref<any[]>([])
-const irItems = ref<any[]>([])
 const isNewsLoading = ref(false)
 
-// 현재 탭에 따른 뉴스 아이템 반환
+// 현재 탭에 따른 뉴스 아이템 반환 (현재는 뉴스만 존재)
 const currentNewsItems = computed(() => {
-  return activeTab.value === 'news' ? newsItems.value : irItems.value
+  return newsItems.value
 })
 
 // SSR 단계에서 종목 정보 로드
@@ -261,17 +255,13 @@ const navigateToNews = (item: any) => {
   }
 }
 
-// 뉴스/IR 로드 함수
+// 뉴스 로드 함수
 const loadStockContent = async () => {
   if (!stock.value) return
   isNewsLoading.value = true
   try {
-    const [newsRes, irRes] = await Promise.all([
-      fetchNews(20, 1, 'news', stock.value.id),
-      fetchNews(20, 1, 'ir', stock.value.id)
-    ])
-    newsItems.value = newsRes.data
-    irItems.value = irRes.data
+    const { data } = await fetchNews(20, 1, 'news', stock.value.id)
+    newsItems.value = data
   } finally {
     isNewsLoading.value = false
   }
