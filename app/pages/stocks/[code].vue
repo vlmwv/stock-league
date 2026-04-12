@@ -139,14 +139,6 @@
                 <div class="flex flex-col gap-3.5 relative z-10">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                      <div 
-                        class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-                      >
-                        <UIcon 
-                          name="i-heroicons-newspaper" 
-                          class="w-4.5 h-4.5" 
-                        />
-                      </div>
                       <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
                     </div>
                     <span class="text-[10px] text-slate-500 font-bold opacity-70">{{ formatNewsDate(item.published_at) }}</span>
