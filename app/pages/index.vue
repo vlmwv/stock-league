@@ -248,6 +248,14 @@
                   >
                     <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4.5 h-4.5" />
                   </button>
+                  <!-- Stock Detail Button -->
+                  <button 
+                    v-if="item.stockCode"
+                    @click.stop="navigateTo('/stocks/' + item.stockCode)"
+                    class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus"
+                  >
+                    <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
+                  </button>
                   <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
                 </div>
               </div>
