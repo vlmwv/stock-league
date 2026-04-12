@@ -117,7 +117,7 @@
             </div>
           </div>
 
-          <!-- 탭 콘텐츠: 종목 뉴스 / IR 공시 -->
+          <!-- 탭 콘텐츠: 종목 뉴스 -->
           <div v-else class="space-y-4 animate-fade-in">
             <div v-if="isNewsLoading" class="flex flex-col items-center justify-center py-12 gap-4">
               <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
@@ -249,7 +249,7 @@ const handleToggleHeart = async (stockId: number) => {
 }
 
 const navigateToNews = (item: any) => {
-  const url = repairNewsUrl(item.url, item.stockCode, item.type)
+  const url = repairNewsUrl(item.url, item.stockCode)
   if (url) {
     window.open(url, '_blank')
   }

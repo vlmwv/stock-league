@@ -162,12 +162,6 @@
                 {{ getPredictionValue(stock.id) === 'down' ? '하락 ✓' : '하락' }}
               </span>
             </button>
-            <NuxtLink 
-              :to="'/stocks/' + stock.code"
-              class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-slate-100 transition-all"
-            >
-              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />
-            </NuxtLink>
             <button 
               @click.stop="toggleHeart(stock.id)"
               class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"

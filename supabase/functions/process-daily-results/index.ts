@@ -153,18 +153,11 @@ Deno.serve(async (req) => {
 
       // 5. 리그 종목이었다면 daily_stocks 마감 처리 및 AI 결과 기록
       if (dailyStock) {
-        let aiResult = 'draw';
-        if (resultOutcome === 'draw') {
+        let aiResult = 'lose';
+        if (resultOutcome === 'up') {
+          aiResult = 'win';
+        } else if (resultOutcome === 'draw') {
           aiResult = 'draw';
-        } else {
-          const aiPrediction = (dailyStock.ai_score || 50) > 50 ? 'up' : ((dailyStock.ai_score || 50) < 50 ? 'down' : 'draw');
-          if (aiPrediction === 'draw') {
-            aiResult = 'draw';
-          } else if (aiPrediction === resultOutcome) {
-            aiResult = 'win';
-          } else {
-            aiResult = 'lose';
-          }
         }
 
         await supabase.from('daily_stocks').update({

@@ -40,7 +40,12 @@
             <span class="text-[10px] font-bold text-slate-600">{{ group.items.length }} 종목</span>
           </div>
 
-          <div v-for="item in group.items" :key="item.daily_id" class="glass-dark rounded-3xl p-5 border border-white/5 relative group hover:bg-white/5 transition-all">
+          <div 
+            v-for="item in group.items" 
+            :key="item.daily_id" 
+            @click="navigateTo('/stocks/' + item.code)"
+            class="glass-dark rounded-3xl p-5 border border-white/5 relative group hover:bg-white/5 transition-all cursor-pointer"
+          >
             <div class="flex justify-between items-start mb-3">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
@@ -53,7 +58,7 @@
                     <span class="text-[10px] font-black leading-none">{{ item.ai_score }}</span>
                   </div>
                 </div>
-                <h4 class="text-xl font-black text-slate-100">{{ item.name }}</h4>
+                <h4 class="text-xl font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ item.name }}</h4>
               </div>
 
               <!-- 결과 배지 -->
@@ -93,13 +98,6 @@
                   </span>
                 </div>
               </div>
-
-              <NuxtLink 
-                :to="'/stocks/' + item.code"
-                class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-800/50 border border-white/5 text-slate-400 hover:text-slate-100 transition-all"
-              >
-                <UIcon name="i-heroicons-plus-20-solid" class="w-4 h-4" />
-              </NuxtLink>
             </div>
           </div>
         </div>

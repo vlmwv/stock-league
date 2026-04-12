@@ -10,27 +10,12 @@
           <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">실시간 피드</span>
         </div>
         <div class="flex items-baseline justify-between mb-4">
-          <h2 class="text-3xl font-black text-slate-100 tracking-tight">뉴스 & 공시</h2>
+          <h2 class="text-3xl font-black text-slate-100 tracking-tight">최신 뉴스</h2>
           <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
             전체 <span class="text-brand-primary">{{ totalCount.toLocaleString() }}</span>건
           </p>
         </div>
 
-        <!-- 범례 필터 -->
-        <div class="flex flex-wrap gap-2">
-          <button 
-            v-for="type in filterTypes" 
-            :key="type.value"
-            @click="selectedType = type.value"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border transition-all duration-300"
-            :class="selectedType === type.value 
-              ? type.activeClass 
-              : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'"
-          >
-            <UIcon v-if="type.icon" :name="type.icon" class="w-3.5 h-3.5" />
-            <span class="text-[10px] font-black uppercase tracking-widest">{{ type.label }}</span>
-          </button>
-        </div>
       </section>
 
       <!-- 뉴스 목록 -->
@@ -42,7 +27,7 @@
 
         <div v-else-if="newsItems.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
           <UIcon name="i-heroicons-newspaper" class="w-12 h-12 text-slate-700 mb-4" />
-          <p class="text-sm text-slate-500 font-medium">선택한 카테고리에 등록된 뉴스나 공시가 없습니다.</p>
+          <p class="text-sm text-slate-500 font-medium">등록된 뉴스가 없습니다.</p>
         </div>
 
         <template v-else>
@@ -57,14 +42,10 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                   <div 
-                    class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm"
-                    :class="{
-                      'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
-                      'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
-                    }"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                   >
                     <UIcon 
-                      :name="item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper'" 
+                      name="i-heroicons-newspaper" 
                       class="w-4.5 h-4.5" 
                     />
                   </div>
@@ -128,12 +109,6 @@ const isLoading = ref(true)
 const selectedType = ref('all')
 const totalCount = ref(0)
 
-const filterTypes = [
-  { label: '전체', value: 'all', icon: null, activeClass: 'bg-slate-100 border-slate-100 text-slate-900' },
-  { label: '뉴스', value: 'news', icon: 'i-heroicons-newspaper', activeClass: 'bg-brand-primary/20 border-brand-primary/30 text-brand-primary' },
-  { label: 'IR', value: 'ir', icon: 'i-heroicons-presentation-chart-line', activeClass: 'bg-purple-500/20 border-purple-500/30 text-purple-400' }
-]
-
 // 페이징 상태
 const page = ref(1)
 const pageSize = 20
@@ -165,7 +140,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const navigateToNews = (item: any) => {
-  const url = repairNewsUrl(item.url, item.stockCode, item.type)
+  const url = repairNewsUrl(item.url, item.stockCode)
   if (url) {
     window.open(url, '_blank')
   }
@@ -181,7 +156,7 @@ const loadNews = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const response = await fetchNews(pageSize, page.value, selectedType.value)
+    const response = await fetchNews(pageSize, page.value, 'all')
     const data = response.data || []
     totalCount.value = response.count || 0
     
@@ -202,10 +177,6 @@ const loadNews = async (isAppend = false) => {
     isFetchingMore.value = false
   }
 }
-
-watch(selectedType, () => {
-  loadNews()
-})
 
 const loadMore = () => {
   if (!hasMore.value || isFetchingMore.value || isLoading.value) return

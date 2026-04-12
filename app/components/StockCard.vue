@@ -39,27 +39,23 @@
         </div>
       </template>
 
-      <div class="flex justify-between items-start mb-6">
+      <div class="flex justify-between items-start mb-6 relative z-[31]">
         <div class="space-y-1">
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter">
-              {{ stock.code }}
-            </span>
-            <NuxtLink
-              :to="'/stocks/' + stock.code"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-all border border-slate-700/50"
-            >
-              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />
-            </NuxtLink>
-            <button 
-              @click.stop="$emit('toggleHeart', stock.id)" 
-              class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
-              :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
-            >
-              <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-            </button>
-          </div>
-          <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate">{{ stock.name }}</h4>
+          <NuxtLink :to="'/stocks/' + stock.code" class="group/title block">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
+                {{ stock.code }}
+              </span>
+              <button 
+                @click.prevent.stop="$emit('toggleHeart', stock.id)" 
+                class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
+              >
+                <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+              </button>
+            </div>
+            <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
+          </NuxtLink>
           <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-1.5">
             <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20">
               <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400" />

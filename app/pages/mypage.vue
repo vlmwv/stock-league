@@ -126,7 +126,7 @@
       <!-- AI 추천 이력 바로가기 (마이페이지 하단) -->
       <div class="mt-8 px-2">
           <NuxtLink 
-            to="/daily/history" 
+            to="/daily-history" 
             class="w-full py-4 rounded-3xl bg-slate-800/30 border border-white/5 flex items-center justify-center gap-3 group hover:bg-white/5 transition-all"
           >
             <div class="p-2 rounded-xl bg-orange-400/10 border border-orange-400/20 group-hover:bg-orange-400/20 transition-all">

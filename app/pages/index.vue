@@ -84,12 +84,14 @@
               </h3>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <NuxtLink to="/daily-history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-all flex items-center gap-1.5">
-              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
-              이력 보기
+          <div class="flex items-center gap-3">
+            <NuxtLink to="/daily-history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-all flex items-center gap-1.5 ring-1 ring-white/5 px-2 py-1 rounded-lg bg-white/5">
+              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-brand-primary" />
+              이력
             </NuxtLink>
-            <NuxtLink to="/stocks?tab=aiRecommendation" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
+            <NuxtLink to="/stocks?tab=aiRecommendation" class="w-7 h-7 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg shadow-brand-primary/10">
+              <UIcon name="i-heroicons-plus-20-solid" class="w-4 h-4" />
+            </NuxtLink>
           </div>
         </div>
         
@@ -153,18 +155,12 @@
                       </div>
                     </div>
                     
-                    <NuxtLink 
-                      :to="'/stocks/' + stock.code"
-                      class="w-6.5 h-6.5 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/5"
-                    >
-                      <UIcon name="i-heroicons-plus-20-solid" class="w-3.5 h-3.5 text-slate-500 hover:text-slate-100" />
-                    </NuxtLink>
                     <button 
                       @click.stop="toggleHeart(stock.id)"
-                      class="w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                      class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
                       :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
                     >
-                      <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-3.5 h-3.5" />
+                      <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -227,9 +223,8 @@
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
           </div>
-            <NuxtLink to="/news" class="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline flex items-center gap-1.5 group/link">
-              전체보기
-              <UIcon name="i-heroicons-arrow-right-20-solid" class="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
+            <NuxtLink to="/news" class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus">
+              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
             </NuxtLink>
         </div>
 
@@ -245,14 +240,10 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div 
-                    class="w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm transition-transform group-hover:scale-110 duration-500"
-                    :class="{
-                      'bg-purple-500/10 border-purple-500/20 text-purple-400': item.type === 'ir',
-                      'bg-brand-primary/10 border-brand-primary/20 text-brand-primary': item.type === 'news' || !item.type
-                    }"
+                    class="w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm transition-transform group-hover:scale-110 duration-500 bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                   >
                     <UIcon 
-                      :name="item.type === 'ir' ? 'i-heroicons-presentation-chart-line' : 'i-heroicons-newspaper'" 
+                      name="i-heroicons-newspaper" 
                       class="w-5 h-5" 
                     />
                   </div>
@@ -372,7 +363,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const navigateToNews = (item: any) => {
-  const url = repairNewsUrl(item.url, item.stockCode, item.type)
+  const url = repairNewsUrl(item.url, item.stockCode)
   if (url) {
     window.open(url, '_blank')
   } else {

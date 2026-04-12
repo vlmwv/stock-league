@@ -110,12 +110,6 @@
 
             <!-- 액션 버튼 -->
             <div class="flex items-center gap-2 shrink-0">
-              <NuxtLink
-                :to="'/stocks/' + stock.code"
-                class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors border border-white/5"
-              >
-                <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />
-              </NuxtLink>
               <button
                 @click.stop="handleToggleHeart(stock.id)"
                 class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
