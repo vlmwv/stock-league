@@ -153,21 +153,19 @@ onMounted(async () => {
       </div>
 
       <!-- Sorting Criteria -->
-      <div class="mb-8 animate-fade-in" style="animation-delay: 0.1s">
-        <div class="flex p-1 bg-slate-800/40 rounded-2xl border border-white/5 backdrop-blur-sm">
-          <button 
-            v-for="opt in sortOptions" 
-            :key="opt.value"
-            @click="sortBy = opt.value as any"
-            class="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
-            :class="sortBy === opt.value 
-              ? 'bg-gradient-to-r from-brand-primary/20 to-brand-secondary/20 text-brand-primary shadow-lg shadow-brand-primary/10 border border-brand-primary/20' 
-              : 'text-slate-500 hover:text-slate-300'"
-          >
-            <UIcon :name="opt.icon" class="w-3.5 h-3.5" />
-            {{ opt.label }}
-          </button>
-        </div>
+      <div class="flex gap-2.5 mb-8 animate-fade-in" style="animation-delay: 0.1s">
+        <button 
+          v-for="opt in sortOptions" 
+          :key="opt.value"
+          @click="sortBy = opt.value as any"
+          class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 border backdrop-blur-sm shadow-sm"
+          :class="sortBy === opt.value 
+            ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-brand-primary/5' 
+            : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'"
+        >
+          <UIcon :name="opt.icon" class="w-3.5 h-3.5" />
+          {{ opt.label }}
+        </button>
       </div>
 
       <div v-if="pending" class="flex justify-center py-20">

@@ -120,7 +120,7 @@ export const useStock = () => {
     console.log(`[useStock] Fetching stocks for target date: ${targetDate} (today: ${today}, searchDate: ${searchDate})`)
     
     // Join daily_stocks with stocks and news (latest summary)
-    let { data, error } = await client
+    let query = client
       .from('daily_stocks')
       .select(`
         id,
@@ -142,6 +142,37 @@ export const useStock = () => {
       `)
       .eq('game_date', targetDate as any)
     
+    let { data, error } = await query
+    
+    // ai_result 컬럼 부재로 인한 에러 시 재시도
+    if (error && error.code === '42703') {
+      console.warn('[useStock] ai_result column missing in daily_stocks, retrying without it...')
+      const fallbackQuery = client
+        .from('daily_stocks')
+        .select(`
+          id,
+          game_date,
+          llm_summary,
+          ai_score,
+          stocks (
+            id,
+            code,
+            name,
+            last_price,
+            change_amount,
+            change_rate,
+            ai_recommendation_count,
+            ai_win_count,
+            ai_processed_count
+          )
+        `)
+        .eq('game_date', targetDate as any)
+      
+      const retry = await fallbackQuery
+      data = retry.data
+      error = retry.error
+    }
+    
     // Fallback: If no future data, fetch latest available stock data
     if (!error && (!data || data.length === 0)) {
       console.log(`No daily stocks found for ${today}, fetching latest available...`)
@@ -154,12 +185,14 @@ export const useStock = () => {
       const latestDateItem = (latestDateData as any)?.[0]
       if (latestDateItem && latestDateItem.game_date) {
         const latestDate = latestDateItem.game_date
-        const { data: fallbackData, error: fallbackError } = await client
+        let q = client
           .from('daily_stocks')
           .select(`
             id,
             game_date,
             llm_summary,
+            ai_score,
+            ai_result,
             stocks (
               id,
               code,
@@ -170,10 +203,37 @@ export const useStock = () => {
               ai_recommendation_count,
               ai_win_count,
               ai_processed_count
-            ),
-            ai_score
+            )
           `)
           .eq('game_date', latestDate)
+        
+        let { data: fallbackData, error: fallbackError } = await q
+        
+        if (fallbackError && fallbackError.code === '42703') {
+          const fbRetryQuery = client
+            .from('daily_stocks')
+            .select(`
+              id,
+              game_date,
+              llm_summary,
+              ai_score,
+              stocks (
+                id,
+                code,
+                name,
+                last_price,
+                change_amount,
+                change_rate,
+                ai_recommendation_count,
+                ai_win_count,
+                ai_processed_count
+              )
+            `)
+            .eq('game_date', latestDate)
+          const fbRetry = await fbRetryQuery
+          fallbackData = fbRetry.data
+          fallbackError = fbRetry.error
+        }
         
         if (!fallbackError && fallbackData) {
           data = fallbackData
