@@ -37,7 +37,12 @@
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="item in history" :key="item.id" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors">
+          <NuxtLink 
+            v-for="item in history" 
+            :key="item.id" 
+            :to="item.stockCode ? '/stocks/' + item.stockCode : undefined"
+            class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors block cursor-pointer"
+          >
             <!-- Icon/Initial -->
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sm font-black border border-white/5 shrink-0 text-slate-400">
                {{ item.stockName.substring(0, 1) }}
@@ -48,13 +53,6 @@
                <div class="flex items-center gap-2">
                  <h4 class="font-bold text-slate-200 truncate">{{ item.stockName }}</h4>
                  <span v-if="item.stockCode" class="text-[10px] font-bold text-slate-600 uppercase shrink-0">{{ item.stockCode }}</span>
-                 <NuxtLink
-                   v-if="item.stockCode"
-                   :to="'/stocks/' + item.stockCode"
-                   class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-all border border-white/5 ml-1"
-                 >
-                   <UIcon name="i-heroicons-plus-20-solid" class="w-3.5 h-3.5" />
-                 </NuxtLink>
                </div>
                <div class="flex items-center gap-2 mt-1">
                  <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
@@ -88,7 +86,7 @@
                  {{ item.points_awarded > 0 ? '+' : '' }}{{ item.points_awarded }}p
                </p>
             </div>
-          </div>
+          </NuxtLink>
 
           <!-- Infinite Scroll Trigger -->
           <div ref="loadMoreTrigger" class="h-10 flex items-center justify-center mt-4">

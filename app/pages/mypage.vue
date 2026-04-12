@@ -62,14 +62,21 @@
       <!-- Prediction History Header -->
       <div class="px-2 mb-6 flex justify-between items-center">
         <h3 class="text-xl font-black text-slate-200 tracking-tight">최근 예측 기록</h3>
-        <NuxtLink to="/history" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">전체 보기</NuxtLink>
+        <NuxtLink to="/history" class="w-8 h-8 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95">
+          <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5" />
+        </NuxtLink>
       </div>
 
       <!-- History List -->
       <div class="space-y-4">
         <div v-if="loading" class="text-center py-10 text-slate-500 font-bold">로딩 중...</div>
         <div v-else-if="history.length === 0" class="text-center py-10 text-slate-500 font-bold">예측 기록이 없습니다.</div>
-        <div v-for="item in history" :key="item.id" class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors">
+        <NuxtLink 
+          v-for="item in history" 
+          :key="item.id" 
+          :to="item.stockCode ? '/stocks/' + item.stockCode : undefined"
+          class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
+        >
            <!-- Icon/Initial -->
            <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0 text-slate-400">
               {{ item.stockName.substring(0, 1) }}
@@ -80,13 +87,7 @@
               <div class="flex items-center gap-2">
                 <h4 class="font-bold text-slate-200 truncate text-sm">{{ item.stockName }}</h4>
                 <span v-if="item.stockCode" class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ item.stockCode }}</span>
-                <NuxtLink
-                  v-if="item.stockCode"
-                  :to="'/stocks/' + item.stockCode"
-                  class="w-5 h-5 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-all border border-white/5 ml-1"
-                >
-                  <UIcon name="i-heroicons-plus-20-solid" class="w-3 h-3" />
-                </NuxtLink>
+
               </div>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
@@ -120,7 +121,7 @@
                 {{ item.points_awarded > 0 ? '+' : '' }}{{ item.points_awarded }}p
               </p>
            </div>
-        </div>
+        </NuxtLink>
       </div>
 
       <!-- AI 추천 이력 바로가기 (마이페이지 하단) -->
