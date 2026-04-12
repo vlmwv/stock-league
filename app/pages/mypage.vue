@@ -45,16 +45,15 @@
         </div>
       </section>
 
-      <section class="grid grid-cols-2 gap-4 mb-10">
-        <div class="glass-dark rounded-3xl p-6 border border-white/5">
-           <UIcon name="i-heroicons-fire" class="w-6 h-6 text-orange-500 mb-3" />
-           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">연속 참여</p>
-           <p class="text-xl font-black text-slate-200">{{ stats?.streak || 0 }}일</p>
+      <section class="glass-dark rounded-3xl px-6 py-4 border border-white/5 mb-10 flex justify-around items-center">
+        <div class="text-center">
+           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">연속 참여</p>
+           <p class="text-base font-black text-slate-200">{{ stats?.streak || 0 }}일</p>
         </div>
-        <div class="glass-dark rounded-3xl p-6 border border-white/5">
-           <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-sky-500 mb-3" />
-           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">총 게임 수</p>
-           <p class="text-xl font-black text-slate-200">{{ stats?.totalGames || 0 }}회</p>
+        <div class="w-px h-6 bg-white/10"></div>
+        <div class="text-center">
+           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">총 게임 수</p>
+           <p class="text-base font-black text-slate-200">{{ stats?.totalGames || 0 }}회</p>
         </div>
       </section>
       

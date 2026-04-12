@@ -5,10 +5,6 @@
     <main class="max-w-md mx-auto">
       <!-- 헤더 -->
       <section class="px-6 pt-8 pb-4">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4">
-          <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-          <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">실시간 피드</span>
-        </div>
         <div class="flex items-baseline justify-between mb-4">
           <h2 class="text-3xl font-black text-slate-100 tracking-tight">최신 뉴스</h2>
           <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -41,14 +37,6 @@
               <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                  <div 
-                    class="w-8 h-8 rounded-lg flex items-center justify-center border shadow-sm bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-                  >
-                    <UIcon 
-                      name="i-heroicons-newspaper" 
-                      class="w-4.5 h-4.5" 
-                    />
-                  </div>
                   <div v-if="item.stockName" class="flex items-baseline gap-1.5">
                     <span class="text-xs font-black text-slate-200 tracking-tight">{{ item.stockName }}</span>
                     <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>

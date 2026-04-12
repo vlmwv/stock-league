@@ -232,14 +232,6 @@
               <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div 
-                    class="w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm transition-transform group-hover:scale-110 duration-500 bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-                  >
-                    <UIcon 
-                      name="i-heroicons-newspaper" 
-                      class="w-5 h-5" 
-                    />
-                  </div>
                   <div v-if="item.stockName" class="flex flex-col gap-0.5">
                     <span class="text-[13px] font-black text-slate-200 tracking-tight leading-none">{{ item.stockName }}</span>
                     <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
