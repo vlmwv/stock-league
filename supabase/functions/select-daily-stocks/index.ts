@@ -42,7 +42,6 @@ function isEtf(name: string): boolean {
  */
 async function analyzeStockWithGemini(
   newsItems: any[], 
-  disclosureItems: any[], 
   priceHistory: any[],
   stockCode: string,
   stockName: string, 
@@ -55,10 +54,6 @@ async function analyzeStockWithGemini(
   const newsSummary = newsItems.length > 0 
     ? newsItems.map(item => `- ${item.tit}`).join('\n')
     : '최근 주요 뉴스 없음'
-  
-  const disclosureSummary = disclosureItems.length > 0
-    ? disclosureItems.map(item => `- ${item.title}`).join('\n')
-    : '최근 공시 없음'
 
   const priceSummary = priceHistory.length > 0
     ? priceHistory.map((h: any) => `- ${h.price_date}: ${h.close_price}원 (${h.change_rate >= 0 ? '+' : ''}${h.change_rate}%)`).join('\n')
@@ -75,12 +70,9 @@ ${priceSummary}
 [최근 주요 뉴스]
 ${newsSummary}
 
-[최근 주요 공시]
-${disclosureSummary}
-
 분석 지침:
 1. **기술적 분석**: 최근 주가 흐름(상승/하락/횡보)과 변동성을 고려하여 단기적인 기술적 반등 또는 추세 지속 가능성을 평가하세요.
-2. **재료적 분석**: 뉴스 및 공시의 강도와 시장 영향력을 분석하세요. 최근 이슈가 주가에 이미 반영되었는지(선반영), 아니면 추가 상승 동력이 될 수 있는지 판단하세요.
+2. **재료적 분석**: 뉴스의 강도와 시장 영향력을 분석하세요. 최근 이슈가 주가에 이미 반영되었는지(선반영), 아니면 추가 상승 동력이 될 수 있는지 판단하세요.
 3. **종합 판단**: 위 정보를 종합하여 다음 영업일의 주가 상승 가능성을 0~100점 사이의 점수로 산출하세요.
    - 80점 이상: 강력한 상승 모멘텀 보유
    - 60~79점: 상승 가능성 높음 (완만한 상승 또는 기술적 반등)
@@ -290,10 +282,8 @@ Deno.serve(async (req: any) => {
       console.log(`Analyzing ${stock.name}...`)
       try {
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
-        const discUrl = `https://m.stock.naver.com/api/stock/${stock.code}/disclosure?pageSize=3&page=1`
         
         let newsItems = []
-        let disclosureItems = []
         let priceHistory: any[] = []
 
         try {
@@ -307,17 +297,14 @@ Deno.serve(async (req: any) => {
           
           priceHistory = history || []
 
-          const [newsRes, discRes] = await Promise.all([
-            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) }),
-            fetch(discUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
+          const [newsRes] = await Promise.all([
+            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
           ])
           if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
-          if (discRes.ok) disclosureItems = (await discRes.json()) || []
         } catch (e) { /* ignore fetch errors */ }
 
         const { summary, score } = await analyzeStockWithGemini(
           newsItems, 
-          disclosureItems, 
           priceHistory,
           stock.code,
           stock.name, 

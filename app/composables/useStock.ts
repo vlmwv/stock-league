@@ -16,6 +16,7 @@ interface Stock {
   ai_win_count?: number
   ai_processed_count?: number
   ai_score?: number
+  ai_result?: 'win' | 'lose' | 'draw' | 'pending'
 }
 
 export const useStock = () => {
@@ -126,6 +127,7 @@ export const useStock = () => {
         game_date,
         llm_summary,
         ai_score,
+        ai_result,
         stocks (
           id,
           code,
@@ -198,6 +200,7 @@ export const useStock = () => {
       ai_win_count: ds.stocks.ai_win_count || 0,
       ai_processed_count: ds.stocks.ai_processed_count || 0,
       ai_score: ds.ai_score || 0,
+      ai_result: ds.ai_result || 'pending',
       summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
   })
@@ -1139,6 +1142,50 @@ export const useStock = () => {
     
     return { totalWins, totalProcessed }
   }
+  
+  const fetchAiHistory = async (page = 1, pageSize = 20) => {
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    const { data, error } = await client
+      .from('daily_stocks')
+      .select(`
+        id,
+        game_date,
+        llm_summary,
+        ai_score,
+        ai_result,
+        stocks (
+          id,
+          name,
+          code,
+          last_price,
+          change_amount,
+          change_rate
+        )
+      `)
+      .order('game_date', { ascending: false })
+      .range(from, to)
+
+    if (error) {
+      console.error('Error fetching AI history:', error)
+      return []
+    }
+
+    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
+      id: Number(ds.stocks.id),
+      daily_id: ds.id,
+      game_date: ds.game_date,
+      name: ds.stocks.name,
+      code: ds.stocks.code,
+      last_price: ds.stocks.last_price || 0,
+      change_amount: ds.stocks.change_amount || 0,
+      change_rate: ds.stocks.change_rate || 0,
+      ai_score: ds.ai_score || 0,
+      ai_result: ds.ai_result || 'pending',
+      summary: decodeHtmlEntities(ds.llm_summary || '')
+    }))
+  }
 
   return {
     dailyStocks,
@@ -1173,6 +1220,7 @@ export const useStock = () => {
     isGuideOpen,
     allPredicted,
     refreshAll,
+    fetchAiHistory,
     isHearted: (id: number) => hearts.value.includes(Number(id)),
     getPrediction: (id: number) => myPredictions.value.find(p => p.stockId === id) || null,
     getPredictionValue: (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null,

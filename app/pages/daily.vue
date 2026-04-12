@@ -12,10 +12,16 @@
         <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
           {{ isTomorrow ? '내일의' : '오늘의' }} <span class="text-brand-primary">예측 리그</span>
         </h2>
-        <div class="mt-2 flex items-center gap-2">
-          <span class="text-[11px] font-bold text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md border border-white/5">
-            League Date: {{ gameDateDisplay }}
-          </span>
+        <div class="mt-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md border border-white/5">
+              League Date: {{ gameDateDisplay }}
+            </span>
+          </div>
+          <NuxtLink to="/daily/history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-colors flex items-center gap-1">
+            <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
+            AI 추천 이력 보기
+          </NuxtLink>
         </div>
         <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : (statusMessage.includes('준비 중') ? 'text-orange-400' : 'text-slate-500')">
           {{ statusMessage }}
@@ -72,6 +78,20 @@
                 >
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3.5 h-3.5" />
                   <span class="text-[10px] font-black leading-none">{{ stock.ai_score }}</span>
+                </div>
+
+                <!-- AI 예측 결과 배지 -->
+                <div 
+                  v-if="isResultPublished && (stock as any).ai_result && (stock as any).ai_result !== 'pending'" 
+                  class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-sm"
+                  :class="[
+                    (stock as any).ai_result === 'win' ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400' : 
+                    (stock as any).ai_result === 'lose' ? 'bg-rose-400/10 border-rose-400/20 text-rose-400' : 
+                    'bg-slate-400/10 border-slate-400/20 text-slate-400'
+                  ]"
+                >
+                  <UIcon :name="(stock as any).ai_result === 'win' ? 'i-heroicons-sparkles-20-solid' : 'i-heroicons-x-circle-20-solid'" class="w-3.5 h-3.5" />
+                  <span class="text-[10px] font-black leading-none">AI {{ (stock as any).ai_result === 'win' ? '성공' : ((stock as any).ai_result === 'lose' ? '실패' : '무승부') }}</span>
                 </div>
               </div>
               <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>

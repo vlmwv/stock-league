@@ -84,7 +84,13 @@
               </h3>
             </div>
           </div>
-          <NuxtLink to="/stocks?tab=aiRecommendation" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
+          <div class="flex items-center gap-4">
+            <NuxtLink to="/daily/history" class="text-[10px] font-black text-slate-500 hover:text-brand-primary uppercase tracking-widest transition-all flex items-center gap-1.5">
+              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
+              이력 보기
+            </NuxtLink>
+            <NuxtLink to="/stocks?tab=aiRecommendation" class="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-brand-primary transition-colors">더보기</NuxtLink>
+          </div>
         </div>
         
         <div class="relative">
