@@ -68,3 +68,18 @@ export const decodeHtmlEntities = (str: string): string => {
     .replace(/&nbsp;/g, ' ')
 }
 
+/**
+ * 종목명이 ETF인지 여부를 확인합니다.
+ * @param name 종목명
+ * @returns ETF 여부
+ */
+export const isEtf = (name: string): boolean => {
+  const etfKeywords = [
+    'ETF', 'ETN', 'KODEX', 'TIGER', 'KBSTAR', 'ACE', 'SOL', 'ARIRANG', 
+    'HANARO', 'KOSEF', 'RISE', 'PLUS', 'TIMEFOLIO', 'WOORI', 'HI', 
+    'UNIPLAT', 'HANA', 'KOSEF'
+  ]
+  const upperName = (name || '').toUpperCase()
+  return etfKeywords.some(keyword => upperName.includes(keyword))
+}
+

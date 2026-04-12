@@ -25,6 +25,19 @@ async function fetchMarketIndices(): Promise<string> {
 }
 
 /**
+ * 종목이 ETF인지 여부 확인
+ */
+function isEtf(name: string): boolean {
+  const etfKeywords = [
+    'ETF', 'ETN', 'KODEX', 'TIGER', 'KBSTAR', 'ACE', 'SOL', 'ARIRANG', 
+    'HANARO', 'KOSEF', 'RISE', 'PLUS', 'TIMEFOLIO', 'WOORI', 'HI', 
+    'UNIPLAT', 'HANA', 'KOSEF'
+  ]
+  const upperName = name.toUpperCase()
+  return etfKeywords.some(keyword => upperName.includes(keyword))
+}
+
+/**
  * Gemini를 사용하여 종목 요약 및 추천 점수 산출
  */
 async function analyzeStockWithGemini(
@@ -227,6 +240,12 @@ Deno.serve(async (req: any) => {
     if (fetchError) throw fetchError
     if (!allStocks || allStocks.length === 0) throw new Error('No stocks found in DB.')
 
+    // ETF 필터링: 개별 종목만 선정하기 위해 ETF 브랜드 및 검색어를 필터링합니다.
+    const filteredStocks = allStocks.filter(stock => !isEtf(stock.name))
+    console.log(`Filtered candidates: ${filteredStocks.length} stocks (removed ETFs).`)
+
+    if (filteredStocks.length === 0) throw new Error('No valid individual stocks found after filtering ETFs.')
+
     // 2. 내일 날짜 계산 (KST 기준)
     const kstOffset = 9 * 60 * 60 * 1000
     const kstNow = new Date(Date.now() + kstOffset)
@@ -265,7 +284,7 @@ Deno.serve(async (req: any) => {
     const scoredStocks: any[] = []
     const limit = 3 // 타임아웃 방지를 위해 분석 종목 수 축소
 
-    const stocksToAnalyze = allStocks.slice(0, limit)
+    const stocksToAnalyze = filteredStocks.slice(0, limit)
     
     for (const stock of stocksToAnalyze) {
       console.log(`Analyzing ${stock.name}...`)

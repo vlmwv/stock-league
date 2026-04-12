@@ -1,4 +1,4 @@
-import { repairNewsUrl, decodeHtmlEntities } from '~/utils/stock'
+import { repairNewsUrl, decodeHtmlEntities, isEtf } from '~/utils/stock'
 
 interface Stock {
   id: number
@@ -184,8 +184,8 @@ export const useStock = () => {
       return []
     }
 
-    // Map to local Stock interface
-    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
+    // Map to local Stock interface and filter ETFs
+    return (data || []).filter((ds: any) => ds.stocks && !isEtf(ds.stocks.name)).map((ds: any) => ({
       id: Number(ds.stocks.id),
       daily_id: ds.id,
       game_date: ds.game_date,
@@ -229,19 +229,21 @@ export const useStock = () => {
       .limit(5)
 
     if (!dailyError && dailyData && dailyData.length > 0) {
-      return dailyData.map((d: any) => ({
-        id: Number(d.stocks.id),
-        name: d.stocks.name,
-        code: d.stocks.code,
-        last_price: d.stocks.last_price || 0,
-        change_amount: d.stocks.change_amount || 0,
-        change_rate: d.stocks.change_rate || 0,
-        ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
-        ai_win_count: d.stocks.ai_win_count || 0,
-        ai_processed_count: d.stocks.ai_processed_count || 0,
-        ai_score: d.ai_score || 0,
-        summary: decodeHtmlEntities(d.llm_summary)
-      }))
+      return dailyData
+        .filter((d: any) => d.stocks && !isEtf(d.stocks.name))
+        .map((d: any) => ({
+          id: Number(d.stocks.id),
+          name: d.stocks.name,
+          code: d.stocks.code,
+          last_price: d.stocks.last_price || 0,
+          change_amount: d.stocks.change_amount || 0,
+          change_rate: d.stocks.change_rate || 0,
+          ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
+          ai_win_count: d.stocks.ai_win_count || 0,
+          ai_processed_count: d.stocks.ai_processed_count || 0,
+          ai_score: d.ai_score || 0,
+          summary: decodeHtmlEntities(d.llm_summary)
+        }))
     }
 
     // 2) Fallback: 당일 데이터가 없을 경우 최신 뉴스 기반 요약 노출
@@ -266,19 +268,21 @@ export const useStock = () => {
       .limit(10)
     
     if (error) return []
-    return (data || []).filter((n: any) => n.stocks).map((n: any) => ({
-      id: Number(n.stocks.id),
-      name: n.stocks.name,
-      code: n.stocks.code,
-      last_price: n.stocks.last_price || 0,
-      change_amount: n.stocks.change_amount || 0,
-      change_rate: n.stocks.change_rate || 0,
-      ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
-      ai_win_count: n.stocks.ai_win_count || 0,
-      ai_processed_count: n.stocks.ai_processed_count || 0,
-      ai_score: n.ai_score || 0,
-      summary: decodeHtmlEntities(n.llm_summary)
-    }))
+    return (data || [])
+      .filter((n: any) => n.stocks && !isEtf(n.stocks.name))
+      .map((n: any) => ({
+        id: Number(n.stocks.id),
+        name: n.stocks.name,
+        code: n.stocks.code,
+        last_price: n.stocks.last_price || 0,
+        change_amount: n.stocks.change_amount || 0,
+        change_rate: n.stocks.change_rate || 0,
+        ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
+        ai_win_count: n.stocks.ai_win_count || 0,
+        ai_processed_count: n.stocks.ai_processed_count || 0,
+        ai_score: n.ai_score || 0,
+        summary: decodeHtmlEntities(n.llm_summary)
+      }))
   })
 
   // 3. Fetch stocks ordered by market cap rank

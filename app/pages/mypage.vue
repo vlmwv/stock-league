@@ -80,6 +80,13 @@
               <div class="flex items-center gap-2">
                 <h4 class="font-bold text-slate-200 truncate text-sm">{{ item.stockName }}</h4>
                 <span v-if="item.stockCode" class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ item.stockCode }}</span>
+                <NuxtLink
+                  v-if="item.stockCode"
+                  :to="'/stocks/' + item.stockCode"
+                  class="w-5 h-5 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-all border border-white/5 ml-1"
+                >
+                  <UIcon name="i-heroicons-plus-20-solid" class="w-3 h-3" />
+                </NuxtLink>
               </div>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
