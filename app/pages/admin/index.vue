@@ -155,6 +155,65 @@
         </div>
       </div>
 
+      <!-- AI Detailed Logs -->
+      <div class="glass-dark p-6 rounded-3xl border border-white/10 mb-10">
+        <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <UIcon name="i-heroicons-document-magnifying-glass" class="text-brand-secondary w-5 h-5" />
+          AI 개별 종목 분석 내역
+        </h3>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-white/5 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+              <tr>
+                <th class="px-6 py-4">날짜</th>
+                <th class="px-6 py-4">종목명</th>
+                <th class="px-6 py-4 text-center">점수</th>
+                <th class="px-6 py-4">결과</th>
+                <th class="px-6 py-4">분석 근거</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              <tr v-for="row in detailedAiRows" :key="row.id" class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 text-xs font-mono text-slate-500 whitespace-nowrap">{{ row.game_date }}</td>
+                <td class="px-6 py-4">
+                  <div class="font-bold text-white">{{ row.stocks?.name }}</div>
+                  <div class="text-[10px] text-slate-500 font-mono">{{ row.stocks?.code }}</div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <UBadge 
+                    :color="getScoreColor(row.ai_score)" 
+                    variant="subtle" 
+                    class="font-black rounded-lg"
+                  >
+                    {{ row.ai_score }}
+                  </UBadge>
+                </td>
+                <td class="px-6 py-4">
+                  <UBadge 
+                    v-if="row.status === 'closed'"
+                    :color="row.ai_result === 'win' ? 'primary' : row.ai_result === 'draw' ? 'neutral' : 'error'" 
+                    variant="solid" 
+                    class="rounded-lg font-bold text-[10px]"
+                  >
+                    {{ row.ai_result === 'win' ? '적중' : row.ai_result === 'draw' ? '무승부' : '실패' }}
+                  </UBadge>
+                  <span v-else class="text-xs text-slate-600 font-bold">진행중</span>
+                </td>
+                <td class="px-6 py-4">
+                  <p class="text-xs text-slate-300 leading-relaxed max-w-md line-clamp-2 hover:line-clamp-none transition-all cursor-help">
+                    {{ row.ai_reasoning || row.llm_summary || '분석 정보 없음' }}
+                  </p>
+                </td>
+              </tr>
+              <tr v-if="detailedAiRows.length === 0">
+                <td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">내역이 없습니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Batch Management & Execution Logs -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Batch List (Execution) -->
@@ -248,6 +307,7 @@ const pending = ref(false)
 const batchLogs = ref<any[]>([])
 const aiWindowDays = ref(90)
 const aiRows = ref<any[]>([])
+const detailedAiRows = ref<any[]>([])
 const systemStats = ref([
   { label: '전체 사용자', value: '0', icon: 'i-heroicons-users', gradient: 'from-blue-500 to-cyan-400' },
   { label: '오늘의 예측', value: '0', icon: 'i-heroicons-chart-bar', gradient: 'from-green-500 to-emerald-400' },
@@ -304,6 +364,16 @@ const fetchAiDashboard = async () => {
   }
 
   aiRows.value = data || []
+
+  // 개별 상세 로그 조회 (최근 20개)
+  const { data: detailed } = await supabase
+    .from('daily_stocks')
+    .select('*, stocks(name, code)')
+    .order('game_date', { ascending: false })
+    .order('ai_score', { ascending: false })
+    .limit(20)
+  
+  detailedAiRows.value = detailed || []
 }
 
 const fetchStats = async () => {
@@ -372,6 +442,13 @@ const dailyTrendRows = computed(() => {
       winRate: value.total > 0 ? (value.wins / value.total) * 100 : 0
     }))
 })
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'primary'
+  if (score >= 60) return 'success'
+  if (score >= 40) return 'neutral'
+  return 'error'
+}
 
 const refreshAll = async () => {
   pending.value = true

@@ -77,7 +77,7 @@ async function analyzeStockWithGemini(
   sector: string,
   marketContext: string,
   targetDate: string
-): Promise<{ summary: string, score: number }> {
+): Promise<{ summary: string, score: number, reasoning: string }> {
   if (!GEMINI_API_KEY) {
     return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
@@ -87,7 +87,7 @@ async function analyzeStockWithGemini(
     : '최근 주요 뉴스 없음'
 
   const priceSummary = priceHistory.length > 0
-    ? priceHistory.map((h: any) => `- ${h.price_date}: ${h.close_price}원 (${h.change_rate >= 0 ? '+' : ''}${h.change_rate}%)`).join('\n')
+    ? priceHistory.map((h: any) => `- ${h.price_date}: ${h.close_price}원 (${h.change_rate >= 0 ? '+' : ''}${h.change_rate}%, 거래량: ${h.volume?.toLocaleString() || 'N/A'})`).join('\n')
     : '최근 시세 데이터 없음'
 
   const prompt = `주식 전문 분석가로서 ${stockName} (${sector || '일반'}) 종목에 대해 다음 영업일의 주가 방향성을 분석해 주세요.
@@ -101,10 +101,14 @@ ${priceSummary}
 [최근 주요 뉴스]
 ${newsSummary}
 
-분석 지침:
-1. **기술적 분석**: 최근 주가 흐름(상승/하락/횡보)과 변동성을 고려하여 단기적인 기술적 반등 또는 추세 지속 가능성을 평가하세요.
+ 분석 지침:
+1. **기술적 분석**: 최근 20일간의 주가 흐름, 거래량 변화, 5일/20일 이동평균선과의 이격도 및 변동성을 고려하여 단기적인 기술적 반등 또는 추세 지속 가능성을 평가하세요. 특히 거래량이 실린 상승인지 혹은 거래량 없는 기술적 반등인지 확인이 중요합니다.
 2. **재료적 분석**: 뉴스의 강도와 시장 영향력을 분석하세요. 최근 이슈가 주가에 이미 반영되었는지(선반영), 아니면 추가 상승 동력이 될 수 있는지 판단하세요.
-3. **종합 판단**: 위 정보를 종합하여 다음 영업일의 주가 상승 가능성을 0~100점 사이의 점수로 산출하세요.
+3. **단계적 추론(Chain-of-Thought)**: 
+   - 먼저 거래량과 지표를 분석하세요.
+   - 그 다음 최근 재료(뉴스)의 실제 영향력을 분석하세요.
+   - 마지막으로 종합적인 판단 근거를 기술하세요.
+4. **종합 판단**: 위 정보를 종합하여 다음 영업일의 주가 상승 가능성을 0~100점 사이의 점수로 산출하세요.
    - 80점 이상: 강력한 상승 모멘텀 보유
    - 60~79점: 상승 가능성 높음 (완만한 상승 또는 기술적 반등)
    - 40~59점: 중립 (뚜렷한 방향성 없음)
@@ -112,6 +116,7 @@ ${newsSummary}
 
 반드시 아래 JSON 형식으로만 응답하세요.
 {
+  "reasoning": "점수 산출의 핵심 논거 및 추론 과정 (300자 이내)",
   "summary": "핵심 요약 (50자 이내)",
   "score": 산출된 점수
 }
@@ -131,10 +136,11 @@ ${newsSummary}
           response_schema: {
             type: "OBJECT",
             properties: {
+              reasoning: { type: "STRING" },
               summary: { type: "STRING" },
               score: { type: "NUMBER" }
             },
-            required: ["summary", "score"]
+            required: ["reasoning", "summary", "score"]
           }
         }
       })
@@ -184,6 +190,7 @@ ${newsSummary}
     const parsedScore = Number(parsed.score)
     const finalScore = Number.isFinite(parsedScore) ? clampScore(parsedScore) : fallback.score
     const finalSummary = parsed.summary || fallback.summary
+    const finalReasoning = parsed.reasoning || finalSummary
 
     // 로그 저장 (성공)
     await supabase.from('ai_analysis_logs').insert({
@@ -192,12 +199,14 @@ ${newsSummary}
       prompt: prompt,
       response_raw: data,
       ai_score: finalScore,
+      ai_reasoning: finalReasoning,
       game_date: targetDate
     })
 
     return {
       summary: finalSummary,
-      score: finalScore
+      score: finalScore,
+      reasoning: finalReasoning
     }
   } catch (err: any) {
     console.error('Gemini Analysis Exception:', err)
@@ -212,7 +221,7 @@ ${newsSummary}
       game_date: targetDate
     })
 
-    return buildFallbackAnalysis(stockName, newsItems, priceHistory)
+    return { ...buildFallbackAnalysis(stockName, newsItems, priceHistory), reasoning: '' }
   }
 }
 
@@ -348,13 +357,13 @@ Deno.serve(async (req: any) => {
         let priceHistory: any[] = []
 
         try {
-          // 일주일치 시세 데이터 조회
+          // 20일치 시세 데이터 조회 (기술적 지표 분석을 위해 확장)
           const { data: history } = await supabase
             .from('stock_price_history')
-            .select('price_date, close_price, change_rate')
+            .select('price_date, close_price, change_rate, volume')
             .eq('stock_id', stock.id)
             .order('price_date', { ascending: false })
-            .limit(7)
+            .limit(20)
           
           priceHistory = history || []
 
@@ -364,7 +373,7 @@ Deno.serve(async (req: any) => {
           if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
         } catch (e) { /* ignore fetch errors */ }
 
-        const { summary, score } = await analyzeStockWithGemini(
+        const { summary, score, reasoning } = await analyzeStockWithGemini(
           newsItems, 
           priceHistory,
           stock.code,
@@ -373,7 +382,7 @@ Deno.serve(async (req: any) => {
           marketContext,
           targetDateStr
         )
-        scoredStocks.push({ ...stock, summary, score })
+        scoredStocks.push({ ...stock, summary, score, reasoning })
         
         // Rate Limit(free tier) 준수를 위한 지연 제거 (타임아웃 방지 우선)
         // await new Promise(resolve => setTimeout(resolve, 1000))
@@ -404,6 +413,7 @@ Deno.serve(async (req: any) => {
           game_date: targetDateStr,
           llm_summary: stock.summary,
           ai_score: stock.score,
+          ai_reasoning: stock.reasoning,
           status: 'pending'
         })
       if (!insErr) processedCount++

@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
           last_price: parseInt(data.closePriceRaw, 10),
           change_amount: parseInt(data.compareToPreviousClosePriceRaw, 10),
           change_rate: parseFloat(data.fluctuationsRatioRaw),
+          volume: parseInt(data.accumulatedTradingVolumeRaw, 10),
           updated_at: new Date().toISOString()
         }
       })
@@ -91,6 +92,7 @@ Deno.serve(async (req) => {
             last_price: item.last_price,
             change_amount: item.change_amount,
             change_rate: item.change_rate,
+            volume: item.volume,
             updated_at: item.updated_at
           })
           .eq('code', item.code)
@@ -103,7 +105,8 @@ Deno.serve(async (req) => {
           price_date: currentDateStr,
           close_price: item.last_price,
           change_amount: item.change_amount,
-          change_rate: item.change_rate
+          change_rate: item.change_rate,
+          volume: item.volume
         }, { onConflict: 'stock_id, price_date' })
       })
 
