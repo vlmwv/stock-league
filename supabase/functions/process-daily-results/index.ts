@@ -62,20 +62,30 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 2. 해당 주식들의 정보와 리그 참여 여부 가져오기
+    // 2. 해당 주식들의 정보, 리그 참여 여부, 날짜별 시세(정답 데이터) 가져오기
     const stockIds = Array.from(new Set(pendingStocks?.map(p => p.stock_id)));
+    const targetDates = Array.from(new Set(pendingStocks?.map(p => p.game_date)));
     const { data: stocksInfo } = await supabase
       .from('stocks')
-      .select('id, code, name, change_amount, ai_win_count, ai_processed_count')
+      .select('id, code, name, ai_win_count, ai_processed_count')
       .in('id', stockIds);
 
     const { data: dailyStocks } = await supabase
       .from('daily_stocks')
-      .select('id, stock_id, game_date, ai_score')
+      .select('id, stock_id, game_date, ai_score, status')
       .lte('game_date', currentDateStr);
 
+    const { data: priceRows, error: priceError } = await supabase
+      .from('stock_price_history')
+      .select('stock_id, price_date, change_rate')
+      .in('stock_id', stockIds)
+      .in('price_date', targetDates);
+    if (priceError) throw priceError;
+
     let processedCount = 0;
+    let skippedNoPriceCount = 0;
     const leagueMap = new Map(dailyStocks?.map(ds => [`${ds.stock_id}_${ds.game_date}`, ds]));
+    const priceMap = new Map(priceRows?.map(row => [`${row.stock_id}_${row.price_date}`, row]));
 
     console.log(`Processing ${uniquePairs.length} unique stock-date pairs...`);
 
@@ -85,7 +95,15 @@ Deno.serve(async (req) => {
       const stock = stocksInfo?.find(s => s.id === stockId);
       if (!stock) continue;
 
-      const change_amount = stock.change_amount || 0;
+      const priceRow = priceMap.get(pair);
+      if (!priceRow) {
+        skippedNoPriceCount++;
+        console.warn(`Skipping ${pair}: missing stock_price_history for game_date`);
+        continue;
+      }
+
+      const changeRate = Number(priceRow.change_rate || 0);
+      const change_amount = changeRate;
       let resultOutcome = 'draw';
       if (change_amount > 0) resultOutcome = 'up';
       else if (change_amount < 0) resultOutcome = 'down';
@@ -95,7 +113,7 @@ Deno.serve(async (req) => {
 
       // 3. stocks 테이블 업데이트 (AI 관련 스태츠는 리그 종목일 때만 갱신하거나 혹은 전체 종목에 대해 갱신)
       // 여기서는 리그 종목일 때만 AI 통계를 갱신합니다.
-      if (dailyStock) {
+      if (dailyStock && dailyStock.status !== 'closed') {
         const updateData: any = {
           ai_processed_count: (stock.ai_processed_count || 0) + 1
         };
@@ -176,7 +194,7 @@ Deno.serve(async (req) => {
         .update({
           status: 'success',
           processed_count: processedCount,
-          message: `Successfully processed results for ${processedCount} stocks`,
+          message: `Successfully processed results for ${processedCount} stocks (skipped: ${skippedNoPriceCount})`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntry.id)
@@ -184,7 +202,8 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       message: 'Successfully processed daily results', 
-      processed_stocks: processedCount
+      processed_stocks: processedCount,
+      skipped_stocks: skippedNoPriceCount
     }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,

@@ -12,7 +12,7 @@
               <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden flex items-center justify-center">
                 <img v-if="stats?.avatarUrl" :src="stats.avatarUrl" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
-                  <UIcon :name="stats?.gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
+                  <UIcon :name="stats?.gender === 'female' ? 'i-mdi-gender-female' : stats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
                 </div>
               </div>
               <div @click="openEditModal" class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">

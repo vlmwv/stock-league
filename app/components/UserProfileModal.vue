@@ -33,8 +33,8 @@
                 <div class="grid grid-cols-3 gap-3">
                   <button 
                     v-for="g in [
-                      { value: 'male', label: '남성', icon: 'i-heroicons-user' },
-                      { value: 'female', label: '여성', icon: 'i-heroicons-user-circle' },
+                      { value: 'male', label: '남성', icon: 'i-mdi-gender-male' },
+                      { value: 'female', label: '여성', icon: 'i-mdi-gender-female' },
                       { value: 'none', label: '선택 안함', icon: 'i-heroicons-minus' }
                     ]"
                     :key="g.value"

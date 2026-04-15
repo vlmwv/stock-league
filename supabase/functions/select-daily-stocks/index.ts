@@ -37,6 +37,35 @@ function isEtf(name: string): boolean {
   return etfKeywords.some(keyword => upperName.includes(keyword))
 }
 
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+function buildFallbackAnalysis(
+  stockName: string,
+  newsItems: any[],
+  priceHistory: any[]
+): { summary: string, score: number } {
+  const recentChange = Number(priceHistory?.[0]?.change_rate || 0)
+  const newsCount = newsItems?.length || 0
+  const momentumBias = recentChange * 8
+  const newsBias = Math.min(10, newsCount * 2)
+  const baseScore = 48 + momentumBias + newsBias
+  const fallbackScore = clampScore(baseScore)
+
+  if (newsItems.length > 0) {
+    return {
+      summary: `${stockName} 관련 이슈 반영 구간으로 변동성 확대 가능성이 있습니다.`,
+      score: fallbackScore
+    }
+  }
+
+  return {
+    summary: `${stockName}은 최근 수급과 가격 흐름 중심의 기술적 구간입니다.`,
+    score: fallbackScore
+  }
+}
+
 /**
  * Gemini를 사용하여 종목 요약 및 추천 점수 산출
  */
@@ -49,7 +78,9 @@ async function analyzeStockWithGemini(
   marketContext: string,
   targetDate: string
 ): Promise<{ summary: string, score: number }> {
-  if (!GEMINI_API_KEY) return { summary: '환경 변수(GEMINI_API_KEY)가 설정되지 않았습니다.', score: 50 }
+  if (!GEMINI_API_KEY) {
+    return buildFallbackAnalysis(stockName, newsItems, priceHistory)
+  }
 
   const newsSummary = newsItems.length > 0 
     ? newsItems.map(item => `- ${item.tit}`).join('\n')
@@ -96,7 +127,15 @@ ${newsSummary}
         generationConfig: {
           temperature: 0.1,
           maxOutputTokens: 200,
-          response_mime_type: "application/json"
+          response_mime_type: "application/json",
+          response_schema: {
+            type: "OBJECT",
+            properties: {
+              summary: { type: "STRING" },
+              score: { type: "NUMBER" }
+            },
+            required: ["summary", "score"]
+          }
         }
       })
     })
@@ -115,11 +154,19 @@ ${newsSummary}
         game_date: targetDate
       })
 
-      return { summary: `분석 API 호출 실패 (${response.status})`, score: 50 }
+      return buildFallbackAnalysis(stockName, newsItems, priceHistory)
     }
 
     const data = await response.json()
-    let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'
+    const rawParts = data?.candidates?.[0]?.content?.parts || []
+    let resultText = rawParts
+      .map((part: any) => part?.text || '')
+      .join('\n')
+      .trim()
+
+    if (!resultText) {
+      resultText = '{}'
+    }
     
     // JSON 추출
     const jsonMatch = resultText.match(/\{[\s\S]*\}/)
@@ -130,11 +177,13 @@ ${newsSummary}
       parsed = JSON.parse(resultText)
     } catch (e) {
       console.error('JSON Parse Error:', resultText)
-      parsed = { summary: '응답 파싱 오류', score: 50 }
+      parsed = {}
     }
 
-    const finalScore = isNaN(Number(parsed.score)) ? 50 : Number(parsed.score)
-    const finalSummary = parsed.summary || '종목의 최근 모멘텀을 분석 중입니다.'
+    const fallback = buildFallbackAnalysis(stockName, newsItems, priceHistory)
+    const parsedScore = Number(parsed.score)
+    const finalScore = Number.isFinite(parsedScore) ? clampScore(parsedScore) : fallback.score
+    const finalSummary = parsed.summary || fallback.summary
 
     // 로그 저장 (성공)
     await supabase.from('ai_analysis_logs').insert({
@@ -163,7 +212,7 @@ ${newsSummary}
       game_date: targetDate
     })
 
-    return { summary: `분석 중 오류 발생: ${err.message}`, score: 50 }
+    return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
 }
 
@@ -271,12 +320,24 @@ Deno.serve(async (req: any) => {
       return new Response(JSON.stringify({ message: 'Already selected.', game_date: targetDateStr }), { status: 200 })
     }
 
+    // 이미 일부 데이터가 있는 상태(예: 과거 실패 실행으로 1~4건만 존재)에서는
+    // 동일 날짜 데이터를 교체해 항상 최신 분석 결과로 재구성합니다.
+    if (existingCount && existingCount > 0) {
+      const { error: deleteError } = await supabase
+        .from('daily_stocks')
+        .delete()
+        .eq('game_date', targetDateStr)
+
+      if (deleteError) {
+        throw new Error(`Failed to cleanup existing daily_stocks: ${deleteError.message}`)
+      }
+    }
+
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
     const scoredStocks: any[] = []
-    const limit = 3 // 타임아웃 방지를 위해 분석 종목 수 축소
-
-    const stocksToAnalyze = filteredStocks.slice(0, limit)
+    const analysisTargetCount = Math.min(Math.max(10, filteredStocks.length), 20)
+    const stocksToAnalyze = filteredStocks.slice(0, analysisTargetCount)
     
     for (const stock of stocksToAnalyze) {
       console.log(`Analyzing ${stock.name}...`)

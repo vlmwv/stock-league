@@ -51,6 +51,110 @@
         </div>
       </div>
 
+      <!-- AI Accuracy Dashboard -->
+      <div class="glass-dark p-6 rounded-3xl border border-white/10 mb-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <UIcon name="i-heroicons-chart-pie" class="text-brand-primary w-5 h-5" />
+            AI 적중률 대시보드
+          </h3>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-bold">조회 기간</span>
+            <select
+              v-model="aiWindowDays"
+              class="bg-slate-900/70 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 font-bold focus:outline-none focus:border-brand-primary/50"
+            >
+              <option :value="30">최근 30일</option>
+              <option :value="90">최근 90일</option>
+              <option :value="0">전체</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">총 추천(마감)</p>
+            <p class="text-2xl font-black text-white">{{ aiSummary.total.toLocaleString() }}</p>
+          </div>
+          <div class="bg-white/5 border border-emerald-500/20 rounded-2xl p-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">적중</p>
+            <p class="text-2xl font-black text-emerald-400">{{ aiSummary.wins.toLocaleString() }}</p>
+          </div>
+          <div class="bg-white/5 border border-rose-500/20 rounded-2xl p-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">실패</p>
+            <p class="text-2xl font-black text-rose-400">{{ aiSummary.loses.toLocaleString() }}</p>
+          </div>
+          <div class="bg-white/5 border border-brand-primary/20 rounded-2xl p-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">적중률</p>
+            <p class="text-2xl font-black text-brand-primary">{{ aiSummary.winRate.toFixed(1) }}%</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-white/10">
+              <p class="text-sm font-bold text-white">점수 구간별 적중률</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead class="text-slate-400 bg-white/5 uppercase tracking-widest text-[10px]">
+                  <tr>
+                    <th class="px-4 py-3 text-left">구간</th>
+                    <th class="px-4 py-3 text-right">표본</th>
+                    <th class="px-4 py-3 text-right">적중</th>
+                    <th class="px-4 py-3 text-right">적중률</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  <tr v-for="row in scoreBandRows" :key="row.label">
+                    <td class="px-4 py-3 text-slate-200 font-bold">{{ row.label }}</td>
+                    <td class="px-4 py-3 text-right text-slate-300">{{ row.total }}</td>
+                    <td class="px-4 py-3 text-right text-emerald-400">{{ row.wins }}</td>
+                    <td class="px-4 py-3 text-right font-black" :class="row.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'">
+                      {{ row.winRate.toFixed(1) }}%
+                    </td>
+                  </tr>
+                  <tr v-if="scoreBandRows.length === 0">
+                    <td colspan="4" class="px-4 py-6 text-center text-slate-500">데이터가 없습니다.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-white/10">
+              <p class="text-sm font-bold text-white">일자별 적중률 (최근 10영업일)</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead class="text-slate-400 bg-white/5 uppercase tracking-widest text-[10px]">
+                  <tr>
+                    <th class="px-4 py-3 text-left">날짜</th>
+                    <th class="px-4 py-3 text-right">표본</th>
+                    <th class="px-4 py-3 text-right">적중</th>
+                    <th class="px-4 py-3 text-right">적중률</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  <tr v-for="row in dailyTrendRows" :key="row.gameDate">
+                    <td class="px-4 py-3 text-slate-200 font-bold">{{ row.gameDate }}</td>
+                    <td class="px-4 py-3 text-right text-slate-300">{{ row.total }}</td>
+                    <td class="px-4 py-3 text-right text-emerald-400">{{ row.wins }}</td>
+                    <td class="px-4 py-3 text-right font-black" :class="row.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'">
+                      {{ row.winRate.toFixed(1) }}%
+                    </td>
+                  </tr>
+                  <tr v-if="dailyTrendRows.length === 0">
+                    <td colspan="4" class="px-4 py-6 text-center text-slate-500">데이터가 없습니다.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Batch Management & Execution Logs -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Batch List (Execution) -->
@@ -131,7 +235,7 @@
 
 <script setup lang="ts">
 const supabase = useSupabaseClient()
-const { formatDate, formatTime } = useUtils()
+const { formatTime } = useUtils()
 
 // Middleware
 definePageMeta({
@@ -142,6 +246,8 @@ definePageMeta({
 // State
 const pending = ref(false)
 const batchLogs = ref<any[]>([])
+const aiWindowDays = ref(90)
+const aiRows = ref<any[]>([])
 const systemStats = ref([
   { label: '전체 사용자', value: '0', icon: 'i-heroicons-users', gradient: 'from-blue-500 to-cyan-400' },
   { label: '오늘의 예측', value: '0', icon: 'i-heroicons-chart-bar', gradient: 'from-green-500 to-emerald-400' },
@@ -170,6 +276,36 @@ const fetchLogs = async () => {
   if (data) batchLogs.value = data
 }
 
+const getWindowStartDate = (days: number) => {
+  if (days <= 0) return null
+  const now = new Date()
+  now.setDate(now.getDate() - days)
+  return now.toISOString().slice(0, 10)
+}
+
+const fetchAiDashboard = async () => {
+  let query = supabase
+    .from('daily_stocks')
+    .select('game_date, ai_score, ai_result, status')
+    .eq('status', 'closed')
+    .in('ai_result', ['win', 'lose', 'draw'])
+    .order('game_date', { ascending: false })
+
+  const startDate = getWindowStartDate(aiWindowDays.value)
+  if (startDate) {
+    query = query.gte('game_date', startDate)
+  }
+
+  const { data, error } = await query.limit(5000)
+  if (error) {
+    console.error('[admin] Failed to fetch AI dashboard data:', error.message)
+    aiRows.value = []
+    return
+  }
+
+  aiRows.value = data || []
+}
+
 const fetchStats = async () => {
   // 실제 통계 데이터 조회 로직 (예시)
   const [{ count: userCount }, { count: predCount }, { count: stockCount }, { count: newsCount }] = await Promise.all([
@@ -185,9 +321,61 @@ const fetchStats = async () => {
   systemStats.value[3]!.value = (newsCount || 0).toLocaleString() + '건'
 }
 
+const aiSummary = computed(() => {
+  const rows = aiRows.value
+  const total = rows.length
+  const wins = rows.filter(r => r.ai_result === 'win').length
+  const loses = rows.filter(r => r.ai_result === 'lose').length
+  const draws = rows.filter(r => r.ai_result === 'draw').length
+  const winRate = total > 0 ? (wins / total) * 100 : 0
+  return { total, wins, loses, draws, winRate }
+})
+
+const scoreBandRows = computed(() => {
+  const bands = [
+    { label: '0 ~ 39', min: 0, max: 39 },
+    { label: '40 ~ 49', min: 40, max: 49 },
+    { label: '50 ~ 59', min: 50, max: 59 },
+    { label: '60 ~ 69', min: 60, max: 69 },
+    { label: '70 ~ 100', min: 70, max: 100 }
+  ]
+
+  return bands.map((band) => {
+    const bandRows = aiRows.value.filter((row) => {
+      const score = Number(row.ai_score ?? 0)
+      return score >= band.min && score <= band.max
+    })
+    const total = bandRows.length
+    const wins = bandRows.filter(r => r.ai_result === 'win').length
+    const winRate = total > 0 ? (wins / total) * 100 : 0
+    return { label: band.label, total, wins, winRate }
+  })
+})
+
+const dailyTrendRows = computed(() => {
+  const grouped = new Map<string, { total: number, wins: number }>()
+  for (const row of aiRows.value) {
+    const key = row.game_date
+    const prev = grouped.get(key) || { total: 0, wins: 0 }
+    prev.total += 1
+    if (row.ai_result === 'win') prev.wins += 1
+    grouped.set(key, prev)
+  }
+
+  return Array.from(grouped.entries())
+    .sort((a, b) => a[0] < b[0] ? 1 : -1)
+    .slice(0, 10)
+    .map(([gameDate, value]) => ({
+      gameDate,
+      total: value.total,
+      wins: value.wins,
+      winRate: value.total > 0 ? (value.wins / value.total) * 100 : 0
+    }))
+})
+
 const refreshAll = async () => {
   pending.value = true
-  await Promise.all([fetchLogs(), fetchStats()])
+  await Promise.all([fetchLogs(), fetchStats(), fetchAiDashboard()])
   pending.value = false
 }
 
@@ -218,6 +406,10 @@ const runBatch = async (batch: any) => {
 // Initial Fetch
 onMounted(() => {
   refreshAll()
+})
+
+watch(aiWindowDays, () => {
+  fetchAiDashboard()
 })
 </script>
 

@@ -36,7 +36,7 @@ RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/functions/v1/$FUNC
   -H "Content-Type: application/json")
 
 HTTP_STATUS=$(echo "$RESPONSE" | tail -n 1)
-BODY=$(echo "$RESPONSE" | head -n -1)
+BODY=$(echo "$RESPONSE" | sed '$d')
 
 if [ "$HTTP_STATUS" -eq 200 ]; then
   echo "✅ Success (Status: $HTTP_STATUS)"
