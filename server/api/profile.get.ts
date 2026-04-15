@@ -21,12 +21,36 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const resolveGender = (raw: any): 'male' | 'female' | null => {
+    const candidates = [
+      raw?.gender,
+      raw?.gender_type,
+      raw?.kakao_account?.gender,
+      raw?.response?.gender
+    ]
+
+    for (const candidate of candidates) {
+      if (!candidate) continue
+      const normalized = String(candidate).trim().toLowerCase()
+      if (normalized === 'male' || normalized === 'm' || normalized === 'man' || normalized === '남' || normalized === '남자') {
+        return 'male'
+      }
+      if (normalized === 'female' || normalized === 'f' || normalized === 'woman' || normalized === '여' || normalized === '여자') {
+        return 'female'
+      }
+    }
+
+    return null
+  }
+
   // 프로필이 없는 경우 기본값 생성 및 데이터베이스 저장
   if (!data) {
+    const detectedGender = resolveGender(user.user_metadata)
     const newProfile = {
       id: user.id,
       username: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '익명',
       avatar_url: user.user_metadata?.avatar_url || null,
+      gender: detectedGender,
       points: 0
     }
 
