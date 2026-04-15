@@ -46,34 +46,47 @@
             @click="navigateTo('/stocks/' + item.code)"
             class="glass-dark rounded-3xl p-5 border border-white/5 relative group hover:bg-white/5 transition-all cursor-pointer"
           >
-            <div class="flex justify-between items-start mb-3">
+            <!-- 추천 시각 표시 -->
+            <div class="flex items-center gap-2 mb-3 px-1">
+              <div class="w-1 h-1 rounded-full bg-brand-primary"></div>
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                {{ formatDateTime(item.created_at) }} 추천
+              </span>
+            </div>
+
+            <div class="flex justify-between items-start mb-4">
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2 mb-1.5">
                   <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ item.code }}</span>
                   <div 
                     v-if="item.ai_score" 
                     class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-emerald-400/20 bg-emerald-400/5 text-emerald-400"
                   >
-                    <span class="text-[10px] font-black leading-none">{{ item.ai_score }}P</span>
+                    <span class="text-[9px] font-black leading-none">{{ item.ai_score }}P</span>
                   </div>
                 </div>
                 <h4 class="text-xl font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ item.name }}</h4>
               </div>
 
-              <!-- 결과 배지 -->
-              <div 
-                v-if="item.ai_result !== 'pending'"
-                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
-                :class="{
-                  'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': item.ai_result === 'win',
-                  'bg-rose-500/10 text-rose-500 border-rose-500/20': item.ai_result === 'lose',
-                  'bg-slate-500/10 text-slate-500 border-slate-500/20': item.ai_result === 'draw'
-                }"
-              >
-                {{ 
-                  item.ai_result === 'win' ? '예측 성공' : 
-                  item.ai_result === 'lose' ? '예측 실패' : '무승부'
-                }}
+              <!-- 변동률 강조 표시 (예측 결과 대체) -->
+              <div class="text-right">
+                <div 
+                  class="flex flex-col items-end px-3 py-2 rounded-2xl border"
+                  :class="item.change_amount >= 0 
+                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
+                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'"
+                >
+                  <div class="flex items-center gap-1">
+                    <UIcon 
+                      :name="item.change_amount >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" 
+                      class="w-4 h-4" 
+                    />
+                    <span class="text-lg font-black leading-none tracking-tighter">
+                      {{ item.change_amount > 0 ? '+' : '' }}{{ item.change_rate }}%
+                    </span>
+                  </div>
+                  <span class="text-[9px] font-bold mt-1 opacity-70">당일 수익률</span>
+                </div>
               </div>
             </div>
 
@@ -81,22 +94,23 @@
               "{{ item.summary }}"
             </p>
 
-            <div class="flex items-center justify-between pt-4 border-t border-white/5">
-              <div class="flex items-center gap-4">
+            <div class="flex items-center justify-between pt-4 border-t border-white/5 opacity-60">
+              <div class="flex items-center gap-6">
                 <div class="flex flex-col">
                   <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">당일 종가</span>
-                  <span class="text-sm font-black text-slate-300">{{ item.last_price.toLocaleString() }}원</span>
+                  <span class="text-xs font-black text-slate-400">{{ item.last_price.toLocaleString() }}원</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">변동</span>
+                  <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">변동액</span>
                   <span 
-                    class="text-sm font-black"
+                    class="text-xs font-black"
                     :class="item.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                   >
-                    {{ item.change_amount > 0 ? '+' : '' }}{{ item.change_amount.toLocaleString() }} ({{ item.change_rate }}%)
+                    {{ item.change_amount > 0 ? '+' : '' }}{{ item.change_amount.toLocaleString() }}
                   </span>
                 </div>
               </div>
+              <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-slate-700" />
             </div>
           </div>
         </div>
@@ -115,6 +129,27 @@
 <script setup lang="ts">
 const router = useRouter()
 const { fetchAiHistory } = useStock()
+
+const formatDateTime = (dateStr: string) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  
+  // KST 형식으로 포맷팅 (MM.DD HH:mm)
+  const options = { 
+    timeZone: 'Asia/Seoul', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false
+  } as const
+  
+  const formatter = new Intl.DateTimeFormat('ko-KR', options)
+  const parts = formatter.formatToParts(date)
+  const getPart = (type: string) => parts.find(p => p.type === type)?.value || ''
+  
+  return `${getPart('month')}.${getPart('day')} ${getPart('hour')}:${getPart('minute')}`
+}
 
 const history = ref<any[]>([])
 const loading = ref(true)

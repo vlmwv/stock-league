@@ -1222,6 +1222,7 @@ export const useStock = () => {
       .select(`
         id,
         game_date,
+        created_at,
         llm_summary,
         ai_score,
         ai_result,
@@ -1246,6 +1247,7 @@ export const useStock = () => {
       id: Number(ds.stocks.id),
       daily_id: ds.id,
       game_date: ds.game_date,
+      created_at: ds.created_at,
       name: ds.stocks.name,
       code: ds.stocks.code,
       last_price: ds.stocks.last_price || 0,
