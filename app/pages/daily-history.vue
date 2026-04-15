@@ -29,7 +29,7 @@
           </div>
           <h3 class="text-lg font-black text-slate-300 mb-2 tracking-tight">기록이 없습니다.</h3>
           <p class="text-xs text-slate-500 font-medium leading-relaxed">
-            아직 추천된 종목 이력이 없습니다.
+            {{ emptyMessage }}
           </p>
         </div>
 
@@ -122,6 +122,13 @@ const moreLoading = ref(false)
 const page = ref(1)
 const hasMore = ref(true)
 const loadMoreTrigger = ref<HTMLElement | null>(null)
+const emptyReason = ref<'no_data' | 'join_missing' | 'error' | null>(null)
+
+const emptyMessage = computed(() => {
+  if (emptyReason.value === 'error') return '이력을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  if (emptyReason.value === 'join_missing') return '추천 데이터는 있으나 종목 연결 정보가 없어 표시할 수 없습니다.'
+  return '아직 추천된 종목 이력이 없습니다.'
+})
 
 const groupedHistory = computed(() => {
   const groups: { date: string, items: any[] }[] = []
@@ -143,7 +150,8 @@ const loadHistory = async (isInitial = false) => {
     moreLoading.value = true
   }
 
-  const newData = await fetchAiHistory(page.value, 20)
+  const result = await fetchAiHistory(page.value, 20)
+  const newData = result.items
   
   if (newData.length < 20) {
     hasMore.value = false
@@ -151,6 +159,7 @@ const loadHistory = async (isInitial = false) => {
 
   if (isInitial) {
     history.value = newData
+    emptyReason.value = result.emptyReason
     loading.value = false
   } else {
     history.value = [...history.value, ...newData]

@@ -1239,10 +1239,10 @@ export const useStock = () => {
 
     if (error) {
       console.error('Error fetching AI history:', error)
-      return []
+      return { items: [], emptyReason: 'error' as const }
     }
 
-    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
+    const items = (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
       id: Number(ds.stocks.id),
       daily_id: ds.id,
       game_date: ds.game_date,
@@ -1255,6 +1255,16 @@ export const useStock = () => {
       ai_result: ds.ai_result || 'pending',
       summary: decodeHtmlEntities(ds.llm_summary || '')
     }))
+
+    if (items.length > 0) {
+      return { items, emptyReason: null as const }
+    }
+
+    if ((data || []).length > 0) {
+      return { items: [], emptyReason: 'join_missing' as const }
+    }
+
+    return { items: [], emptyReason: 'no_data' as const }
   }
 
   return {
