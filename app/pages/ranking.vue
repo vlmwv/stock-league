@@ -174,11 +174,11 @@ onMounted(async () => {
 
       <template v-else-if="(rankings as any[]) && (rankings as any[]).length > 0">
         <!-- Top 3 Highlights -->
-        <div class="flex justify-center items-end gap-4 mb-12 mt-16 px-2">
+        <div class="flex justify-center items-end gap-3 mb-8 mt-10 px-2">
           <!-- 2nd Place -->
           <div v-if="topThree[1]" class="flex-1 flex flex-col items-center group">
-            <div class="relative mb-4">
-              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
+            <div class="relative mb-3">
+              <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
                 <img v-if="topThree[1].avatar_url" :src="topThree[1].avatar_url" alt="2nd" class="w-full h-full rounded-xl" />
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
                   <UIcon :name="topThree[1].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
@@ -187,7 +187,7 @@ onMounted(async () => {
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-400 border-4 border-bg-deep flex items-center justify-center font-black text-slate-900 text-xs shadow-lg">2</div>
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].username }}</p>
-            <div class="h-20 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
+            <div class="h-14 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
               <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[1].win_rate}%` : 
                    sortBy === 'prediction_count' ? `${topThree[1].prediction_count}회` :
@@ -198,10 +198,10 @@ onMounted(async () => {
           </div>
 
           <!-- 1st Place -->
-          <div v-if="topThree[0]" class="flex-1 flex flex-col items-center group -translate-y-4">
-            <div class="relative mb-4 scale-125">
+          <div v-if="topThree[0]" class="flex-1 flex flex-col items-center group -translate-y-2">
+            <div class="relative mb-3 scale-110">
                <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
-              <div class="relative w-16 h-16 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1 flex items-center justify-center">
+              <div class="relative w-14 h-14 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1 flex items-center justify-center">
                 <img v-if="topThree[0].avatar_url" :src="topThree[0].avatar_url" alt="1st" class="w-full h-full rounded-xl" />
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
                   <UIcon :name="topThree[0].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
@@ -210,7 +210,7 @@ onMounted(async () => {
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-brand-primary border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">1</div>
             </div>
             <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].username }}</p>
-            <div class="h-28 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
+            <div class="h-20 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
               <span class="text-sm font-black text-brand-primary">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[0].win_rate}%` : 
                    sortBy === 'prediction_count' ? `${topThree[0].prediction_count}회` :
@@ -222,8 +222,8 @@ onMounted(async () => {
 
           <!-- 3rd Place -->
           <div v-if="topThree[2]" class="flex-1 flex flex-col items-center group">
-            <div class="relative mb-4">
-              <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
+            <div class="relative mb-3">
+              <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
                 <img v-if="topThree[2].avatar_url" :src="topThree[2].avatar_url" alt="3rd" class="w-full h-full rounded-xl" />
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
                   <UIcon :name="topThree[2].gender === 'female' ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
@@ -232,7 +232,7 @@ onMounted(async () => {
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-700 border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">3</div>
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].username }}</p>
-            <div class="h-16 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
+            <div class="h-12 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
               <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[2].win_rate}%` : 
                    sortBy === 'prediction_count' ? `${topThree[2].prediction_count}회` :
