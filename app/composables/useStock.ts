@@ -1243,20 +1243,59 @@ export const useStock = () => {
       return { items: [], emptyReason: 'error' as const }
     }
 
-    const items = (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
-      id: Number(ds.stocks.id),
-      daily_id: ds.id,
-      game_date: ds.game_date,
-      created_at: ds.created_at,
-      name: ds.stocks.name,
-      code: ds.stocks.code,
-      last_price: ds.stocks.last_price || 0,
-      change_amount: ds.stocks.change_amount || 0,
-      change_rate: ds.stocks.change_rate || 0,
-      ai_score: ds.ai_score || 0,
-      ai_result: ds.ai_result || 'pending',
-      summary: decodeHtmlEntities(ds.llm_summary || '')
-    }))
+    // 추천 당시의 가격 정보를 가져오기 위해 stock_price_history 조회
+    const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
+    const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
+    
+    let historyPrices: any[] = []
+    if (stockIds.length > 0 && gameDates.length > 0) {
+      const { data: hpData } = await client
+        .from('stock_price_history')
+        .select('stock_id, price_date, close_price')
+        .in('stock_id', stockIds)
+        .in('price_date', gameDates)
+      historyPrices = hpData || []
+    }
+
+    const todayStr = getKstDate()
+    const todayNum = new Date(todayStr).getTime()
+
+    const items = (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
+      const recPriceRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+      )
+      const recPrice = recPriceRecord?.close_price || ds.stocks.last_price || 0
+      const currentPrice = ds.stocks.last_price || 0
+      
+      // 누적 수익률 계산: (현재가 - 추천가) / 추천가 * 100
+      let cumulativeChangeRate = 0
+      if (recPrice > 0) {
+        cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
+      }
+
+      // 경과 일수 계산
+      const gameDateNum = new Date(ds.game_date).getTime()
+      const diffTime = todayNum - gameDateNum
+      const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+      return {
+        id: Number(ds.stocks.id),
+        daily_id: ds.id,
+        game_date: ds.game_date,
+        created_at: ds.created_at,
+        name: ds.stocks.name,
+        code: ds.stocks.code,
+        last_price: currentPrice,
+        change_amount: ds.stocks.change_amount || 0,
+        change_rate: ds.stocks.change_rate || 0,
+        ai_score: ds.ai_score || 0,
+        ai_result: ds.ai_result || 'pending',
+        summary: decodeHtmlEntities(ds.llm_summary || ''),
+        rec_price: recPrice,
+        days_passed: daysPassed,
+        cumulative_change_rate: cumulativeChangeRate
+      }
+    })
 
     if (items.length > 0) {
       return { items, emptyReason: null as const }
