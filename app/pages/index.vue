@@ -222,72 +222,16 @@
         </div>
 
         <div class="flex flex-col gap-3">
-          <div 
-            v-for="item in recentNews" 
+          <NewsPanelCard
+            v-for="item in recentNews"
             :key="item.id"
-            @click="navigateToNews(item)"
-            class="bg-white/[0.03] rounded-[1.5rem] p-5 border border-white/5 group hover:bg-white/[0.07] transition-all cursor-pointer relative overflow-hidden active:scale-[0.98]"
-          >
-            <div class="flex flex-col gap-4 relative z-10">
-              <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div v-if="item.stockName" class="flex flex-col gap-0.5">
-                    <span class="text-[13px] font-black text-slate-200 tracking-tight leading-none">{{ item.stockName }}</span>
-                    <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
-                  </div>
-                  <span v-else class="text-[11px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
-                </div>
-
-                <div class="flex items-center gap-4">
-                  <button 
-                    v-if="item.stockId"
-                    @click.stop="toggleHeart(item.stockId)"
-                    class="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-90 border border-white/5"
-                    :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
-                  >
-                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4.5 h-4.5" />
-                  </button>
-                  <!-- Stock Detail Button -->
-                  <button 
-                    v-if="item.stockCode"
-                    @click.stop="navigateTo('/stocks/' + item.stockCode)"
-                    class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus"
-                  >
-                    <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
-                  </button>
-                  <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formatDate(item.published_at) }}</span>
-                </div>
-              </div>
-              
-              <!-- 중간 행: 제목 -->
-              <h4 class="font-bold text-slate-100 text-[15px] leading-snug group-hover:text-brand-primary transition-colors line-clamp-2 tracking-tight">
-                {{ item.title }}
-              </h4>
- 
-              <div v-if="item.llm_summary" class="bg-indigo-500/[0.04] rounded-2xl p-3.5 border border-white/5 transition-colors group-hover:border-brand-primary/20">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <span 
-                    v-if="item.ai_score" 
-                    class="flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-sm"
-                    :class="[
-                      item.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' : 
-                      item.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' : 
-                      'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
-                    ]"
-                  >
-                    {{ item.ai_score }}점
-                  </span>
-                  <span class="text-brand-primary text-[10px] font-black opacity-80 uppercase tracking-wider">AI INSIGHT</span>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
-                  {{ item.llm_summary }}
-                </p>
-              </div>
-            </div>
-            <!-- Subtitle glow effect -->
-            <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-brand-secondary/5 blur-[50px] rounded-full group-hover:bg-brand-secondary/10 transition-all duration-700"></div>
-          </div>
+            :item="item"
+            :is-hearted="isHearted(item.stockId)"
+            :formatted-date="formatDate(item.published_at)"
+            @navigate-news="navigateToNews(item)"
+            @toggle-heart="toggleHeart"
+            @navigate-stock="(stockCode) => navigateTo('/stocks/' + stockCode)"
+          />
           
           <div v-if="!recentNews.length" class="text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
             <UIcon name="i-heroicons-exclamation-circle" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />

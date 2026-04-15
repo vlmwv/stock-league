@@ -27,61 +27,16 @@
         </div>
 
         <template v-else>
-          <div
-            v-for="(item, index) in newsItems"
+          <NewsPanelCard
+            v-for="item in newsItems"
             :key="item.id"
-            @click="navigateToNews(item)"
-            class="bg-white/5 rounded-[1.25rem] p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden"
-          >
-            <div class="flex flex-col gap-3.5 relative z-10">
-              <!-- 상단 행: 아이콘, 종목정보, 찜하기, 일시 -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div v-if="item.stockName" class="flex items-baseline gap-1.5">
-                    <span class="text-xs font-black text-slate-200 tracking-tight">{{ item.stockName }}</span>
-                    <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
-                  </div>
-                  <span v-else class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
-                </div>
-
-                <div class="flex items-center gap-3">
-                  <button 
-                    v-if="item.stockId"
-                    @click.stop="toggleHeart(item.stockId)"
-                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
-                    :class="isHearted(item.stockId) ? 'text-rose-500 border-rose-500/20' : 'text-slate-500'"
-                  >
-                    <UIcon :name="isHearted(item.stockId) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
-                  </button>
-                  <!-- Stock Detail Button -->
-                  <button 
-                    v-if="item.stockCode"
-                    @click.stop="navigateTo('/stocks/' + item.stockCode)"
-                    class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus"
-                  >
-                    <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
-                  </button>
-                  <span class="text-[10px] text-slate-500 font-bold opacity-70">{{ formatDate(item.published_at) }}</span>
-                </div>
-              </div>
-
-              <!-- 중간 행: 제목 -->
-              <h4 class="font-black text-slate-100 text-base leading-snug group-hover:text-brand-primary transition-colors line-clamp-2">
-                {{ item.title }}
-              </h4>
-
-              <!-- 하단 행: AI 요약 -->
-              <div v-if="item.llm_summary" class="bg-white/5 rounded-xl p-3 border border-white/5 backdrop-blur-sm">
-                <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
-                  <span class="text-brand-primary/80 font-black mr-1.5">AI 요약</span>
-                  {{ item.llm_summary }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Decorative gradient -->
-            <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
-          </div>
+            :item="item"
+            :is-hearted="isHearted(item.stockId)"
+            :formatted-date="formatDate(item.published_at)"
+            @navigate-news="navigateToNews(item)"
+            @toggle-heart="toggleHeart"
+            @navigate-stock="(stockCode) => navigateTo('/stocks/' + stockCode)"
+          />
 
           <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
           <div ref="sentinel" class="py-10 flex flex-col justify-center items-center gap-3">
