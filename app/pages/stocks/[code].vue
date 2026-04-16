@@ -43,6 +43,19 @@
               <span class="text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">{{ stock.code }}</span>
             </div>
             <p class="text-sm text-slate-400 font-medium opacity-80 mt-1">{{ stock.sector || '주요 종목' }}</p>
+
+            <!-- AI 인사이트 배지 -->
+            <div v-if="stock.ai_score || stock.ai_recommendation_count" class="mt-3.5 flex items-center gap-2 select-none">
+              <div v-if="stock.ai_score" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-sm shadow-emerald-500/5">
+                <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
+                <span class="text-[10px] font-black tracking-tight">{{ stock.ai_score }}P</span>
+              </div>
+              <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary shadow-sm shadow-brand-primary/5">
+                <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5" />
+                <span class="text-[10px] font-black tracking-tight">{{ stock.ai_recommendation_count }}회 추천</span>
+              </div>
+            </div>
+
             
             <div class="mt-4 flex flex-col gap-1">
               <div class="text-4xl font-black text-slate-100 flex items-baseline gap-1">
@@ -92,8 +105,11 @@
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">찜한 사용자</p>
             <p class="text-lg font-black text-slate-200">{{ stock.wishlist_count || 0 }}명</p>
           </div>
-          <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between">
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2">AI 추천</p>
+          <div class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col justify-between group/card hover:bg-brand-primary/5 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em]">AI 추천</p>
+              <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5 text-brand-primary/50 group-hover/card:text-brand-primary transition-colors" />
+            </div>
             <p class="text-lg font-black text-slate-200">{{ stock.ai_recommendation_count || 0 }}회</p>
           </div>
         </div>

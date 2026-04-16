@@ -1030,8 +1030,14 @@ export const useStock = () => {
         }
       }
 
-      const { data: stocksData, error: stocksError, count } = await query
-        .order(orderBy, { ascending: orderBy === 'market_cap_rank' })
+      let finalQuery = query.order(orderBy, { ascending: orderBy === 'market_cap_rank' })
+      
+      // 찜순(wishlist_count), 예측성공 순(win_count) 등에서 중복 시 시가총액 순(market_cap_rank asc)으로 2차 정렬
+      if (orderBy !== 'market_cap_rank') {
+        finalQuery = finalQuery.order('market_cap_rank', { ascending: true })
+      }
+
+      const { data: stocksData, error: stocksError, count } = await finalQuery
         .range(from, to)
       
       if (stocksError) {
@@ -1264,17 +1270,25 @@ export const useStock = () => {
       return { items: [], emptyReason: 'error' as const }
     }
 
-    // 추천 당시의 가격 정보를 가져오기 위해 stock_price_history 조회
+    // 추천 당시의 기준 가격(추천 전일 종가)을 가져오기 위해 stock_price_history 조회
     const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
     const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
     
     let historyPrices: any[] = []
     if (stockIds.length > 0 && gameDates.length > 0) {
+      // 모든 추천 항목의 기준가(전일 종가)를 찾기 위해 넉넉하게 최근 60일치 시세를 가져옵니다.
+      // (주말/공휴일 등을 고려하여 추천일보다 이전인 데이터를 매칭하기 위함)
+      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
+      const searchStartDate = new Date(minDate)
+      searchStartDate.setDate(searchStartDate.getDate() - 10) // 최소 10일 전부터 조회
+      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
+
       const { data: hpData } = await client
         .from('stock_price_history')
         .select('stock_id, price_date, close_price')
         .in('stock_id', stockIds)
-        .in('price_date', gameDates)
+        .gte('price_date', searchStartDateStr)
+        .order('price_date', { ascending: false })
       historyPrices = hpData || []
     }
 
@@ -1282,13 +1296,21 @@ export const useStock = () => {
     const todayNum = new Date(todayStr).getTime()
 
     const items = (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
+      // 추천 기준가(rec_price) 결정 로직: 
+      // game_date보다 이전 날짜 중 가장 최신 시세를 찾습니다. (이것이 추천 전일 종가)
       const recPriceRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+      )
+      
+      // 만약 이전 시세가 없다면(신규 상장 등), 해당 날짜의 시세라도 찾아보고 그것도 없으면 현재가를 임시로 사용
+      const sameDayRecord = historyPrices.find(hp => 
         Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
       )
-      const recPrice = recPriceRecord?.close_price || ds.stocks.last_price || 0
+      
+      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
       const currentPrice = ds.stocks.last_price || 0
       
-      // 누적 수익률 계산: (현재가 - 추천가) / 추천가 * 100
+      // 누적 수익률 계산: (현재가 - 추천 시작가) / 추천 시작가 * 100
       let cumulativeChangeRate = 0
       if (recPrice > 0) {
         cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))

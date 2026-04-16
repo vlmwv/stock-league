@@ -183,14 +183,6 @@ const handleUpdateProfile = async () => {
   }
   updating.value = false
 }
-</script> 실패',
-      description: result.message || '오류가 발생했습니다.',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
-  }
-  updating.value = false
-}
 </script>
 
 <style scoped>

@@ -73,18 +73,26 @@
                 <div class="flex items-center gap-2 mb-1">
                   <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                   
-                  <!-- AI Insight (Simple & Intuitive) -->
-                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-3 mb-1.5">
-                    <div v-if="stock.ai_score" class="flex flex-col items-center">
-                      <span class="text-xs font-black text-slate-100 border-b-2 border-double border-brand-primary leading-none pb-0.5">
-                        {{ stock.ai_score }}P
-                      </span>
-                      <span class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">AI Score</span>
+                  <!-- AI Insight (Unified & Premium) -->
+                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-2.5 mb-2.5">
+                    <!-- AI Score Badge with Mini Progress -->
+                    <div v-if="stock.ai_score" class="flex items-center gap-2.5 bg-slate-800/40 rounded-xl px-3 py-1.5 border border-white/5">
+                      <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-emerald-500 shadow-sm" />
+                          <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">AI Score</span>
+                          <span class="text-[11px] font-black text-slate-200 tabular-nums ml-1">{{ stock.ai_score }}P</span>
+                        </div>
+                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                          <div class="h-full bg-emerald-500/60 rounded-full transition-all duration-1000" :style="{ width: `${stock.ai_score}%` }"></div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
-                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3 text-brand-primary" />
-                      <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }} Pick</span>
+                    <!-- AI Pick Badge -->
+                    <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 bg-brand-primary/10 border border-brand-primary/20 px-3 py-2 rounded-xl shadow-sm shadow-brand-primary/5">
+                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5 text-brand-primary" />
+                      <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">{{ stock.ai_recommendation_count }}회 추천</span>
                     </div>
                   </div>
 
