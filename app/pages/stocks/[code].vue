@@ -24,7 +24,7 @@
 
         <!-- 종목 헤더 -->
         <header class="flex items-start gap-5">
-          <StockIcon :code="stock.code" :name="stock.name" size="lg" class="mt-1 shadow-2xl" />
+          <StockIcon :code="stock.code" :name="stock.name" size="xl" class="mt-1 shadow-2xl border-4 border-bg-deep" />
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2 mb-1">
               <h1 class="text-3xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
