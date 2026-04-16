@@ -191,22 +191,22 @@
                   <!-- 날짜 및 상단 정보 -->
                   <div class="flex items-center justify-between mb-6">
                     <div class="flex flex-col gap-1">
-                      <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recommendation Date</span>
+                      <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">추천 시점</span>
                       <h4 class="text-sm font-black text-slate-200">{{ formatPriceDate(item.game_date) }}</h4>
                     </div>
                     <div class="px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Score: {{ item.ai_score }}P</span>
+                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI 점수: {{ item.ai_score }}P</span>
                     </div>
                   </div>
 
                   <!-- 가격 정보 비교 -->
                   <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="space-y-1">
-                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">추천 시점 (Initial)</p>
+                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">추천 시점 가격</p>
                       <p class="text-lg font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
                     </div>
                     <div class="space-y-1 text-right">
-                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재가 (Current)</p>
+                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 가격</p>
                       <p class="text-lg font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
                     </div>
                   </div>
