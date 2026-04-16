@@ -44,97 +44,75 @@
             v-for="item in group.items" 
             :key="item.daily_id" 
             @click="navigateTo('/stocks/' + item.code)"
-            class="glass-dark rounded-3xl p-5 border border-white/5 relative group hover:bg-white/5 transition-all cursor-pointer"
+            class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group hover:bg-white/5 transition-all cursor-pointer"
           >
-            <!-- 상단: 추천 정보 및 경과일 -->
-            <div class="flex items-center justify-between mb-4 px-1">
-              <div class="flex items-center gap-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse-soft"></div>
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  {{ formatDateTime(item.created_at) }} 추천
-                </span>
-              </div>
-              <div class="px-2 py-0.5 rounded-md bg-slate-800/50 border border-white/5">
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                  {{ item.days_passed === 0 ? '오늘 추천' : `${item.days_passed}일 경과` }}
-                </span>
-              </div>
-            </div>
+            <!-- 카드 배경 글로우 -->
+            <div 
+              class="absolute -top-12 -right-12 w-32 h-32 blur-3xl rounded-full transition-all duration-700 opacity-20 group-hover:opacity-40"
+              :class="item.cumulative_change_rate >= 0 ? 'bg-emerald-500' : 'bg-indigo-500'"
+            ></div>
 
-            <div class="flex justify-between items-center mb-6">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ item.code }}</span>
-                  <div 
-                    v-if="item.ai_score" 
-                    class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 shadow-sm"
-                  >
-                    <span class="text-[10px] font-black leading-none">{{ item.ai_score }}점</span>
+            <div class="relative z-10">
+              <!-- 종목 정보 및 상단 정보 -->
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ formatDateTime(item.created_at) }} 추천</span>
+                  </div>
+                  <div class="flex items-baseline gap-1.5 mt-0.5">
+                    <h4 class="text-lg font-black text-slate-200">{{ item.name }}</h4>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">{{ item.code }}</span>
                   </div>
                 </div>
-                <h4 class="text-2xl font-black text-slate-100 group-hover:text-brand-primary transition-colors tracking-tight">{{ item.name }}</h4>
-              </div>
-
-              <!-- 누적 수익률 강조 -->
-              <div class="text-right">
-                <div 
-                  class="flex flex-col items-end px-4 py-3 rounded-[1.25rem] border shadow-2xl transition-all group-hover:scale-105"
-                  :class="item.cumulative_change_rate >= 0 
-                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5' 
-                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5'"
-                >
-                  <div class="flex items-center gap-1.5">
-                    <UIcon 
-                      :name="item.cumulative_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
-                      class="w-5 h-5" 
-                    />
-                    <span class="text-2xl font-black leading-none tracking-tighter">
-                      {{ item.cumulative_change_rate > 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
-                    </span>
+                <div class="flex flex-col items-end gap-2">
+                  <div class="px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI 점수: {{ item.ai_score }}P</span>
                   </div>
-                  <span class="text-[10px] font-black mt-1.5 opacity-80 uppercase tracking-widest">누적 수익률</span>
+                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                    {{ item.days_passed === 0 ? '오늘 추천' : `${item.days_passed}일 경과` }}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <!-- 하단: 가격 비교 추이 -->
-            <div class="bg-white/[0.02] rounded-2xl p-4 border border-white/5 mb-4 group-hover:bg-white/[0.04] transition-all">
-              <div class="flex items-center justify-between relative">
-                <div class="flex flex-col">
-                  <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">추천 시점</span>
-                  <span class="text-sm font-black text-slate-400 tracking-tight">{{ item.rec_price.toLocaleString() }}원</span>
+              <!-- 가격 정보 비교 -->
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="space-y-1">
+                  <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">추천 시점 가격</p>
+                  <p class="text-lg font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
                 </div>
-                
-                <div class="flex-1 flex flex-col items-center justify-center px-4">
-                  <div class="w-full h-px bg-slate-800 relative">
-                    <UIcon 
-                      name="i-heroicons-chevron-right-20-solid" 
-                      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" 
-                    />
-                  </div>
-                </div>
-
-                <div class="flex flex-col items-end">
-                  <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">현재가</span>
-                  <span class="text-sm font-black text-slate-200 tracking-tight">{{ item.last_price.toLocaleString() }}원</span>
+                <div class="space-y-1 text-right">
+                  <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 가격</p>
+                  <p class="text-lg font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
                 </div>
               </div>
-              
-              <!-- 당일 성과 요약 (작게) -->
-              <div class="mt-3 flex items-center justify-center gap-3 opacity-40 group-hover:opacity-100 transition-all">
-                <div class="h-px bg-white/5 flex-1"></div>
-                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                  당일 변동: {{ item.change_amount > 0 ? '+' : '' }}{{ item.change_amount.toLocaleString() }} ({{ item.change_rate }}%)
-                </span>
-                <div class="h-px bg-white/5 flex-1"></div>
-              </div>
-            </div>
 
-            <div class="flex items-center justify-between opacity-60">
-              <p class="text-[10px] text-slate-500 leading-relaxed italic line-clamp-1 flex-1 pr-4">
-                "{{ item.summary }}"
-              </p>
-              <UIcon name="i-heroicons-arrow-right-20-solid" class="w-4 h-4 text-slate-700 group-hover:text-brand-primary transition-all" />
+              <!-- 수익률 하이라이트 -->
+              <div 
+                class="rounded-2xl p-5 border transition-all duration-500 flex flex-col items-center justify-center gap-1 shadow-2xl"
+                :class="item.cumulative_change_rate >= 0 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/5' 
+                  : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5'"
+              >
+                <div class="flex items-center gap-2">
+                  <UIcon 
+                    :name="item.cumulative_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
+                    class="w-6 h-6" 
+                  />
+                  <span class="text-3xl font-black tracking-tighter">
+                    {{ item.cumulative_change_rate > 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
+                  </span>
+                </div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">예상 수익률</p>
+              </div>
+
+              <!-- AI 요약 -->
+              <div class="mt-6 pt-6 border-t border-white/5 relative">
+                <p v-if="item.summary" class="text-xs text-slate-400 leading-relaxed font-medium italic opacity-70 line-clamp-2 pr-6">
+                   "{{ item.summary }}"
+                </p>
+                <p v-else class="text-xs text-slate-500 font-medium italic pr-6">요약 정보가 없습니다.</p>
+                <UIcon name="i-heroicons-arrow-right-20-solid" class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-hover:text-brand-primary transition-all" />
+              </div>
             </div>
           </div>
         </div>

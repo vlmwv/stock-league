@@ -72,6 +72,7 @@
               </div>
               <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
             </div>
+          </NuxtLink>
         </div>
 
         <div class="text-right shrink-0 transition-all duration-300" :class="prediction ? 'mt-16' : ''">
