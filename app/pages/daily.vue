@@ -63,34 +63,18 @@
                 <div class="flex items-center gap-2 mb-1">
                   <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                   
-                  <!-- AI Insight (Enhanced Visualization) -->
-                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-2 mb-1.5">
-                    <div 
-                      v-if="stock.ai_score" 
-                      class="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5 shadow-inner"
-                    >
-                      <div class="flex flex-col gap-0.5">
-                        <div class="flex items-center justify-between gap-4">
-                          <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">AI Score</span>
-                          <span class="text-[9px] font-black text-slate-200">{{ stock.ai_score }}P</span>
-                        </div>
-                        <div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
-                          <div 
-                            class="h-full transition-all duration-1000 ease-out"
-                            :class="[
-                              stock.ai_score > 55 ? 'bg-gradient-to-r from-rose-500/50 to-rose-500' : 
-                              stock.ai_score < 45 ? 'bg-gradient-to-r from-indigo-500/50 to-indigo-500' : 
-                              'bg-gradient-to-r from-emerald-500/50 to-emerald-500'
-                            ]"
-                            :style="{ width: `${stock.ai_score}%` }"
-                          ></div>
-                        </div>
-                      </div>
+                  <!-- AI Insight (Simple & Intuitive) -->
+                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-3 mb-1.5">
+                    <div v-if="stock.ai_score" class="flex flex-col items-center">
+                      <span class="text-xs font-black text-slate-100 border-b-2 border-double border-brand-primary leading-none pb-0.5">
+                        {{ stock.ai_score }}P
+                      </span>
+                      <span class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">AI Score</span>
                     </div>
 
-                    <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 shadow-sm animate-pulse-soft">
-                      <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5 text-orange-400" />
-                      <span class="text-[9px] font-black text-orange-400 uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회 추천</span>
+                    <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
+                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3 text-brand-primary" />
+                      <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }} Pick</span>
                     </div>
                   </div>
 

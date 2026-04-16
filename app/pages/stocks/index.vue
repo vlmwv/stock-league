@@ -98,9 +98,9 @@
                   <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
                   {{ stock.win_count ?? 0 }}
                 </span>
-                <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
-                  <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400/60" />
-                  {{ stock.ai_recommendation_count ?? 0 }}회
+                <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-0.5">
+                  <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
+                  {{ stock.ai_recommendation_count ?? 0 }} Pick
                 </span>
               </div>
             </div>
