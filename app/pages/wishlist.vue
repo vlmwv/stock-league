@@ -59,13 +59,6 @@
       </div>
     </main>
 
-    <PredictionResultDialog 
-      :is-open="isResultOpen"
-      :stock-name="selectedStockName"
-      :prediction="selectedPrediction"
-      @close="isResultOpen = false"
-    />
-
     <BottomNav />
   </div>
 </template>
@@ -79,11 +72,6 @@ const { dailyStocks, wishlistStocks, hearts, myPredictions, predict, toggleHeart
 
 const heartedStocks = computed(() => wishlistStocks.value || [])
 
-const isResultOpen = ref(false)
-const selectedStockName = ref('')
-const selectedPrediction = ref<'up' | 'down' | null>(null)
-
-const getPrediction = (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null
 const isLeagueStock = (id: number) => dailyStocks.value?.some((s: any) => s.id === id) || false
 
 const onPredict = (id: number, prediction: 'up' | 'down') => {
@@ -93,9 +81,6 @@ const onPredict = (id: number, prediction: 'up' | 'down') => {
     if (!isLeagueStock(id)) return
     
     predict(id, prediction, (stock as any).game_date)
-    selectedStockName.value = stock.name
-    selectedPrediction.value = prediction
-    isResultOpen.value = true
   }
 }
 
