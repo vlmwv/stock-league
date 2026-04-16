@@ -8,10 +8,10 @@
           <div class="px-8 py-10">
             <div class="flex items-center justify-between mb-8">
               <h3 class="text-2xl font-black text-white tracking-tight">프로필 수정</h3>
-              <button @click="$emit('update:open', false)" class="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors">
-                <UIcon name="i-heroicons-x-mark-20-solid" class="w-6 h-6" />
               </button>
-                       <div class="space-y-6">
+            </div>
+            
+            <div class="space-y-6">
               <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이름 (실명)</label>
                 <div class="relative">
