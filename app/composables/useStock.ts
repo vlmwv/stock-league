@@ -1213,11 +1213,11 @@ export const useStock = () => {
     return { totalWins, totalProcessed }
   }
   
-  const fetchAiHistory = async (page = 1, pageSize = 20) => {
+  const fetchAiHistory = async (page = 1, pageSize = 20, stockId?: number) => {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
-    const { data, error } = await client
+    let query = client
       .from('daily_stocks')
       .select(`
         id,
@@ -1235,6 +1235,12 @@ export const useStock = () => {
           change_rate
         )
       `)
+    
+    if (stockId) {
+      query = query.eq('stock_id', stockId)
+    }
+
+    const { data, error } = await query
       .order('game_date', { ascending: false })
       .range(from, to)
 

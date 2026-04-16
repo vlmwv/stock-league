@@ -118,7 +118,7 @@
           </div>
 
           <!-- 탭 콘텐츠: 종목 뉴스 -->
-          <div v-else class="space-y-4 animate-fade-in">
+          <div v-else-if="activeTab === 'news'" class="space-y-4 animate-fade-in">
             <div v-if="isNewsLoading" class="flex flex-col items-center justify-center py-12 gap-4">
               <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
               <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
@@ -159,6 +159,84 @@
               </div>
             </div>
           </div>
+
+          <!-- 탭 콘텐츠: AI 추천 이력 -->
+          <div v-else class="space-y-4 animate-fade-in">
+            <div v-if="isAiHistoryLoading" class="flex flex-col items-center justify-center py-12 gap-4">
+              <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
+            </div>
+
+            <div v-else-if="aiHistory.length === 0" class="py-20 text-center flex flex-col items-center justify-center glass-dark rounded-3xl border border-dashed border-white/10">
+              <UIcon name="i-heroicons-sparkles" class="w-12 h-12 text-slate-800 mb-4" />
+              <p class="text-sm text-slate-600 font-medium italic">추천 이력이 없습니다.</p>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div
+                v-for="item in aiHistory"
+                :key="item.game_date"
+                class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group"
+              >
+                <!-- 카드 배경 글로우 -->
+                <div 
+                  class="absolute -top-12 -right-12 w-32 h-32 blur-3xl rounded-full transition-all duration-700 opacity-20 group-hover:opacity-40"
+                  :class="item.cumulative_change_rate >= 0 ? 'bg-emerald-500' : 'bg-indigo-500'"
+                ></div>
+
+                <div class="relative z-10">
+                  <!-- 날짜 및 상단 정보 -->
+                  <div class="flex items-center justify-between mb-6">
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recommendation Date</span>
+                      <h4 class="text-sm font-black text-slate-200">{{ formatPriceDate(item.game_date) }}</h4>
+                    </div>
+                    <div class="px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Score: {{ item.ai_score }}P</span>
+                    </div>
+                  </div>
+
+                  <!-- 가격 정보 비교 -->
+                  <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="space-y-1">
+                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">추천 시점 (Initial)</p>
+                      <p class="text-lg font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
+                    </div>
+                    <div class="space-y-1 text-right">
+                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재가 (Current)</p>
+                      <p class="text-lg font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
+                    </div>
+                  </div>
+
+                  <!-- 수익률 하이라이트 -->
+                  <div 
+                    class="rounded-2xl p-5 border transition-all duration-500 flex flex-col items-center justify-center gap-1 shadow-2xl"
+                    :class="item.cumulative_change_rate >= 0 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/5' 
+                      : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5'"
+                  >
+                    <div class="flex items-center gap-2">
+                      <UIcon 
+                        :name="item.cumulative_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
+                        class="w-6 h-6" 
+                      />
+                      <span class="text-3xl font-black tracking-tighter">
+                        {{ item.cumulative_change_rate > 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
+                      </span>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">예상 수익률</p>
+                  </div>
+
+                  <!-- AI 요약 (접기/펼치기 대용으로 작게 표시) -->
+                  <div v-if="item.summary" class="mt-6 pt-6 border-t border-white/5">
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium italic opacity-70 line-clamp-2">
+                       "{{ item.summary }}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -185,7 +263,8 @@ const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
 const tabs = [
   { key: 'history', label: '주가 이력' },
-  { key: 'news', label: '종목 뉴스' }
+  { key: 'news', label: '종목 뉴스' },
+  { key: 'ai_history', label: 'AI 추천' }
 ]
 
 const newsItems = ref<any[]>([])
@@ -195,6 +274,21 @@ const isNewsLoading = ref(false)
 const currentNewsItems = computed(() => {
   return newsItems.value
 })
+
+const aiHistory = ref<any[]>([])
+const isAiHistoryLoading = ref(false)
+const { fetchAiHistory } = useStock()
+
+const loadAiHistory = async () => {
+  if (!stock.value) return
+  isAiHistoryLoading.value = true
+  try {
+    const result = await fetchAiHistory(1, 40, stock.value.id)
+    aiHistory.value = result.items
+  } finally {
+    isAiHistoryLoading.value = false
+  }
+}
 
 // SSR 단계에서 종목 정보 로드
 const { data: ssrStock } = await useAsyncData<any>(`stock-seo-${code}`, () => fetchStockByCode(code))
@@ -345,11 +439,12 @@ onMounted(async () => {
     return
   }
   
-  // 3. 관련 데이터(이력, 찜, 뉴스)를 병렬로 로드
+  // 3. 관련 데이터(이력, 찜, 뉴스, AI이력)를 병렬로 로드
   await Promise.all([
     fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
     fetchWishlist(),
-    loadStockContent()
+    loadStockContent(),
+    loadAiHistory()
   ])
 })
 </script>
