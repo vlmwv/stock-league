@@ -69,8 +69,11 @@
             <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
               :class="index < 3 && currentSort === 'marketCap' && page === 1 ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
             >
-              {{ index + 1 }}
+              {{ (page - 1) * pageSize + index + 1 }}
             </div>
+
+            <!-- 아이콘 -->
+            <StockIcon :code="stock.code" :name="stock.name" size="md" />
 
             <!-- 종목 정보 -->
             <div class="flex-1 min-w-0">

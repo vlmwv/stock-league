@@ -20,7 +20,7 @@
             :class="{ 'opacity-100 blur-lg': swipeEffect === 'up' }"
           ></div>
           <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
-            <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500 animate-bounce" />
+            <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500" />
             <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
           </div>
         </div>
@@ -34,32 +34,35 @@
           ></div>
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
             <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
-            <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400 animate-bounce" />
+            <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400" />
           </div>
         </div>
       </template>
 
       <div class="flex justify-between items-start mb-6 relative z-[31]">
         <div class="space-y-1">
-          <NuxtLink :to="'/stocks/' + stock.code" class="group/title block">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
-                {{ stock.code }}
-              </span>
-              <button 
-                @click.prevent.stop="$emit('toggleHeart', stock.id)" 
-                class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
-                :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
-              >
-                <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-              </button>
+          <NuxtLink :to="'/stocks/' + stock.code" class="group/title flex items-start gap-4">
+            <StockIcon :code="stock.code" :name="stock.name" size="md" />
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
+                  {{ stock.code }}
+                </span>
+                <button 
+                  @click.prevent.stop="$emit('toggleHeart', stock.id)" 
+                  class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                  :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
+                >
+                  <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                </button>
+              </div>
+              <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
             </div>
-            <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
           </NuxtLink>
           <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-2">
-            <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 shadow-sm">
-              <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5 text-orange-400" />
-              <span class="text-[10px] font-black text-orange-400 uppercase tracking-tighter">AI 추천 {{ stock.ai_recommendation_count }}회</span>
+            <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
+              <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3 text-brand-primary" />
+              <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }} Pick</span>
             </div>
           </div>
         </div>
@@ -97,7 +100,7 @@
           <template v-if="isLeagueOpen">
             <template v-if="isPredictable">
               <div class="flex flex-col items-center gap-1">
-                <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500 animate-bounce" />
+                <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500" />
                 <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
               </div>
               <div class="h-px w-8 bg-slate-800"></div>
@@ -105,7 +108,7 @@
               <div class="h-px w-8 bg-slate-800"></div>
               <div class="flex flex-col items-center gap-1">
                 <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
-                <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500 animate-bounce" />
+                <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500" />
               </div>
             </template>
             <p v-else class="text-[9px] font-black text-rose-400/80 uppercase tracking-widest italic flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/5 border border-rose-500/10">
@@ -193,9 +196,6 @@ const rotation = ref(0)
 const isFlying = ref(false)
 
 const cardStyle = computed(() => ({
-  transform: `translateY(${translateY.value}px) rotate(${rotation.value}deg)`,
-  opacity: isFlying.value ? 0 : 1 - (Math.abs(translateY.value) / 500),
-  transition: isFlying.value ? 'all 0.6s cubic-bezier(0.2, 0, 0.2, 1)' : (translateY.value === 0 ? 'all 0.5s ease-out' : 'none'),
   pointerEvents: (props.isTop ? 'auto' : 'none') as 'auto' | 'none',
   zIndex: 100 - (props.index || 0)
 }))
@@ -262,16 +262,6 @@ const onMaskClick = (type: 'up' | 'down') => {
 }
 
 const triggerPrediction = (type: 'up' | 'down') => {
-  isFlying.value = true
-  if (type === 'up') {
-    // Intuitive Up: Shoot up with a slight bounce
-    translateY.value = -1200
-    rotation.value = -10
-  } else {
-    // Intuitive Down: Sink down
-    translateY.value = 1200
-    rotation.value = 10
-  }
   emit('predict', props.stock.id, type)
 }
 </script>

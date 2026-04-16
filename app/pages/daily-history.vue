@@ -67,9 +67,8 @@
                   <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ item.code }}</span>
                   <div 
                     v-if="item.ai_score" 
-                    class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 shadow-sm"
+                    class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 shadow-sm"
                   >
-                    <UIcon name="i-heroicons-bolt-20-solid" class="w-3.5 h-3.5" />
                     <span class="text-[10px] font-black leading-none">{{ item.ai_score }}P</span>
                   </div>
                 </div>

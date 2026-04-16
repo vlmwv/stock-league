@@ -20,22 +20,25 @@
 
       <main v-if="stock" class="px-6 space-y-8 animate-fade-in">
         <!-- 종목 헤더 -->
-        <header>
-          <div class="flex items-baseline gap-2 mb-1">
-            <h1 class="text-3xl font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">{{ stock.code }}</span>
-          </div>
-          <p class="text-sm text-slate-400 font-medium opacity-80 mt-1">{{ stock.sector || '주요 종목' }}</p>
-          
-          <div class="mt-6 flex flex-col gap-1">
-            <div class="text-4xl font-black text-slate-100 flex items-baseline gap-1">
-              {{ stock.last_price?.toLocaleString() }}
-              <span class="text-base font-bold text-slate-500">원</span>
+        <header class="flex items-start gap-5">
+          <StockIcon :code="stock.code" :name="stock.name" size="lg" class="mt-1 shadow-2xl" />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 mb-1">
+              <h1 class="text-3xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">{{ stock.code }}</span>
             </div>
-            <div class="flex items-center gap-2 font-black text-sm" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
-              <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>
-              <span class="w-1 h-1 rounded-full bg-slate-700"></span>
-              <span>{{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%</span>
+            <p class="text-sm text-slate-400 font-medium opacity-80 mt-1">{{ stock.sector || '주요 종목' }}</p>
+            
+            <div class="mt-4 flex flex-col gap-1">
+              <div class="text-4xl font-black text-slate-100 flex items-baseline gap-1">
+                {{ stock.last_price?.toLocaleString() }}
+                <span class="text-base font-bold text-slate-500">원</span>
+              </div>
+              <div class="flex items-center gap-2 font-black text-sm" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>
+                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                <span>{{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%</span>
+              </div>
             </div>
           </div>
         </header>

@@ -20,7 +20,7 @@
               </div>
             </div>
             
-            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ stats?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
+            <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ stats?.displayName || user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
             <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">마스터 예측 티어</p>
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
@@ -146,8 +146,11 @@
     <!-- Edit Profile Modal -->
     <UserProfileModal 
       v-model:open="isEditModalOpen" 
-      :current-username="stats?.username || user?.user_metadata?.full_name"
+      :current-username="stats?.username"
+      :current-full-name="stats?.fullName"
       :current-gender="stats?.gender"
+      :current-email="stats?.email || user?.email"
+      :current-display-name-type="stats?.displayNameType"
       @success="onProfileUpdate"
     />
   </div>

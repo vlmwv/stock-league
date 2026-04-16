@@ -758,6 +758,8 @@ export const useStock = () => {
       .from('profiles')
       .select(`
         username,
+        full_name,
+        display_name_type,
         avatar_url,
         gender,
         points,
@@ -801,6 +803,9 @@ export const useStock = () => {
       const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0, win_count: 0 }
       return {
         username: p.username,
+        full_name: p.full_name,
+        display_name_type: p.display_name_type,
+        displayName: p.display_name_type === 'full_name' ? (p.full_name || p.username) : p.username,
         avatar_url: p.avatar_url,
         gender: p.gender,
         points: p.points,
@@ -830,7 +835,7 @@ export const useStock = () => {
     // 1. Get points and profile
     let { data: profile, error: profileError } = await client
       .from('profiles')
-      .select('username, email, avatar_url, points, role, gender')
+      .select('username, full_name, display_name_type, email, avatar_url, points, role, gender')
       .eq('id', userId)
       .single()
 
@@ -904,6 +909,9 @@ export const useStock = () => {
 
     return {
       username: (profile as any)?.username,
+      fullName: (profile as any)?.full_name,
+      displayNameType: (profile as any)?.display_name_type || 'nickname',
+      displayName: (profile as any)?.display_name_type === 'full_name' ? ((profile as any)?.full_name || (profile as any)?.username) : (profile as any)?.username,
       email: (profile as any)?.email,
       avatarUrl: (profile as any)?.avatar_url,
       points: (profile as any)?.points || 0,
@@ -916,13 +924,20 @@ export const useStock = () => {
     }
   }
 
-  const updateProfile = async (username: string, gender?: string) => {
+  const updateProfile = async (updates: { username?: string, fullName?: string, gender?: string, displayNameType?: 'nickname' | 'full_name' }) => {
     const userId = await resolveUserId()
     if (!userId) return { success: false, message: '로그인이 필요합니다.' }
 
+    const { username, fullName, gender, displayNameType } = updates
+    const queryData: any = {}
+    if (username !== undefined) queryData.username = username
+    if (fullName !== undefined) queryData.full_name = fullName
+    if (gender !== undefined) queryData.gender = gender
+    if (displayNameType !== undefined) queryData.display_name_type = displayNameType
+
     const { error } = await (client
       .from('profiles') as any)
-      .update({ username, gender })
+      .update(queryData)
       .eq('id', userId)
 
     if (error) {

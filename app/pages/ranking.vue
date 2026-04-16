@@ -51,6 +51,8 @@ const { data: rankings, pending, refresh } = useAsyncData('userRankings', async 
     
     return (data as any[]).map((r, index) => ({
       username: r.profiles.username,
+      fullName: r.profiles.full_name,
+      displayName: r.profiles.display_name_type === 'full_name' ? (r.profiles.full_name || r.profiles.username) : r.profiles.username,
       avatar_url: r.profiles.avatar_url,
       gender: r.profiles.gender,
       points: 0, 
@@ -83,7 +85,7 @@ const myRankingInfo = computed(() => {
   // 리스트에 없으면 전체 스태츠에서 가져옴 (단, 필터가 '전체'일 때만 의미 있음)
   if (selectedYear.value === '전체' && myStats.value) {
     return {
-      username: user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0],
+      username: myStats.value.displayName,
       avatar_url: user.value?.user_metadata?.avatar_url,
       points: myStats.value.points,
       prediction_count: myStats.value.totalGames,
@@ -122,7 +124,7 @@ onMounted(async () => {
                </div>
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.username }}</p>
+              <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.displayName || myRankingInfo.username }}</p>
               <p class="text-[10px] font-bold text-brand-primary/80 uppercase">상위 {{ Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
             </div>
           </div>
@@ -187,7 +189,7 @@ onMounted(async () => {
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-400 border-4 border-bg-deep flex items-center justify-center font-black text-slate-900 text-xs shadow-lg">2</div>
             </div>
-            <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].username }}</p>
+            <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].displayName || topThree[1].username }}</p>
             <div class="h-14 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
               <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[1].win_rate}%` : 
@@ -210,7 +212,7 @@ onMounted(async () => {
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-brand-primary border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">1</div>
             </div>
-            <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].username }}</p>
+            <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].displayName || topThree[0].username }}</p>
             <div class="h-20 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
               <span class="text-sm font-black text-brand-primary">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[0].win_rate}%` : 
@@ -232,7 +234,7 @@ onMounted(async () => {
               </div>
               <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-700 border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">3</div>
             </div>
-            <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].username }}</p>
+            <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].displayName || topThree[2].username }}</p>
             <div class="h-12 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
               <span class="text-xs font-black" :class="sortBy === 'win_rate' || selectedYear !== '전체' ? 'text-brand-primary' : 'text-slate-400'">
                 {{ sortBy === 'win_rate' || (selectedYear !== '전체' && sortBy === 'rank') ? `${topThree[2].win_rate}%` : 
@@ -276,7 +278,7 @@ onMounted(async () => {
                  </div>
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-200 truncate">{{ rankingUser.username }}</p>
+                <p class="text-sm font-bold text-slate-200 truncate">{{ rankingUser.displayName || rankingUser.username }}</p>
               </div>
             </div>
 

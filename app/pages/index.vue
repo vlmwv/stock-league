@@ -163,14 +163,13 @@
                 <!-- Row 2: AI Summary (More Refined Marquee) -->
                 <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2 gap-1.5">
                   <!-- AI 점수 라벨 (고정) -->
-                  <div v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center gap-1 text-[8px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-lg shrink-0 border border-emerald-400/20 shadow-sm">
-                    <UIcon name="i-heroicons-bolt-20-solid" class="w-3 h-3" />
+                  <div v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center gap-1 text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-md shrink-0 border border-emerald-400/20 shadow-sm">
                     {{ stock.ai_score }}P
                   </div>
                   <!-- AI 추천 횟수 라벨 -->
-                  <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 px-2 py-1 rounded-lg border border-orange-400/20 shrink-0 shadow-sm">
-                    <UIcon name="i-heroicons-fire-20-solid" class="w-3 h-3" />
-                    {{ stock.ai_recommendation_count }}회
+                  <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-[9px] font-black text-brand-primary bg-brand-primary/10 px-1.5 py-0.5 rounded-md border border-brand-primary/20 shrink-0 shadow-sm">
+                    <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
+                    {{ stock.ai_recommendation_count }} Pick
                   </div>
                   <!-- AI 요약 라벨 삭제됨 -->
                   

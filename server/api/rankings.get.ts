@@ -37,6 +37,8 @@ export default defineEventHandler(async (event) => {
     rank,
     profiles (
       username,
+      full_name,
+      display_name_type,
       avatar_url,
       gender
     )
@@ -65,6 +67,8 @@ export default defineEventHandler(async (event) => {
       rank,
       profiles (
         username,
+        full_name,
+        display_name_type,
         avatar_url
       )
     `

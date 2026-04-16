@@ -57,54 +57,41 @@
           </div>
 
           <div class="flex justify-between items-start mb-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
-                
-                <!-- AI Insight (Enhanced Visualization) -->
-                <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-2 mb-1.5">
-                  <div 
-                    v-if="stock.ai_score" 
-                    class="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5 shadow-inner"
-                  >
-                    <div class="flex flex-col gap-0.5">
-                      <div class="flex items-center justify-between gap-4">
-                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">AI Score</span>
-                        <span class="text-[9px] font-black text-slate-200">{{ stock.ai_score }}P</span>
-                      </div>
-                      <div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          class="h-full transition-all duration-1000 ease-out"
-                          :class="[
-                            stock.ai_score > 55 ? 'bg-gradient-to-r from-rose-500/50 to-rose-500' : 
-                            stock.ai_score < 45 ? 'bg-gradient-to-r from-indigo-500/50 to-indigo-500' : 
-                            'bg-gradient-to-r from-emerald-500/50 to-emerald-500'
-                          ]"
-                          :style="{ width: `${stock.ai_score}%` }"
-                        ></div>
-                      </div>
+            <div class="flex gap-4 flex-1">
+              <StockIcon :code="stock.code" :name="stock.name" size="md" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
+                  
+                  <!-- AI Insight (Simple & Intuitive) -->
+                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-3 mb-1.5">
+                    <div v-if="stock.ai_score" class="flex flex-col items-center">
+                      <span class="text-xs font-black text-slate-100 border-b-2 border-double border-brand-primary leading-none pb-0.5">
+                        {{ stock.ai_score }}P
+                      </span>
+                      <span class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">AI Score</span>
+                    </div>
+
+                    <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
+                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3 text-brand-primary" />
+                      <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }} Pick</span>
                     </div>
                   </div>
 
-                  <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 shadow-sm animate-pulse-soft">
-                    <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5 text-orange-400" />
-                    <span class="text-[9px] font-black text-orange-400 uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회 추천</span>
+                  <div 
+                    v-if="isResultPublished && (stock as any).ai_result && (stock as any).ai_result !== 'pending'" 
+                    class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-sm"
+                    :class="[
+                      (stock as any).ai_result === 'win' ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400' : 
+                      (stock as any).ai_result === 'lose' ? 'bg-rose-400/10 border-rose-400/20 text-rose-400' : 
+                      'bg-slate-400/10 border-slate-400/20 text-slate-400'
+                    ]"
+                  >
+                    <span class="text-[10px] font-black leading-none">AI {{ (stock as any).ai_result === 'win' ? '성공' : ((stock as any).ai_result === 'lose' ? '실패' : '무승부') }}</span>
                   </div>
                 </div>
-
-                <div 
-                  v-if="isResultPublished && (stock as any).ai_result && (stock as any).ai_result !== 'pending'" 
-                  class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-sm"
-                  :class="[
-                    (stock as any).ai_result === 'win' ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400' : 
-                    (stock as any).ai_result === 'lose' ? 'bg-rose-400/10 border-rose-400/20 text-rose-400' : 
-                    'bg-slate-400/10 border-slate-400/20 text-slate-400'
-                  ]"
-                >
-                  <span class="text-[10px] font-black leading-none">AI {{ (stock as any).ai_result === 'win' ? '성공' : ((stock as any).ai_result === 'lose' ? '실패' : '무승부') }}</span>
-                </div>
+                <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
               </div>
-              <h4 class="text-xl font-black text-slate-100">{{ stock.name }}</h4>
             </div>
             <div class="text-right" :class="getPrediction(stock.id) ? 'mt-5' : ''">
               <div class="text-lg font-black text-slate-100">
@@ -135,7 +122,7 @@
                   ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/40 ring-2 ring-rose-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
                   : getPredictionValue(stock.id) === 'down'
                     ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
-                    : 'bg-slate-800/50 text-rose-500/80 border border-rose-500/20 hover:bg-rose-500/10 active:scale-95',
+                    : 'bg-slate-800/50 text-rose-500/80 border border-rose-500/20 hover:bg-rose-500/10',
                 !isLeagueOpen && getPredictionValue(stock.id) !== 'up' ? 'opacity-20 grayscale cursor-not-allowed' : '',
                 !isLeagueOpen && getPredictionValue(stock.id) === 'up' ? 'opacity-90 cursor-default' : ''
               ]"
@@ -157,7 +144,7 @@
                   ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent scale-[1.02]'
                   : getPredictionValue(stock.id) === 'up'
                     ? 'bg-slate-800/30 text-slate-600 border border-white/5 opacity-40'
-                    : 'bg-slate-800/50 text-indigo-500/80 border border-indigo-500/20 hover:bg-indigo-500/10 active:scale-95',
+                    : 'bg-slate-800/50 text-indigo-500/80 border border-indigo-500/20 hover:bg-indigo-500/10',
                 !isLeagueOpen && getPredictionValue(stock.id) !== 'down' ? 'opacity-20 grayscale cursor-not-allowed' : '',
                 !isLeagueOpen && getPredictionValue(stock.id) === 'down' ? 'opacity-90 cursor-default' : ''
               ]"
@@ -211,12 +198,6 @@
       </div>
     </main>
 
-    <PredictionResultDialog 
-      :is-open="isResultOpen"
-      :stock-name="selectedStockName"
-      :prediction="selectedPrediction"
-      @close="isResultOpen = false"
-    />
     
     <BottomNav />
   </div>
@@ -273,22 +254,13 @@ const statusMessage = computed(() => {
   }
 })
 const isGuideOpen = ref(false)
-const isResultOpen = ref(false)
-const selectedStockName = ref('')
-const selectedPrediction = ref<'up' | 'down' | null>(null)
 
 const onPredict = async (id: number, prediction: 'up' | 'down') => {
   if (!isLeagueOpen.value) return
   
   const stock = dailyStocks.value.find(s => s.id === id)
   if (stock) {
-    const success = await predict(id, prediction, stock.game_date)
-    
-    if (success) {
-      selectedStockName.value = stock.name
-      selectedPrediction.value = prediction
-      isResultOpen.value = true
-    }
+    await predict(id, prediction, stock.game_date)
   }
 }
 
