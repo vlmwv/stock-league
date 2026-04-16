@@ -53,7 +53,7 @@
         <div class="space-y-1">
           <NuxtLink :to="'/stocks/' + stock.code" class="group/title flex items-start gap-4">
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
-            <div class="space-y-1">
+            <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
                 <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
                   {{ stock.code }}
@@ -65,15 +65,13 @@
                 >
                   <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
                 </button>
+                <!-- AI 추천 횟수 (Compact) -->
+                <div v-if="stock.ai_recommendation_count > 0" class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10 ml-auto">
+                  <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
+                </div>
               </div>
               <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
             </div>
-          </NuxtLink>
-          <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-2">
-            <div class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10">
-              <span class="text-[10px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
-            </div>
-          </div>
         </div>
 
         <div class="text-right shrink-0 transition-all duration-300" :class="prediction ? 'mt-16' : ''">

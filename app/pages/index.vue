@@ -140,6 +140,10 @@
                   
                   <div class="flex items-end gap-1.5 flex-shrink-0 mt-0.5">
                     <div class="flex flex-col items-end">
+                      <div class="flex items-center gap-1.5 mb-1">
+                        <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[8px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
+                        <span v-if="stock.ai_recommendation_count > 0" class="text-[8px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
+                      </div>
                       <span class="text-[12px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
                       <div 
                         class="text-[8px] font-black leading-none mt-1"
@@ -161,16 +165,8 @@
                 </div>
 
                 <!-- Row 2: AI Summary (More Refined Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2 gap-1.5">
-                  <!-- AI 점수 라벨 (고정) -->
-                  <!-- AI 점수 라벨 (고정) -->
-                  <div v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center text-[9px] font-black text-emerald-400 bg-emerald-400/5 px-1.5 py-0.5 rounded shrink-0 border border-emerald-400/10 shadow-sm">
-                    {{ stock.ai_score }}점
-                  </div>
-                  <!-- AI 추천 횟수 라벨 -->
-                  <div v-if="stock.ai_recommendation_count > 0" class="flex items-center text-[9px] font-black text-brand-primary bg-brand-primary/5 px-1.5 py-0.5 rounded border border-brand-primary/10 shrink-0 shadow-sm">
-                    {{ stock.ai_recommendation_count }}회
-                  </div>
+                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2">
+                  <!-- AI 요약 문구 (가로 전체 활용) -->
                   <!-- AI 요약 라벨 삭제됨 -->
                   
                   <!-- 스크롤되는 요약 텍스트 영역 (클릭 시 전체 보기) -->
