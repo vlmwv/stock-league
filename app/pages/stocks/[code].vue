@@ -22,47 +22,33 @@
         <!-- 종목 히어로 이미지 -->
         
 
-        <!-- 종목 헤더 (컴팩트 버전) -->
-        <header class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <StockIcon :code="stock.code" :name="stock.name" size="lg" class="shadow-lg border-2 border-bg-deep rounded-xl" />
-              <div>
-                <div class="flex items-baseline gap-1.5">
-                  <h1 class="text-xl font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">{{ stock.code }}</span>
-                </div>
-                <p class="text-[11px] text-slate-400 font-medium opacity-80">{{ stock.sector || '주요 종목' }}</p>
-              </div>
+        <!-- 초컴팩트 종목 헤더 -->
+        <header class="flex flex-col gap-1.5">
+          <div class="flex items-end justify-between">
+            <div class="flex items-baseline gap-1.5">
+              <h1 class="text-base font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
+              <span class="text-[9px] font-bold text-slate-500">{{ stock.code }}</span>
+              <span class="text-[9px] text-slate-400 font-medium ml-0.5">{{ stock.sector || '주요 종목' }}</span>
             </div>
-
-            <div class="text-right flex flex-col items-end">
-              <div class="text-2xl font-black text-slate-100 flex items-baseline gap-0.5">
-                {{ stock.last_price?.toLocaleString() }}
-                <span class="text-xs font-bold text-slate-500">원</span>
-              </div>
-              <div class="flex items-center gap-1.5 font-bold text-xs mt-0.5" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
-                <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>
-                <span>({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)</span>
+            <div class="flex items-baseline gap-1.5">
+              <div class="text-base font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}</div>
+              <div class="text-[10px] font-bold" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }} ({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)
               </div>
             </div>
           </div>
 
-          <!-- AI 인사이트 배지 -->
-          <div v-if="stock.ai_score || stock.ai_recommendation_count" class="flex items-center justify-between bg-slate-800/30 rounded-xl px-3 py-2 border border-white/5">
-            <div class="flex items-center gap-2 select-none">
-              <span class="text-[10px] font-bold text-slate-500 break-keep">AI 분석</span>
-              <div v-if="stock.ai_score" class="flex items-center gap-1 px-2 py-0.5 rounded text-emerald-400 bg-emerald-500/10">
-                <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
-                <span class="text-[10px] font-black tracking-tight">{{ stock.ai_score }}P</span>
-              </div>
-              <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-2 py-0.5 rounded text-brand-primary bg-brand-primary/10">
-                <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
-                <span class="text-[10px] font-black tracking-tight">{{ stock.ai_recommendation_count }}회 추천</span>
-              </div>
+          <div v-if="stock.ai_score || stock.ai_recommendation_count" class="flex items-center gap-1.5 mt-0.5">
+            <div v-if="stock.ai_score" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-emerald-400 bg-emerald-500/10 border border-emerald-500/10">
+              <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
+              <span class="text-[9px] font-black">{{ stock.ai_score }}P</span>
             </div>
-            <button @click="clearAiHistoryAndGoToTab" class="w-7 h-7 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
-              <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+            <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-brand-primary bg-brand-primary/10 border border-brand-primary/10">
+              <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-2.5 h-2.5" />
+              <span class="text-[9px] font-black">{{ stock.ai_recommendation_count }}회 추천</span>
+            </div>
+            <button @click="clearAiHistoryAndGoToTab" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors ml-0.5">
+              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
             </button>
           </div>
         </header>
