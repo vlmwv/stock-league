@@ -56,10 +56,10 @@
             </div>
             <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
           </NuxtLink>
-          <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-1.5">
-            <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20">
-              <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3 text-orange-400" />
-              <span class="text-[9px] font-black text-orange-400">AI 추천 {{ stock.ai_recommendation_count }}회</span>
+          <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-2">
+            <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 shadow-sm">
+              <UIcon name="i-heroicons-fire-20-solid" class="w-3.5 h-3.5 text-orange-400" />
+              <span class="text-[10px] font-black text-orange-400 uppercase tracking-tighter">AI 추천 {{ stock.ai_recommendation_count }}회</span>
             </div>
           </div>
         </div>
