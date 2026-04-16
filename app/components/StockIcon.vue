@@ -3,14 +3,15 @@
     class="relative flex-shrink-0 flex items-center justify-center rounded-2xl overflow-hidden shadow-sm"
     :class="[sizeClasses, colorClasses]"
   >
-    <!-- Stock Logo Image -->
+    <!-- Stock Logo Image (Brand CI) -->
     <img 
       v-if="logoUrl && !hasError" 
       :src="logoUrl" 
       :alt="name"
-      class="w-full h-full object-contain p-1.5"
+      class="w-full h-full object-contain p-1 opacity-100 transition-opacity duration-300"
       @error="handleError"
     />
+
     
     <!-- Fallback Letter Icon -->
     <span 
@@ -39,16 +40,21 @@ const hasError = ref(false)
 
 const logoUrl = computed(() => {
   if (!props.code) return null
-  // 한국 종목 코드(6자리 숫자)인 경우 업비트 로고 활용
+  
+  // 한국 종목 코드(6자리 숫자)인 경우 증권플러스(StockPlus) 브랜드 로고 활용
   if (/^[0-9]{6}$/.test(props.code)) {
-    return `https://static.upbit.com/logos/${props.code}.png`
+    // 증권플러스 실시간 로고 서버 (브랜드 이미지)
+    return `https://logo.stockplus.com/stock/KOREA/${props.code}.png`
   }
-  return null
+  
+  // 해외 종목 등 기타 (기존 업비트 로고 폴백)
+  return `https://static.upbit.com/logos/${props.code}.png`
 })
 
 const firstLetter = computed(() => {
   return props.name?.charAt(0) || '?'
 })
+
 
 const handleError = () => {
   hasError.value = true

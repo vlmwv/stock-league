@@ -77,7 +77,7 @@
         
         <div class="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-700/50 relative z-20">
           <div class="text-right hidden xs:block">
-            <p class="text-xs font-bold text-slate-200">{{ user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
+            <p class="text-xs font-bold text-slate-200">{{ userStats?.displayName || user.user_metadata?.full_name || user.email?.split('@')[0] }}님</p>
           </div>
           <UPopover 
             :popper="{ placement: 'bottom-end' }"
