@@ -66,7 +66,7 @@
                   <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
                 </button>
                 <!-- AI 추천 횟수 (Compact) -->
-                <div v-if="stock.ai_recommendation_count > 0" class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10 ml-auto">
+                <div v-if="stock.ai_recommendation_count" class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10 ml-auto">
                   <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
                 </div>
               </div>
@@ -82,10 +82,10 @@
           </div>
           <div 
             class="text-xs font-black flex items-center justify-end gap-1 mt-0.5 transition-colors"
-            :class="[stock.change_amount > 0 ? 'text-rose-400' : stock.change_amount < 0 ? 'text-indigo-400' : 'text-slate-500']"
+            :class="[isPositive(stock.change_amount) ? 'text-rose-400' : isNegative(stock.change_amount) ? 'text-indigo-400' : 'text-slate-500']"
           >
-            <span v-if="stock.change_amount > 0" class="text-[10px]">▲</span>
-            <span v-else-if="stock.change_amount < 0" class="text-[10px]">▼</span>
+            <span v-if="isPositive(stock.change_amount)" class="text-[10px]">▲</span>
+            <span v-else-if="isNegative(stock.change_amount)" class="text-[10px]">▼</span>
             <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
             <span class="opacity-60 text-[10px]">({{ stock.change_rate }}%)</span>
           </div>
@@ -198,6 +198,9 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits(['predict', 'toggleHeart', 'cancelPrediction'])
+
+const isPositive = (val: number) => val > 0
+const isNegative = (val: number) => val < 0
 
 const cardRef = ref<HTMLElement | null>(null)
 const swipeEffect = ref<'up' | 'down' | null>(null)
