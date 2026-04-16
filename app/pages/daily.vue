@@ -73,10 +73,10 @@
                 <div class="flex items-center gap-2 mb-1">
                   <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                   
-                  <!-- AI Insight (Ultra-Simple) -->
-                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-2 mb-2">
+                  <!-- AI Insight (Clean Text) -->
+                  <div v-if="stock.ai_score || stock.ai_recommendation_count > 0" class="flex items-center gap-1.5 mb-2">
                     <span v-if="stock.ai_score" class="text-[10px] font-black text-emerald-400 bg-emerald-400/5 px-1.5 py-0.5 rounded border border-emerald-400/10">
-                      [{{ stock.ai_score }}점]
+                      {{ stock.ai_score }}점
                     </span>
                     <span v-if="stock.ai_recommendation_count > 0" class="text-[10px] font-black text-brand-primary bg-brand-primary/5 px-1.5 py-0.5 rounded border border-brand-primary/10">
                       {{ stock.ai_recommendation_count }}회

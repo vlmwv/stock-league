@@ -75,7 +75,8 @@ const textClasses = computed(() => {
 })
 
 const colorClasses = computed(() => {
-  if (logoUrl.value && !hasError.value) return 'bg-white'
+  // 이미지가 성공적으로 로드된 경우에만 흰색 배경 유지
+  if (logoUrl.value && !hasError.value) return 'bg-white shadow-inner'
   
   // 종목 코드 기반으로 고정된 배경색 할당 (해시)
   const colors = [
@@ -86,10 +87,13 @@ const colorClasses = computed(() => {
     'bg-gradient-to-br from-sky-500 to-sky-600',
     'bg-gradient-to-br from-violet-500 to-violet-600',
     'bg-gradient-to-br from-fuchsia-500 to-fuchsia-600',
-    'bg-gradient-to-br from-cyan-500 to-cyan-600'
+    'bg-gradient-to-br from-cyan-500 to-cyan-600',
+    'bg-gradient-to-br from-brand-primary to-brand-primary-dark'
   ]
   
-  const charCodeSum = props.code.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const codeStr = String(props.code || '000000')
+  const charCodeSum = codeStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return colors[charCodeSum % colors.length]
 })
+
 </script>

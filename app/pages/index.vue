@@ -165,7 +165,7 @@
                   <!-- AI 점수 라벨 (고정) -->
                   <!-- AI 점수 라벨 (고정) -->
                   <div v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="flex items-center text-[9px] font-black text-emerald-400 bg-emerald-400/5 px-1.5 py-0.5 rounded shrink-0 border border-emerald-400/10 shadow-sm">
-                    [{{ stock.ai_score }}점]
+                    {{ stock.ai_score }}점
                   </div>
                   <!-- AI 추천 횟수 라벨 -->
                   <div v-if="stock.ai_recommendation_count > 0" class="flex items-center text-[9px] font-black text-brand-primary bg-brand-primary/5 px-1.5 py-0.5 rounded border border-brand-primary/10 shrink-0 shadow-sm">
