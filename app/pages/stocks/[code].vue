@@ -272,10 +272,6 @@ import { repairNewsUrl, getStockImage } from '~/utils/stock'
 
 const route = useRoute()
 const router = useRouter()
-const { fetchStockByCode, fetchPriceHistory, fetchNews, hearts, toggleHeart, fetchWishlist } = useStock()
-
-const code = route.params.code as string
-
 const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
@@ -287,15 +283,25 @@ const tabs = [
 
 const newsItems = ref<any[]>([])
 const isNewsLoading = ref(false)
+const aiHistory = ref<any[]>([])
+const isAiHistoryLoading = ref(false)
+
+const { 
+  fetchStockByCode, 
+  fetchPriceHistory, 
+  fetchNews, 
+  hearts, 
+  toggleHeart, 
+  fetchWishlist,
+  fetchAiHistory 
+} = useStock()
 
 // 현재 탭에 따른 뉴스 아이템 반환 (현재는 뉴스만 존재)
 const currentNewsItems = computed(() => {
   return newsItems.value
 })
 
-const aiHistory = ref<any[]>([])
-const isAiHistoryLoading = ref(false)
-const { fetchAiHistory } = useStock()
+const code = route.params.code as string
 
 const loadAiHistory = async () => {
   if (!stock.value) return
