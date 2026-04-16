@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-bg-deep pb-12 overflow-x-hidden">
     <div class="max-w-md mx-auto relative">
       <!-- 상단 액션 바 -->
-      <nav class="sticky top-0 z-40 px-6 py-4 flex items-center justify-between bg-bg-deep/80 backdrop-blur-xl">
+      <nav class="sticky top-0 z-40 px-5 py-3 flex items-center justify-between bg-bg-deep/80 backdrop-blur-xl">
         <button @click="router.back()" class="w-10 h-10 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
           <UIcon name="i-heroicons-chevron-left-20-solid" class="w-6 h-6" />
         </button>
@@ -18,47 +18,52 @@
         </div>
       </nav>
 
-      <main v-if="stock" class="px-6 space-y-8 animate-fade-in pb-16">
+      <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
         <!-- 종목 히어로 이미지 -->
         
 
-        <!-- 종목 헤더 -->
-        <header class="flex items-start gap-5">
-          <StockIcon :code="stock.code" :name="stock.name" size="xl" class="mt-1 shadow-2xl border-4 border-bg-deep" />
-          <div class="flex-1 min-w-0">
-            <div class="flex items-baseline gap-2 mb-1">
-              <h1 class="text-3xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">{{ stock.code }}</span>
+        <!-- 종목 헤더 (컴팩트 버전) -->
+        <header class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <StockIcon :code="stock.code" :name="stock.name" size="lg" class="shadow-lg border-2 border-bg-deep rounded-xl" />
+              <div>
+                <div class="flex items-baseline gap-1.5">
+                  <h1 class="text-xl font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
+                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">{{ stock.code }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 font-medium opacity-80">{{ stock.sector || '주요 종목' }}</p>
+              </div>
             </div>
-            <p class="text-sm text-slate-400 font-medium opacity-80 mt-1">{{ stock.sector || '주요 종목' }}</p>
 
-            <!-- AI 인사이트 배지 -->
-            <div v-if="stock.ai_score || stock.ai_recommendation_count" class="mt-3.5 flex items-center gap-2 select-none">
-              <div v-if="stock.ai_score" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-sm shadow-emerald-500/5">
-                <UIcon name="i-heroicons-sparkles-20-solid" class="w-3.5 h-3.5" />
+            <div class="text-right flex flex-col items-end">
+              <div class="text-2xl font-black text-slate-100 flex items-baseline gap-0.5">
+                {{ stock.last_price?.toLocaleString() }}
+                <span class="text-xs font-bold text-slate-500">원</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-bold text-xs mt-0.5" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>
+                <span>({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI 인사이트 배지 -->
+          <div v-if="stock.ai_score || stock.ai_recommendation_count" class="flex items-center justify-between bg-slate-800/30 rounded-xl px-3 py-2 border border-white/5">
+            <div class="flex items-center gap-2 select-none">
+              <span class="text-[10px] font-bold text-slate-500 break-keep">AI 분석</span>
+              <div v-if="stock.ai_score" class="flex items-center gap-1 px-2 py-0.5 rounded text-emerald-400 bg-emerald-500/10">
+                <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" />
                 <span class="text-[10px] font-black tracking-tight">{{ stock.ai_score }}P</span>
               </div>
-              <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary shadow-sm shadow-brand-primary/5">
-                <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5" />
+              <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 px-2 py-0.5 rounded text-brand-primary bg-brand-primary/10">
+                <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
                 <span class="text-[10px] font-black tracking-tight">{{ stock.ai_recommendation_count }}회 추천</span>
               </div>
-<button @click="clearAiHistoryAndGoToTab" class="ml-2 w-10 h-10 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
-  <UIcon name="i-heroicons-clock" class="w-5 h-5" />
-</button>
             </div>
-
-            
-            <div class="mt-4 flex flex-col gap-1">
-              <div class="text-4xl font-black text-slate-100 flex items-baseline gap-1">
-                {{ stock.last_price?.toLocaleString() }}
-                <span class="text-base font-bold text-slate-500">원</span>
-              </div>
-              <div class="flex items-center gap-2 font-black text-sm" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
-                <span>{{ stock.change_amount >= 0 ? '▲' : '▼' }} {{ Math.abs(stock.change_amount).toLocaleString() }}</span>
-                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
-                <span>{{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%</span>
-              </div>
-            </div>
+            <button @click="clearAiHistoryAndGoToTab" class="w-7 h-7 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+              <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+            </button>
           </div>
         </header>
 
