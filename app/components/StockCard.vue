@@ -70,9 +70,8 @@
             </div>
           </NuxtLink>
           <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-2 mt-2">
-            <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
-              <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3 text-brand-primary" />
-              <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }} Pick</span>
+            <div class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10">
+              <span class="text-[10px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
             </div>
           </div>
         </div>

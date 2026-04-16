@@ -20,19 +20,7 @@
 
       <main v-if="stock" class="px-6 space-y-8 animate-fade-in pb-16">
         <!-- 종목 히어로 이미지 -->
-        <div class="relative w-full h-48 rounded-[2.5rem] overflow-hidden shadow-2xl group">
-          <img 
-            :src="getStockImage(stock.code, stock.sector)" 
-            class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            :alt="stock.name"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-bg-deep via-bg-deep/40 to-transparent"></div>
-          <div class="absolute bottom-6 left-6">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/20 border border-brand-primary/30 backdrop-blur-md mb-2">
-              <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">{{ stock.sector || '시장 주도주' }}</span>
-            </div>
-          </div>
-        </div>
+        
 
         <!-- 종목 헤더 -->
         <header class="flex items-start gap-5">
@@ -54,6 +42,9 @@
                 <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5" />
                 <span class="text-[10px] font-black tracking-tight">{{ stock.ai_recommendation_count }}회 추천</span>
               </div>
+<button @click="clearAiHistoryAndGoToTab" class="ml-2 w-10 h-10 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+  <UIcon name="i-heroicons-clock" class="w-5 h-5" />
+</button>
             </div>
 
             
@@ -329,6 +320,10 @@ const loadAiHistory = async () => {
     isAiHistoryLoading.value = false
   }
 }
+const clearAiHistoryAndGoToTab = () => {
+  aiHistory.value = [];
+  activeTab.value = 'ai_history';
+};
 
 // SSR 단계에서 종목 정보 로드
 const { data: ssrStock } = await useAsyncData<any>(`stock-seo-${code}`, () => fetchStockByCode(code))
