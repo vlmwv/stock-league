@@ -18,7 +18,22 @@
         </div>
       </nav>
 
-      <main v-if="stock" class="px-6 space-y-8 animate-fade-in">
+      <main v-if="stock" class="px-6 space-y-8 animate-fade-in pb-16">
+        <!-- 종목 히어로 이미지 -->
+        <div class="relative w-full h-48 rounded-[2.5rem] overflow-hidden shadow-2xl group">
+          <img 
+            :src="getStockImage(stock.code, stock.sector)" 
+            class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+            :alt="stock.name"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-bg-deep via-bg-deep/40 to-transparent"></div>
+          <div class="absolute bottom-6 left-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/20 border border-brand-primary/30 backdrop-blur-md mb-2">
+              <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">{{ stock.sector || '시장 주도주' }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- 종목 헤더 -->
         <header class="flex items-start gap-5">
           <StockIcon :code="stock.code" :name="stock.name" size="lg" class="mt-1 shadow-2xl" />
@@ -253,7 +268,7 @@
 </template>
 
 <script setup lang="ts">
-import { repairNewsUrl } from '~/utils/stock'
+import { repairNewsUrl, getStockImage } from '~/utils/stock'
 
 const route = useRoute()
 const router = useRouter()

@@ -35,6 +35,16 @@
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5"
           :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
+          <!-- Representative Background Image -->
+          <div class="absolute inset-0 z-0 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-700">
+            <img 
+              :src="getStockImage(stock.code, stock.sector)" 
+              class="w-full h-full object-cover grayscale scale-110 group-hover:scale-125 transition-transform duration-[2s]"
+              alt=""
+            />
+            <div class="absolute inset-0 bg-gradient-to-br from-bg-deep/90 via-transparent to-bg-deep/95"></div>
+          </div>
+
           <!-- 예측 완료 배지 -->
           <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm"
             :class="[
@@ -179,23 +189,6 @@
         </div>
       </section>
 
-      <!-- Completion Message -->
-      <div v-if="allPredicted" class="mt-12 p-8 glass-dark rounded-[2.5rem] border border-brand-primary/20 text-center space-y-4 animate-scale-in">
-        <div class="w-16 h-16 rounded-full bg-brand-primary/20 flex items-center justify-center mx-auto border border-brand-primary/30">
-          <UIcon name="i-heroicons-check-circle-20-solid" class="w-8 h-8 text-brand-primary" />
-        </div>
-        <h3 class="text-xl font-black text-slate-100">예측 완료!</h3>
-        <p class="text-xs text-slate-400">
-          오늘의 모든 종목에 대한 예측을 마쳤습니다.<br/>
-          결과는 {{ isResultPublished ? '발표되었습니다. 위에서 확인해 보세요!' : (isTomorrow ? '내일 20:30에 공개됩니다.' : '오늘 20:30에 공개됩니다.') }}
-        </p>
-        <NuxtLink 
-          to="/ranking"
-          class="inline-block mt-4 px-8 py-3 rounded-2xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-primary/20"
-        >
-          실시간 랭킹 보기
-        </NuxtLink>
-      </div>
     </main>
 
     
@@ -204,6 +197,8 @@
 </template>
 
 <script setup lang="ts">
+import { getStockImage } from '~/utils/stock'
+
 const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished, allPredicted, isHearted, getPrediction, getPredictionValue } = useStock()
 
 const getKstDate = () => {
