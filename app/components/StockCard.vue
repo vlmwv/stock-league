@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { getStockImage } from '~/utils/stock'
+
 
 const props = withDefaults(defineProps<{
   stock: any

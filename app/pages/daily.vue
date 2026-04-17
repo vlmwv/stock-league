@@ -179,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { getStockImage } from '~/utils/stock'
+
 
 const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished, allPredicted, isHearted, getPrediction, getPredictionValue } = useStock()
 

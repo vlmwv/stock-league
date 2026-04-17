@@ -43,10 +43,10 @@ const hasError = ref(false)
 const logoUrl = computed(() => {
   if (!props.code) return null
   
-  // 한국 종목 코드(6자리 숫자)인 경우 증권플러스(StockPlus) 브랜드 로고 활용
+  // 한국 종목 코드(6자리 숫자)인 경우 알파스퀘어 로고 활용 (증권플러스 다운 대비)
   if (/^[0-9]{6}$/.test(props.code)) {
-    // 증권플러스 실시간 로고 서버 (브랜드 이미지)
-    return `https://logo.stockplus.com/stock/KOREA/${props.code}.png`
+    // 알파스퀘어 실시간 로고 서버 (브랜드 이미지)
+    return `https://file.alphasquare.co.kr/media/images/stock_logo/kr/${props.code}.png`
   }
   
   // 해외 종목 등 기타 (기존 업비트 로고 폴백)
