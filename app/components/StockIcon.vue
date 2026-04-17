@@ -8,7 +8,7 @@
       v-if="logoUrl && !hasError" 
       :src="logoUrl" 
       :alt="name"
-      class="w-full h-full object-contain p-1.5 opacity-100 transition-opacity duration-300"
+      class="w-full h-full object-contain p-1 opacity-100 transition-opacity duration-300"
       referrerpolicy="no-referrer"
       @error="handleError"
     />
@@ -65,30 +65,30 @@ const handleError = () => {
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'sm': return 'w-8 h-8'
-    case 'md': return 'w-10 h-10'
-    case 'lg': return 'w-14 h-14'
-    case 'xl': return 'w-20 h-20'
-    default: return 'w-10 h-10'
+    case 'md': return 'w-12 h-12'
+    case 'lg': return 'w-16 h-16'
+    case 'xl': return 'w-24 h-24'
+    default: return 'w-12 h-12'
   }
 })
 
 const roundingClasses = computed(() => {
   switch (props.size) {
-    case 'sm': return 'rounded-lg'
-    case 'md': return 'rounded-xl'
-    case 'lg': return 'rounded-[1.25rem]'
-    case 'xl': return 'rounded-[1.75rem]'
-    default: return 'rounded-xl'
+    case 'sm': return 'rounded-md'
+    case 'md': return 'rounded-lg'
+    case 'lg': return 'rounded-xl'
+    case 'xl': return 'rounded-2xl'
+    default: return 'rounded-lg'
   }
 })
 
 const textClasses = computed(() => {
   switch (props.size) {
     case 'sm': return 'text-xs'
-    case 'md': return 'text-sm'
-    case 'lg': return 'text-xl'
-    case 'xl': return 'text-3xl'
-    default: return 'text-sm'
+    case 'md': return 'text-base'
+    case 'lg': return 'text-2xl'
+    case 'xl': return 'text-4xl'
+    default: return 'text-base'
   }
 })
 
