@@ -71,6 +71,7 @@
             <!-- 종목 정보 -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black text-slate-500/80 mr-0.5">{{ (page - 1) * pageSize + index + 1 }}.</span>
                 <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
                 <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
               </div>
