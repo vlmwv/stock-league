@@ -93,8 +93,8 @@ const textClasses = computed(() => {
 })
 
 const colorClasses = computed(() => {
-  // 이미지가 성공적으로 로드된 경우에만 흰색 배경 유지
-  if (logoUrl.value && !hasError.value) return 'bg-white shadow-inner'
+  // 이미지가 있더라도 강제 흰색 배경 대신 테마와 어울리는 어두운 배경 사용
+  if (logoUrl.value && !hasError.value) return 'bg-slate-900/40 shadow-inner'
   
   // 종목 코드 기반으로 고정된 배경색 할당 (해시)
   const colors = [

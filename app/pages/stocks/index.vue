@@ -65,13 +65,6 @@
             @click="navigateTo('/stocks/' + stock.code)"
             class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
           >
-            <!-- 순위 -->
-            <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-xs font-black border border-white/5 shrink-0"
-              :class="index < 3 && currentSort === 'marketCap' && page === 1 ? 'text-brand-primary border-brand-primary/30' : 'text-slate-400'"
-            >
-              {{ (page - 1) * pageSize + index + 1 }}
-            </div>
-
             <!-- 아이콘 -->
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
 
