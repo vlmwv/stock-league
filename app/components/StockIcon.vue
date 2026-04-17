@@ -1,17 +1,19 @@
 <template>
   <div 
-    class="relative flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm"
+    class="relative flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/10 shadow-sm"
     :class="[sizeClasses, colorClasses, roundingClasses]"
   >
     <!-- Stock Logo Image (Brand CI) -->
-    <img 
-      v-if="logoUrl && !hasError" 
-      :src="logoUrl" 
-      :alt="name"
-      class="w-full h-full object-contain p-1 opacity-100 transition-opacity duration-300"
-      referrerpolicy="no-referrer"
-      @error="handleError"
-    />
+    <div v-if="logoUrl && !hasError" class="w-full h-full flex items-center justify-center p-1.5">
+      <img 
+        :src="logoUrl" 
+        :alt="name"
+        class="w-full h-full object-contain opacity-100 transition-opacity duration-300"
+        :class="roundingClasses"
+        referrerpolicy="no-referrer"
+        @error="handleError"
+      />
+    </div>
 
 
     
@@ -25,7 +27,7 @@
     </span>
 
     <!-- Subtle Overlay for depth -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent pointer-events-none border border-white/5" :class="roundingClasses"></div>
+    <div class="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent pointer-events-none" :class="roundingClasses"></div>
   </div>
 </template>
 
