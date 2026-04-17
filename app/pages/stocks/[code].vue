@@ -16,42 +16,41 @@
             <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
           </button>
         </div>
-      </nav>
-
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
-        <!-- 종목 히어로 이미지 -->
-        
-
-        <!-- 초컴팩트 종목 헤더 -->
-        <header class="flex flex-col gap-1.5">
-          <div class="flex items-end justify-between">
-            <div class="flex items-baseline gap-1.5">
-              <h1 class="text-base font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
-              <span class="text-[9px] font-bold text-slate-500">{{ stock.code }}</span>
-              <span class="text-[9px] text-slate-400 font-medium ml-0.5">{{ stock.sector || '주요 종목' }}</span>
-            </div>
-            <div class="flex items-baseline gap-1.5">
-              <div class="text-base font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}</div>
-              <div class="text-[10px] font-bold" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
-                {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }} ({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)
+        <!-- 종목 헤더 (Brand CI 포함) -->
+        <header class="flex items-start gap-3.5">
+          <StockIcon :code="stock.code" :name="stock.name" size="lg" class="mt-0.5 shadow-lg border border-white/5" />
+          <div class="flex-1 flex flex-col gap-1.5">
+            <div class="flex items-end justify-between">
+              <div class="flex items-baseline gap-1.5">
+                <h1 class="text-base font-black text-slate-100 tracking-tight">{{ stock.name }}</h1>
+                <span class="text-[9px] font-bold text-slate-500">{{ stock.code }}</span>
+                <span class="text-[9px] text-slate-400 font-medium ml-0.5">{{ stock.sector || '주요 종목' }}</span>
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <div class="text-base font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}</div>
+                <div class="text-[10px] font-bold" :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                  {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }} ({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="stock.ai_score || stock.ai_recommendation_count" class="flex items-center gap-1.5 mt-0.5">
-            <div v-if="stock.ai_score" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-emerald-400 bg-emerald-500/10 border border-emerald-500/10">
-              <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
-              <span class="text-[9px] font-black">{{ stock.ai_score }}P</span>
+            <div v-if="stock.ai_score || stock.ai_recommendation_count" class="flex items-center gap-1.5 mt-0.5">
+              <div v-if="stock.ai_score" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-emerald-400 bg-emerald-500/10 border border-emerald-500/10">
+                <UIcon name="i-heroicons-sparkles-20-solid" class="w-2.5 h-2.5" />
+                <span class="text-[9px] font-black">{{ stock.ai_score }}P</span>
+              </div>
+              <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-brand-primary bg-brand-primary/10 border border-brand-primary/10">
+                <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-2.5 h-2.5" />
+                <span class="text-[9px] font-black">{{ stock.ai_recommendation_count }}회 추천</span>
+              </div>
+              <button @click="clearAiHistoryAndGoToTab" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors ml-0.5">
+                <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
+              </button>
             </div>
-            <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-brand-primary bg-brand-primary/10 border border-brand-primary/10">
-              <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-2.5 h-2.5" />
-              <span class="text-[9px] font-black">{{ stock.ai_recommendation_count }}회 추천</span>
-            </div>
-            <button @click="clearAiHistoryAndGoToTab" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors ml-0.5">
-              <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
-            </button>
           </div>
         </header>
+
 
         <!-- 차트 섹션 (이력 탭에서만 보일지 고민하다가, 공통 정보로 상단에 작게 배치하거나 이력 탭에만 넣기로 함. 여기서는 상단 유지) -->
         <section class="glass-dark rounded-[2.5rem] p-6 border border-white/5 relative overflow-hidden">
@@ -266,7 +265,7 @@
 </template>
 
 <script setup lang="ts">
-import { repairNewsUrl, getStockImage } from '~/utils/stock'
+import { repairNewsUrl } from '~/utils/stock'
 
 const route = useRoute()
 const router = useRouter()

@@ -9,17 +9,8 @@
     <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
     
     <div class="relative glass-dark rounded-[2.5rem] p-7 shadow-2xl overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
-      <!-- Representative Background Image -->
-      <div class="absolute inset-0 z-0 opacity-[0.15] group-hover:opacity-[0.25] transition-opacity duration-700">
-        <img 
-          :src="getStockImage(stock.code, stock.sector)" 
-          class="w-full h-full object-cover grayscale scale-110 group-hover:scale-125 transition-transform duration-[2s]"
-          alt=""
-        />
-        <div class="absolute inset-0 bg-gradient-to-br from-bg-deep/80 via-transparent to-bg-deep/90"></div>
-      </div>
-
       <!-- Swipe/Click Masks (Only shown if predictable and league open) -->
+
       <template v-if="isPredictable && isLeagueOpen">
         <div 
           class="absolute inset-x-0 top-0 h-1/2 transition-all duration-300 opacity-0 hover:opacity-100 z-30 cursor-pointer group/up"

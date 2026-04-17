@@ -69,31 +69,4 @@ export const isEtf = (name: string): boolean => {
   return etfKeywords.some(keyword => upperName.includes(keyword))
 }
 
-/**
- * 종목 코드 또는 섹터에 따라 고정된 테마 이미지 경로를 반환합니다.
- * @param code 종목 코드
- * @param sector 섹터명
- * @returns 이미지 파일 경로
- */
-export const getStockImage = (code: string, sector?: string): string => {
-  // 1. 특정 종목 코드 매칭 (예: 한화에어로스페이스)
-  if (code === '012450') return '/images/stocks/hero_012450.png'
-  
-  // 2. 섹터 키워드 매칭
-  const s = (sector || '').toLowerCase()
-  if (s.includes('반도체')) return '/images/stocks/sector_semiconductor.png'
-  if (s.includes('자동차') || s.includes('전기차')) return '/images/stocks/sector_automobile.png'
-  if (s.includes('금융') || s.includes('보험') || s.includes('은행') || s.includes('증권')) return '/images/stocks/sector_finance.png'
-  if (s.includes('바이오') || s.includes('제약') || s.includes('의료')) return '/images/stocks/sector_bio.png'
-  if (s.includes('에너지') || s.includes('배터리') || s.includes('전지') || s.includes('화학')) return '/images/stocks/sector_energy.png'
-  if (s.includes('우주') || s.includes('항공')) return '/images/stocks/hero_012450.png' // 한화에어로 이미지를 항공우주 공용으로 활용
 
-  // 3. 기본 이미지 (랜덤 또는 섹터 기반 해시)
-  const defaultImages = [
-    '/images/stocks/sector_finance.png',
-    '/images/stocks/sector_semiconductor.png',
-    '/images/stocks/sector_energy.png'
-  ]
-  const charCodeSum = code.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return defaultImages[charCodeSum % defaultImages.length]
-}

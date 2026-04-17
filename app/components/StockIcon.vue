@@ -9,8 +9,10 @@
       :src="logoUrl" 
       :alt="name"
       class="w-full h-full object-contain p-1 opacity-100 transition-opacity duration-300"
+      referrerpolicy="no-referrer"
       @error="handleError"
     />
+
 
     
     <!-- Fallback Letter Icon -->

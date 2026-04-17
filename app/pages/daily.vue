@@ -35,17 +35,8 @@
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5"
           :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
-          <!-- Representative Background Image -->
-          <div class="absolute inset-0 z-0 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-700">
-            <img 
-              :src="getStockImage(stock.code, stock.sector)" 
-              class="w-full h-full object-cover grayscale scale-110 group-hover:scale-125 transition-transform duration-[2s]"
-              alt=""
-            />
-            <div class="absolute inset-0 bg-gradient-to-br from-bg-deep/90 via-transparent to-bg-deep/95"></div>
-          </div>
-
           <!-- 예측 완료 배지 -->
+
           <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm"
             :class="[
               getPrediction(stock.id)?.result === 'win' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
