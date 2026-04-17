@@ -4,7 +4,7 @@
     :class="[sizeClasses, roundingClasses]"
   >
     <!-- Stock Logo Image (Brand CI) -->
-    <div v-if="logoUrl && !hasError" class="w-full h-full flex items-center justify-center p-1.5 relative z-10">
+    <div v-if="logoUrl && !hasError" class="w-full h-full flex items-center justify-center p-0.5 relative z-10">
       <img 
         :src="logoUrl" 
         :alt="name"
@@ -18,7 +18,7 @@
 
     
     <!-- Fallback Letter Icon (Framed Style to match CI) -->
-    <div v-else class="w-full h-full flex items-center justify-center p-1.5 relative z-10">
+    <div v-else class="w-full h-full flex items-center justify-center p-0.5 relative z-10">
       <div 
         class="w-full h-full flex items-center justify-center shadow-lg"
         :class="[colorClasses, roundingClasses]"
