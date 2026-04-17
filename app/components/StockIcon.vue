@@ -1,14 +1,14 @@
 <template>
   <div 
-    class="relative flex-shrink-0 flex items-center justify-center rounded-2xl overflow-hidden shadow-sm"
-    :class="[sizeClasses, colorClasses]"
+    class="relative flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm"
+    :class="[sizeClasses, colorClasses, roundingClasses]"
   >
     <!-- Stock Logo Image (Brand CI) -->
     <img 
       v-if="logoUrl && !hasError" 
       :src="logoUrl" 
       :alt="name"
-      class="w-full h-full object-contain p-1 opacity-100 transition-opacity duration-300"
+      class="w-full h-full object-contain p-1.5 opacity-100 transition-opacity duration-300"
       referrerpolicy="no-referrer"
       @error="handleError"
     />
@@ -25,7 +25,7 @@
     </span>
 
     <!-- Subtle Overlay for depth -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent pointer-events-none border border-white/5" :class="roundingClasses"></div>
   </div>
 </template>
 
@@ -69,6 +69,16 @@ const sizeClasses = computed(() => {
     case 'lg': return 'w-14 h-14'
     case 'xl': return 'w-20 h-20'
     default: return 'w-10 h-10'
+  }
+})
+
+const roundingClasses = computed(() => {
+  switch (props.size) {
+    case 'sm': return 'rounded-lg'
+    case 'md': return 'rounded-xl'
+    case 'lg': return 'rounded-[1.25rem]'
+    case 'xl': return 'rounded-[1.75rem]'
+    default: return 'rounded-xl'
   }
 })
 
