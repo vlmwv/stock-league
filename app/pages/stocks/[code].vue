@@ -196,7 +196,7 @@
                 <!-- 카드 배경 글로우 -->
                 <div 
                   class="absolute -top-12 -right-12 w-32 h-32 blur-3xl rounded-full transition-all duration-700 opacity-20 group-hover:opacity-40"
-                  :class="item.cumulative_change_rate >= 0 ? 'bg-emerald-500' : 'bg-indigo-500'"
+                  :class="item.cumulative_change_rate >= 0 ? 'bg-rose-500' : 'bg-indigo-500'"
                 ></div>
 
                 <div class="relative z-10">
@@ -226,21 +226,33 @@
                   <!-- 수익률 하이라이트 -->
                   <div 
                     class="rounded-2xl p-5 border transition-all duration-500 flex flex-col items-center justify-center gap-1 shadow-2xl"
-                    :class="item.cumulative_change_rate >= 0 
-                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/5' 
-                      : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5'"
+                    :class="item.days_passed <= 0 
+                      ? 'bg-slate-500/10 border-slate-500/20 text-slate-400 shadow-slate-500/5'
+                      : (item.cumulative_change_rate >= 0 
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5' 
+                        : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5')"
                   >
+
                     <div class="flex items-center gap-2">
                       <UIcon 
+                        v-if="item.days_passed > 0"
                         :name="item.cumulative_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
                         class="w-6 h-6" 
                       />
+                      <UIcon 
+                        v-else
+                        name="i-heroicons-clock" 
+                        class="w-5 h-5 opacity-50" 
+                      />
                       <span class="text-3xl font-black tracking-tighter">
-                        {{ item.cumulative_change_rate > 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
+                        {{ item.days_passed <= 0 ? '-' : (item.cumulative_change_rate > 0 ? '+' : '') + item.cumulative_change_rate + '%' }}
                       </span>
                     </div>
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">예상 수익률</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">
+                      {{ item.days_passed <= 0 ? '결과 대기 중' : '예상 수익률' }}
+                    </p>
                   </div>
+
 
                   <!-- AI 요약 (접기/펼치기 대용으로 작게 표시) -->
                   <div v-if="item.summary" class="mt-6 pt-6 border-t border-white/5">
