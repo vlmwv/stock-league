@@ -1,10 +1,10 @@
 <template>
   <div 
-    class="relative flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/10 shadow-sm"
-    :class="[sizeClasses, colorClasses, roundingClasses]"
+    class="relative flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/10 shadow-sm transition-all duration-300 bg-slate-900/40"
+    :class="[sizeClasses, roundingClasses]"
   >
     <!-- Stock Logo Image (Brand CI) -->
-    <div v-if="logoUrl && !hasError" class="w-full h-full flex items-center justify-center p-1.5">
+    <div v-if="logoUrl && !hasError" class="w-full h-full flex items-center justify-center p-1.5 relative z-10">
       <img 
         :src="logoUrl" 
         :alt="name"
@@ -17,17 +17,23 @@
 
 
     
-    <!-- Fallback Letter Icon -->
-    <span 
-      v-else 
-      class="font-black text-white/90 select-none"
-      :class="textClasses"
-    >
-      {{ firstLetter }}
-    </span>
+    <!-- Fallback Letter Icon (Framed Style to match CI) -->
+    <div v-else class="w-full h-full flex items-center justify-center p-1.5 relative z-10">
+      <div 
+        class="w-full h-full flex items-center justify-center shadow-lg"
+        :class="[colorClasses, roundingClasses]"
+      >
+        <span 
+          class="font-black text-white/95 select-none drop-shadow-md"
+          :class="textClasses"
+        >
+          {{ firstLetter }}
+        </span>
+      </div>
+    </div>
 
     <!-- Subtle Overlay for depth -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent pointer-events-none" :class="roundingClasses"></div>
+    <div class="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none z-20" :class="roundingClasses"></div>
   </div>
 </template>
 
@@ -86,18 +92,15 @@ const roundingClasses = computed(() => {
 
 const textClasses = computed(() => {
   switch (props.size) {
-    case 'sm': return 'text-xs'
-    case 'md': return 'text-base'
-    case 'lg': return 'text-2xl'
-    case 'xl': return 'text-4xl'
-    default: return 'text-base'
+    case 'sm': return 'text-[10px]'
+    case 'md': return 'text-xs'
+    case 'lg': return 'text-lg'
+    case 'xl': return 'text-2xl'
+    default: return 'text-xs'
   }
 })
 
 const colorClasses = computed(() => {
-  // 이미지가 있더라도 강제 흰색 배경 대신 테마와 어울리는 어두운 배경 사용
-  if (logoUrl.value && !hasError.value) return 'bg-slate-900/40 shadow-inner'
-  
   // 종목 코드 기반으로 고정된 배경색 할당 (해시)
   const colors = [
     'bg-gradient-to-br from-rose-500 to-rose-600',
