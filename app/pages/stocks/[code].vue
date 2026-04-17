@@ -16,6 +16,7 @@
             <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
           </button>
         </div>
+      </nav>
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
         <!-- 종목 헤더 (Brand CI 포함) -->
         <header class="flex items-start gap-3.5">
