@@ -38,7 +38,7 @@ function buildFallbackSummary(items: any[], stockName: string): { title: string,
   }
 }
 
-async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string, score: number }> {
+async function summarizeWithGemini(items: any[], stockName: string): Promise<{ title: string, summary: string, score: number, is_significant: boolean }> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
 
   // 첫 번째 항목(가장 임팩트 있는 항목)을 주 대상으로 정보 요약
@@ -48,23 +48,23 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
   const prompt = `당신은 전문 경제 기자이자 주식 분석가입니다. 다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
 
 [분석 및 요약 지침]
-1. 최신 이슈 중 주가에 가장 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
+1. 최신 이슈 중 주가에 실질적이고 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
 2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(25자 이내)을 만드세요. 제목 끝에는 반드시 '(요약)'을 붙이세요.
 3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
-4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요. 
+4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요.
    - 100점에 가까울수록 강력한 호재, 0점에 가까울수록 강력한 악재입니다.
-   - [중요] 45~55점 사이의 '중립' 점수 남발을 지양하고, 시장의 예측되는 반응을 과감하게 수치화하세요.
+5. **(중요) 중요도 판별(is_significant)**:
+   - 다음의 경우에만 true로 설정하세요: 실적 발표(어닝 서프라이즈/쇼크), 대규모 공급계약, M&A, 신사업 진출, 특허/임상 결과, 주요 규제/소송, 혹은 주가 추세를 바꿀만한 강력한 이슈.
+   - 단순 시황 중계, 일반적인 증권사 워딩 리포트, 일상적인 뉴스, 혹은 이미 반영된 정보라면 false로 설정하세요.
 
 [응답 형식]
 반드시 아래 JSON 형식으로만 응답하세요:
 {
   "title": "{생성한 제목} (요약)",
   "summary": "{핵심 요약 내용}",
-  "score": {0~100 사이의 숫자}
+  "score": {0~100 사이의 숫자},
+  "is_significant": {true 또는 false}
 }
-
-[중요 제약]
-- 제목에 "${stockName} 주요 이슈" 같은 단순 기계적 표현 금지. 키워드 중심의 임팩트 있는 제목 생성.
 
 [목록]
 ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
@@ -116,6 +116,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     const parsed = JSON.parse(text)
     let finalTitle = parsed.title || ""
     let finalSummary = parsed.summary || ""
+    let isSignificant = parsed.is_significant === true
     
     // 2. 점수 타입 변환 강화 (문자열인 경우 숫자로 변환)
     let finalScore = 50;
@@ -132,7 +133,8 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     return {
       title: finalTitle,
       summary: finalSummary || '요약을 생성할 수 없습니다.',
-      score: finalScore
+      score: finalScore,
+      is_significant: isSignificant
     }
   } catch (e) {
     console.error(`JSON Parse Error for ${stockName}:`, text);
@@ -174,15 +176,15 @@ Deno.serve(async (req) => {
       console.log('No valid JSON body found or not a POST request. Processing random stocks.');
     }
 
-    // 1. 시가총액 상위 100개 종목 조회
+    // 1. 시가총액 상위 300개 종목 조회 (변동성 종목을 찾기 위해 범위 확대)
     let query = supabase
       .from('stocks')
-      .select('id, code, name');
+      .select('id, code, name, change_rate');
     
     if (requestedStockCode) {
       query = query.eq('code', requestedStockCode);
     } else {
-      query = query.lte('market_cap_rank', 100);
+      query = query.lte('market_cap_rank', 300);
     }
 
     const { data: stocks, error: stockError } = await query;
@@ -191,24 +193,39 @@ Deno.serve(async (req) => {
     if (!stocks || stocks.length === 0) throw new Error('No stocks found')
 
     let processedCount = 0
+    let savedCount = 0
+    let skippedCount = 0
     
     // 현재 KST(한국 시간) 기준 시간 구하기 (Edge Function은 기본 UTC 환경)
     const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
     const kstHour = kstNow.getUTCHours();
     
     // 시간대에 따른 수집 종목 수 결정
-    // 주간 활성기(08:00 ~ 20:00 KST): 6개 종목
-    // 야간/새벽(20:00 ~ 익일 08:00 KST): 1개 종목
-    // 단, 요청 본문에 targetCount가 명시된 경우 이를 우선적으로 사용합니다.
-    const targetCount = manualTargetCount || ((kstHour >= 8 && kstHour < 20) ? 6 : 1);
+    const targetLimit = manualTargetCount || ((kstHour >= 8 && kstHour < 20) ? 8 : 2);
     
-    console.log(`[KST ${kstHour}:00] Target collection count set to: ${targetCount}`);
+    console.log(`[KST ${kstHour}:00] Target collection count set to: ${targetLimit}`);
 
-    // 2. 종목 선정
-    // 특정 종목 요청 시 해당 종목만 처리, 아닐 시 무작위 추출
-    const targetStocks = requestedStockCode 
-      ? stocks 
-      : stocks.sort(() => 0.5 - Math.random()).slice(0, targetCount);
+    // 2. 종목 선정 (Strategy 5: Technical Trigger)
+    let targetStocks = []
+    if (requestedStockCode) {
+      targetStocks = stocks
+    } else {
+      // 변동성(절대값) 기준 정렬
+      const volatileStocks = [...stocks].sort((a, b) => Math.abs(b.change_rate || 0) - Math.abs(a.change_rate || 0))
+      
+      // 상위 변동성 종목 70% + 랜덤 30% 조합
+      const highVolatilityCutoff = Math.floor(targetLimit * 0.7)
+      const randomCutoff = targetLimit - highVolatilityCutoff
+      
+      targetStocks = volatileStocks.slice(0, highVolatilityCutoff)
+      
+      const remainingStocks = volatileStocks.slice(highVolatilityCutoff)
+      const randomStocks = remainingStocks.sort(() => 0.5 - Math.random()).slice(0, randomCutoff)
+      
+      targetStocks = [...targetStocks, ...randomStocks]
+    }
+    
+    console.log(`Selected target stocks: ${targetStocks.map(s => `${s.name}(${s.change_rate}%)`).join(', ')}`);
 
     for (const stock of targetStocks) {
       const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
@@ -262,18 +279,30 @@ Deno.serve(async (req) => {
       let title = ''
       let summary = ''
       let score = 50
+      let isSignificant = true
+
       try {
         const summarized = await summarizeWithGemini(allItems, stock.name)
         title = summarized.title
         summary = summarized.summary
         score = summarized.score
+        isSignificant = summarized.is_significant
       } catch (summaryError) {
-        // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장
+        // LLM 장애가 있어도 수집 자체는 지속되어야 하므로 기본 요약으로 저장 (단, 수동 모드 등에서만 권장)
         const fallback = buildFallbackSummary(allItems, stock.name)
         title = fallback.title
         summary = fallback.summary
         score = fallback.score
+        isSignificant = true // 폴백 시에는 일단 중요하다고 간주하여 저장
         console.warn(`Summary fallback applied for ${stock.code}:`, summaryError)
+      }
+
+      // Strategy 4: 중요도가 낮은 기사는 DB 저장 스킵
+      if (!isSignificant && !requestedStockCode) {
+        console.log(`Skipping non-significant news for ${stock.name}: ${title}`);
+        skippedCount++
+        processedCount++
+        continue
       }
 
       const { error: insertError } = await supabase
@@ -289,7 +318,10 @@ Deno.serve(async (req) => {
           published_at: new Date().toISOString()
         }, { onConflict: 'stock_id, title' })
 
-      if (!insertError) processedCount++
+      if (!insertError) {
+        processedCount++
+        savedCount++
+      }
     }
 
     // 로그 종료 기록
@@ -299,13 +331,17 @@ Deno.serve(async (req) => {
         .update({
           status: 'success',
           processed_count: processedCount,
-          message: `Successfully processed news for ${processedCount} stocks`,
+          message: `Processed ${processedCount} stocks. Saved: ${savedCount}, Skipped: ${skippedCount}`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntryId)
     }
 
-    return new Response(JSON.stringify({ message: `Processed news for ${processedCount} stocks` }), {
+    return new Response(JSON.stringify({ 
+      message: `Processed news. Saved: ${savedCount}, Skipped: ${skippedCount}`,
+      savedCount,
+      skippedCount
+    }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200
     })
