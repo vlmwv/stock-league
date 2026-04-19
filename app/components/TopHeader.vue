@@ -1,13 +1,14 @@
 <template>
   <header class="sticky top-0 z-[500] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
-    <div class="flex items-center gap-1.5">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20 flex-shrink-0">
-        <span class="text-white font-black text-xs leading-none">SL</span>
+    <NuxtLink to="/" class="flex items-center gap-2 group transition-all active:scale-95">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-primary via-indigo-500 to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20 flex-shrink-0 relative overflow-hidden group-hover:shadow-brand-primary/40 transition-shadow">
+        <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <UIcon name="i-heroicons-presentation-chart-line-20-solid" class="w-5 h-5 text-white drop-shadow-sm" />
       </div>
-      <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent tracking-tight truncate max-w-[150px] sm:max-w-none">
+      <h1 class="text-lg sm:text-xl font-black bg-gradient-to-r from-blue-400 via-brand-primary to-purple-500 bg-clip-text text-transparent tracking-tighter truncate max-w-[160px] sm:max-w-none group-hover:brightness-110 transition-all">
         주식예측게임
       </h1>
-    </div>
+    </NuxtLink>
 
     <div class="flex items-center gap-1.5 sm:gap-3">
       <button 
