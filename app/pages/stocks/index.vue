@@ -96,6 +96,10 @@
                   <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
                   {{ stock.ai_recommendation_count ?? 0 }}회 추천
                 </span>
+                <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
+                  <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
+                  {{ formatVolume(stock.volume) }}
+                </span>
               </div>
             </div>
 
@@ -129,7 +133,7 @@ const route = useRoute()
 const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats } = useStock()
 
 const searchQuery = ref('')
-const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested'>('marketCap')
+const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume'>('marketCap')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
@@ -146,7 +150,8 @@ const sortTabs = [
   { key: 'interested', label: '관심' },
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },
-  { key: 'aiRecommendation', label: 'AI 추천' }
+  { key: 'aiRecommendation', label: 'AI 추천' },
+  { key: 'volume', label: '거래량' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
@@ -185,7 +190,8 @@ const loadStocks = async (isAppend = false) => {
       interested: 'market_cap_rank', // 관심 탭도 시총순으로 정렬
       wishlist: 'wishlist_count',
       prediction: 'win_count',
-      aiRecommendation: 'ai_recommendation_count'
+      aiRecommendation: 'ai_recommendation_count',
+      volume: 'volume'
     }
     
     const response = await fetchStocksWithStats(
@@ -215,6 +221,17 @@ const loadStocks = async (isAppend = false) => {
     isLoading.value = false
     isFetchingMore.value = false
   }
+}
+
+const formatVolume = (vol: number | undefined) => {
+  if (!vol) return '0'
+  if (vol >= 100000000) {
+    return `${(vol / 100000000).toFixed(1)}억`
+  }
+  if (vol >= 10000) {
+    return `${(vol / 10000).toFixed(1)}만`
+  }
+  return vol.toLocaleString()
 }
 
 const loadMore = () => {
