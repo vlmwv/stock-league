@@ -7,16 +7,23 @@
           <UIcon name="i-heroicons-chevron-left-20-solid" class="w-6 h-6" />
         </button>
         <div class="flex items-center gap-2">
-           <button
+          <button
             v-if="stock"
-            @click="handleToggleHeart(stock.id)"
-            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
-            :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800/50 text-slate-600 hover:text-slate-400'"
+            @click="handleToggleHeart"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors px-1"
+            :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'bg-slate-800/50 text-slate-600 hover:text-slate-400'"
           >
             <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
           </button>
         </div>
       </nav>
+
+      <WishlistGroupModal 
+        v-model:open="isGroupModalOpen"
+        :stock-id="stock?.id"
+        :initial-group-ids="currentStockGroupIds"
+      />
+
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
         <!-- 종목 헤더 (Brand CI 포함) -->
         <header class="flex items-start gap-3.5">
@@ -315,8 +322,17 @@ const {
   hearts, 
   toggleHeart, 
   fetchWishlist,
-  fetchAiHistory 
+  fetchAiHistory,
+  wishlistsWithGroups
 } = useStock()
+
+const isGroupModalOpen = ref(false)
+const currentStockGroupIds = computed(() => {
+  if (!stock.value) return []
+  return wishlistsWithGroups.value
+    .filter(w => w.stock_id === stock.value.id)
+    .map(w => w.group_id)
+})
 
 // 현재 탭에 따른 뉴스 아이템 반환 (현재는 뉴스만 존재)
 const currentNewsItems = computed(() => {
@@ -386,8 +402,8 @@ const formatNewsDate = (dateStr: string) => {
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
-const handleToggleHeart = async (stockId: number) => {
-  await toggleHeart(stockId)
+const handleToggleHeart = () => {
+  isGroupModalOpen.value = true
 }
 
 const navigateToNews = (item: any) => {

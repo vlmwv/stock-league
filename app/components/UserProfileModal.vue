@@ -75,6 +75,21 @@
               </div>
 
               <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지</label>
+                <div class="flex items-center gap-4 bg-slate-800/50 border border-white/10 rounded-2xl p-4">
+                  <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    <img v-if="useAvatar && avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" />
+                    <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-7 h-7 text-slate-600" />
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs font-bold text-slate-200">{{ useAvatar ? '이미지 노출 중' : '이미지 숨김 처리' }}</p>
+                    <p class="text-[10px] text-slate-500 font-medium mt-0.5">프로필 이미지를 다른 사용자에게 보여줍니다.</p>
+                  </div>
+                  <UToggle v-model="useAvatar" color="primary" />
+                </div>
+              </div>
+
+              <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 구분용)</label>
                 <div class="grid grid-cols-3 gap-3">
                   <button 
@@ -128,6 +143,7 @@ const props = defineProps<{
   currentFullName?: string
   currentGender?: string
   currentEmail?: string
+  currentAvatarUrl?: string
   currentDisplayNameType?: 'nickname' | 'full_name'
 }>()
 
@@ -140,7 +156,11 @@ const username = ref('')
 const fullName = ref('')
 const displayNameType = ref<'nickname' | 'full_name'>('nickname')
 const gender = ref('none')
+const avatarUrl = ref('')
+const useAvatar = ref(true)
 const updating = ref(false)
+
+const user = useSupabaseUser()
 
 watch(() => props.open, (val) => {
   if (val) {
@@ -148,6 +168,8 @@ watch(() => props.open, (val) => {
     fullName.value = props.currentFullName || ''
     displayNameType.value = props.currentDisplayNameType || 'nickname'
     gender.value = props.currentGender || 'none'
+    avatarUrl.value = props.currentAvatarUrl || user.value?.user_metadata?.avatar_url || ''
+    useAvatar.value = !!props.currentAvatarUrl
   }
 })
 
@@ -162,7 +184,8 @@ const handleUpdateProfile = async () => {
   const result = await updateProfile({
     username: trimmedNickname,
     fullName: fullName.value.trim(),
-    gender: gender.value === 'none' ? undefined : gender.value,
+    gender: gender.value === 'none' ? null : gender.value,
+    avatarUrl: useAvatar.value ? avatarUrl.value : null,
     displayNameType: displayNameType.value
   })
   

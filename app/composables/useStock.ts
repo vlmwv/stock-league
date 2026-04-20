@@ -657,10 +657,36 @@ export const useStock = () => {
     }
   }
 
-  const wishlistStocks = computed(() => {
-    // 그룹 필터링 로직이 필요할 경우 여기를 확장
-    return hearts.value
-  })
+  const { data: wishlistStocks, refresh: refreshWishlistStocks } = useAsyncData('wishlistStocks', async () => {
+    if (hearts.value.length === 0) return []
+    
+    const { data, error } = await client
+      .from('stocks')
+      .select('*')
+      .in('id', hearts.value)
+    
+    if (error) return []
+    
+    const stocksMap = (data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      last_price: s.last_price || 0,
+      change_amount: s.change_amount || 0,
+      change_rate: s.change_rate || 0,
+      ai_recommendation_count: s.ai_recommendation_count || 0,
+      ai_win_count: s.ai_win_count || 0,
+      ai_processed_count: s.ai_processed_count || 0,
+      summary: decodeHtmlEntities(s.summary || '')
+    }))
+
+    return stocksMap.map(s => {
+      const groups = wishlistsWithGroups.value
+        .filter(w => w.stock_id === Number(s.id))
+        .map(w => w.group_id)
+      return { ...s, group_ids: groups }
+    })
+  }, { watch: [hearts, wishlistsWithGroups] })
 
   const toggleHeart = async (stockId: number, groupId?: number) => {
     const userId = await resolveUserId()
@@ -999,28 +1025,20 @@ export const useStock = () => {
       rank,
       winRate,
       totalGames,
-      streak,
-      isGuideOpen,
-      wishlistGroups,
-      wishlistsWithGroups,
-      fetchWishlistGroups,
-      createWishlistGroup,
-      deleteWishlistGroup,
-      updateWishlistGroup,
-      updateProfile,
-      fetchRankings
+      streak
     }
   }
 
-  const updateProfile = async (updates: { username?: string, fullName?: string, gender?: string, displayNameType?: 'nickname' | 'full_name' }) => {
+  const updateProfile = async (updates: { username?: string, fullName?: string, gender?: string | null, avatarUrl?: string | null, displayNameType?: 'nickname' | 'full_name' }) => {
     const userId = await resolveUserId()
     if (!userId) return { success: false, message: '로그인이 필요합니다.' }
 
-    const { username, fullName, gender, displayNameType } = updates
+    const { username, fullName, gender, avatarUrl, displayNameType } = updates
     const queryData: any = {}
     if (username !== undefined) queryData.username = username
     if (fullName !== undefined) queryData.full_name = fullName
     if (gender !== undefined) queryData.gender = gender
+    if (avatarUrl !== undefined) queryData.avatar_url = avatarUrl
     if (displayNameType !== undefined) queryData.display_name_type = displayNameType
 
     const { error } = await (client
@@ -1482,6 +1500,12 @@ export const useStock = () => {
     getPrediction: (id: number) => myPredictions.value.find(p => p.stockId === id) || null,
     getPredictionValue: (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null,
     updateProfile,
+    wishlistGroups,
+    wishlistsWithGroups,
+    fetchWishlistGroups,
+    createWishlistGroup,
+    deleteWishlistGroup,
+    updateWishlistGroup,
     fetchEconomicIndicators: async () => {
       const { data, error } = await client
         .from('economic_indicators')

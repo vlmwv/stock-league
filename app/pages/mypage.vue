@@ -134,6 +134,7 @@
       :current-full-name="stats?.fullName"
       :current-gender="stats?.gender"
       :current-email="stats?.email || user?.email"
+      :current-avatar-url="stats?.avatarUrl"
       :current-display-name-type="stats?.displayNameType"
       @success="onProfileUpdate"
     />

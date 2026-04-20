@@ -86,7 +86,7 @@
             overlay
           >
             <button class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-brand-primary/50 transition-all">
-              <img v-if="user.user_metadata?.avatar_url" :src="user.user_metadata.avatar_url" alt="Avatar" class="w-full h-full object-cover" />
+              <img v-if="userStats?.avatarUrl" :src="userStats.avatarUrl" alt="Avatar" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
                 <UIcon :name="userStats?.gender === 'female' ? 'i-mdi-gender-female' : userStats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-6 h-6 sm:w-7 sm:h-7" />
               </div>

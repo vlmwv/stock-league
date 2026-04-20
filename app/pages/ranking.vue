@@ -86,7 +86,7 @@ const myRankingInfo = computed(() => {
   if (selectedYear.value === '전체' && myStats.value) {
     return {
       username: myStats.value.displayName,
-      avatar_url: user.value?.user_metadata?.avatar_url,
+      avatar_url: myStats.value.avatarUrl,
       points: myStats.value.points,
       prediction_count: myStats.value.totalGames,
       win_rate: myStats.value.winRate,

@@ -50,7 +50,7 @@
                   {{ stock.code }}
                 </span>
                 <button 
-                  @click.prevent.stop="$emit('toggleHeart', stock.id)" 
+                  @click.prevent.stop="$emit('openWishlistModal', stock.id)" 
                   class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
                   :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
                 >
@@ -188,7 +188,7 @@ const props = withDefaults(defineProps<{
   index: 0
 })
 
-const emit = defineEmits(['predict', 'toggleHeart', 'cancelPrediction'])
+const emit = defineEmits(['predict', 'openWishlistModal', 'cancelPrediction'])
 
 const isPositive = (val: number) => val > 0
 const isNegative = (val: number) => val < 0
