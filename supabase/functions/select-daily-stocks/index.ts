@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
-const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
+const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY') || ''
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
@@ -352,7 +352,7 @@ Deno.serve(async (req: any) => {
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
     const scoredStocks: any[] = []
-    const analysisTargetCount = Math.min(Math.max(7, filteredStocks.length), 10)
+    const analysisTargetCount = Math.min(Math.max(6, filteredStocks.length), 8)
     const stocksToAnalyze = filteredStocks.slice(0, analysisTargetCount)
     
     for (const stock of stocksToAnalyze) {
