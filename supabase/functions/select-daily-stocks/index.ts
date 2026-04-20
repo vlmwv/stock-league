@@ -77,7 +77,7 @@ async function analyzeStockWithGemini(
   sector: string,
   marketContext: string,
   targetDate: string
-): Promise<{ summary: string, score: number, reasoning: string }> {
+): Promise<{ summary: string, score: number, reasoning: string, target_price: number | null, target_date: string | null }> {
   if (!GEMINI_API_KEY) {
     return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
@@ -118,7 +118,9 @@ ${newsSummary}
 {
   "reasoning": "점수 산출의 핵심 논거 및 추론 과정 (300자 이내)",
   "summary": "핵심 요약 (50자 이내)",
-  "score": 산출된 점수
+  "score": 산출된 점수,
+  "target_price": 3~6개월 내 도달 가능한 목표가(숫자만),
+  "target_date": "목표 달성 예상일 (YYYY-MM-DD 형식, 현재로부터 3~6개월 후)"
 }
 
 참고: 50점은 절대적인 중립을 의미합니다. 데이터에 근거하여 가급적 0~45 또는 55~100 사이의 변별력 있는 점수를 산출해 주세요.`
@@ -138,9 +140,11 @@ ${newsSummary}
             properties: {
               reasoning: { type: "STRING" },
               summary: { type: "STRING" },
-              score: { type: "NUMBER" }
+              score: { type: "NUMBER" },
+              target_price: { type: "NUMBER" },
+              target_date: { type: "STRING" }
             },
-            required: ["reasoning", "summary", "score"]
+            required: ["reasoning", "summary", "score", "target_price", "target_date"]
           }
         }
       })
@@ -206,7 +210,9 @@ ${newsSummary}
     return {
       summary: finalSummary,
       score: finalScore,
-      reasoning: finalReasoning
+      reasoning: finalReasoning,
+      target_price: parsed.target_price || null,
+      target_date: parsed.target_date || null
     }
   } catch (err: any) {
     console.error('Gemini Analysis Exception:', err)
@@ -373,7 +379,7 @@ Deno.serve(async (req: any) => {
           if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
         } catch (e) { /* ignore fetch errors */ }
 
-        const { summary, score, reasoning } = await analyzeStockWithGemini(
+        const { summary, score, reasoning, target_price, target_date } = await analyzeStockWithGemini(
           newsItems, 
           priceHistory,
           stock.code,
@@ -382,7 +388,7 @@ Deno.serve(async (req: any) => {
           marketContext,
           targetDateStr
         )
-        scoredStocks.push({ ...stock, summary, score, reasoning })
+        scoredStocks.push({ ...stock, summary, score, reasoning, target_price, target_date })
         
         // Rate Limit(free tier) 준수를 위한 지연 제거 (타임아웃 방지 우선)
         // await new Promise(resolve => setTimeout(resolve, 1000))
@@ -414,6 +420,8 @@ Deno.serve(async (req: any) => {
           llm_summary: stock.summary,
           ai_score: stock.score,
           ai_reasoning: stock.reasoning,
+          target_price: stock.target_price,
+          target_date: stock.target_date,
           status: 'pending'
         })
       if (!insErr) processedCount++

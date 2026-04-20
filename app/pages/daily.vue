@@ -103,6 +103,18 @@
             "{{ stock.summary }}"
           </p>
 
+          <!-- Target Info -->
+          <div v-if="stock.target_price" class="flex items-center gap-4 mb-6 px-4 py-3 bg-slate-800/30 rounded-2xl border border-white/5">
+            <div class="flex-1">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">목표가</p>
+              <p class="text-sm font-black text-emerald-400">{{ stock.target_price.toLocaleString() }}원</p>
+            </div>
+            <div class="flex-1 text-right">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">목표기준일</p>
+              <p class="text-sm font-black text-slate-300">{{ stock.target_date }}</p>
+            </div>
+          </div>
+
           <!-- Prediction Controls -->
           <div class="flex items-center gap-3 mt-auto">
             <button 

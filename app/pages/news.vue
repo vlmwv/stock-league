@@ -14,8 +14,30 @@
 
       </section>
 
+      <!-- 탭 스위처 -->
+      <section class="px-6 mb-6">
+        <div class="flex p-1 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
+          <button 
+            @click="activeTab = 'news'"
+            class="flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2"
+            :class="activeTab === 'news' ? 'bg-slate-800 text-slate-100 shadow-xl border border-slate-700/50' : 'text-slate-500 hover:text-slate-300'"
+          >
+            <UIcon name="i-heroicons-newspaper" class="w-4 h-4" />
+            최신 뉴스
+          </button>
+          <button 
+            @click="activeTab = 'indicators'"
+            class="flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2"
+            :class="activeTab === 'indicators' ? 'bg-slate-800 text-slate-100 shadow-xl border border-slate-700/50' : 'text-slate-500 hover:text-slate-300'"
+          >
+            <UIcon name="i-heroicons-calendar-days" class="w-4 h-4" />
+            경제 지표
+          </button>
+        </div>
+      </section>
+
       <!-- 뉴스 목록 -->
-      <section class="px-6 space-y-4 mt-6 animate-fade-in">
+      <section v-if="activeTab === 'news'" class="px-6 space-y-4 animate-fade-in">
         <div v-if="isLoading && newsItems.length === 0" class="flex flex-col items-center justify-center py-20 gap-4">
           <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
@@ -45,6 +67,29 @@
           </div>
         </template>
       </section>
+
+      <!-- 경제 지표 목록 -->
+      <section v-else class="px-6 space-y-4 animate-fade-in">
+        <div v-if="isLoadingIndicators" class="flex flex-col items-center justify-center py-20 gap-4">
+          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">지표 로드 중...</p>
+        </div>
+        <div v-else-if="indicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+          <UIcon name="i-heroicons-calendar-days" class="w-12 h-12 text-slate-700 mb-4" />
+          <p class="text-sm text-slate-500 font-medium">발표 예정인 지표가 없습니다.</p>
+        </div>
+        <template v-else>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">주요 경제 일정</span>
+            <span class="text-[10px] font-bold text-brand-primary">{{ indicators.length }}건</span>
+          </div>
+          <EconomicIndicatorCard 
+            v-for="indicator in indicators" 
+            :key="indicator.id" 
+            :item="indicator" 
+          />
+        </template>
+      </section>
     </main>
 
     <BottomNav />
@@ -53,11 +98,14 @@
 
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { fetchNews, toggleHeart, hearts, fetchWishlist } = useStock()
+const { fetchNews, fetchEconomicIndicators, toggleHeart, hearts, fetchWishlist } = useStock()
 
 const newsItems = ref<any[]>([])
+const indicators = ref<any[]>([])
 const isLoading = ref(true)
+const isLoadingIndicators = ref(false)
 const selectedType = ref('all')
+const activeTab = ref<'news' | 'indicators'>('news')
 const totalCount = ref(0)
 
 // 페이징 상태
@@ -136,6 +184,23 @@ const loadMore = () => {
 }
 
 let observer: IntersectionObserver | null = null
+
+const loadIndicators = async () => {
+  try {
+    isLoadingIndicators.value = true
+    indicators.value = await fetchEconomicIndicators()
+  } catch (error) {
+    console.error('Failed to load indicators:', error)
+  } finally {
+    isLoadingIndicators.value = false
+  }
+}
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'indicators' && indicators.value.length === 0) {
+    loadIndicators()
+  }
+})
 
 onMounted(async () => {
   await Promise.all([

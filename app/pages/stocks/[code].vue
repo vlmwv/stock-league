@@ -254,6 +254,18 @@
                     </p>
                   </div>
 
+                  <!-- 목표가 정보 추가 -->
+                  <div v-if="item.target_price" class="mt-6 grid grid-cols-2 gap-4 py-4 px-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                    <div class="space-y-0.5">
+                      <p class="text-[9px] font-black text-emerald-500/60 uppercase tracking-widest">목표가</p>
+                      <p class="text-sm font-black text-emerald-400 font-mono">{{ item.target_price.toLocaleString() }}원</p>
+                    </div>
+                    <div class="space-y-0.5 text-right">
+                      <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">목표기한</p>
+                      <p class="text-sm font-black text-slate-300">{{ item.target_date }}</p>
+                    </div>
+                  </div>
+
 
                   <!-- AI 요약 (접기/펼치기 대용으로 작게 표시) -->
                   <div v-if="item.summary" class="mt-6 pt-6 border-t border-white/5">
@@ -309,6 +321,12 @@ const {
 // 현재 탭에 따른 뉴스 아이템 반환 (현재는 뉴스만 존재)
 const currentNewsItems = computed(() => {
   return newsItems.value
+})
+
+const latestTargetPrice = computed(() => {
+  if (aiHistory.value.length === 0) return null
+  // 가장 최근 추천 정보의 목표가를 가져옴
+  return aiHistory.value[0]?.target_price || null
 })
 
 const code = route.params.code as string
@@ -452,6 +470,22 @@ const chartOptions = computed(() => ({
   markers: {
     size: 0,
     hover: { size: 5 }
+  },
+  annotations: {
+    yaxis: latestTargetPrice.value ? [{
+      y: latestTargetPrice.value,
+      borderColor: '#10b981',
+      label: {
+        borderColor: '#10b981',
+        style: {
+          color: '#fff',
+          background: '#10b981',
+          fontSize: '10px',
+          fontWeight: 900
+        },
+        text: `목표가 ${latestTargetPrice.value.toLocaleString()}원`
+      }
+    }] : []
   }
 }))
 

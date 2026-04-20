@@ -18,6 +18,21 @@ interface Stock {
   ai_score?: number
   ai_result?: 'win' | 'lose' | 'draw' | 'pending'
   volume?: number
+  target_price?: number
+  target_date?: string
+}
+
+interface WishlistGroup {
+  id: number
+  user_id: string
+  name: string
+  icon?: string
+  sort_order: number
+}
+
+interface WishlistItem {
+  stock_id: number
+  group_id: number
 }
 
 export const useStock = () => {
@@ -129,6 +144,8 @@ export const useStock = () => {
         llm_summary,
         ai_score,
         ai_result,
+        target_price,
+        target_date,
         stocks (
           id,
           code,
@@ -155,6 +172,8 @@ export const useStock = () => {
           game_date,
           llm_summary,
           ai_score,
+          target_price,
+          target_date,
           stocks (
             id,
             code,
@@ -262,6 +281,8 @@ export const useStock = () => {
       ai_processed_count: ds.stocks.ai_processed_count || 0,
       ai_score: ds.ai_score || 0,
       ai_result: ds.ai_result || 'pending',
+      target_price: ds.target_price,
+      target_date: ds.target_date,
       summary: decodeHtmlEntities(ds.llm_summary || '오늘의 종목 요약 정보를 생성 중입니다...')
     }))
   })
@@ -388,6 +409,8 @@ export const useStock = () => {
   })
 
   const hearts = useState<number[]>('wishlist', () => [])
+  const wishlistGroups = useState<WishlistGroup[]>('wishlistGroups', () => [])
+  const wishlistsWithGroups = useState<WishlistItem[]>('wishlistsWithGroups', () => [])
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down', result?: 'win' | 'lose' | 'draw' | 'pending' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
@@ -531,11 +554,74 @@ export const useStock = () => {
     }
   }
 
+  const fetchWishlistGroups = async () => {
+    const userId = await resolveUserId()
+    if (!userId) return
+
+    const { data, error } = await client
+      .from('wishlist_groups')
+      .select('*')
+      .eq('user_id', userId)
+      .order('sort_order', { ascending: true })
+
+    if (!error && data) {
+      wishlistGroups.value = data as any
+    }
+  }
+
+  const createWishlistGroup = async (name: string) => {
+    const userId = await resolveUserId()
+    if (!userId) return { success: false }
+
+    const { data, error } = await client
+      .from('wishlist_groups')
+      .insert({ user_id: userId, name, sort_order: wishlistGroups.value.length } as any)
+      .select()
+      .single()
+
+    if (!error && data) {
+      wishlistGroups.value.push(data as any)
+      return { success: true, data: data as any }
+    }
+    return { success: false, error }
+  }
+
+  const deleteWishlistGroup = async (groupId: number) => {
+    const { error } = await client
+      .from('wishlist_groups')
+      .delete()
+      .eq('id', groupId)
+
+    if (!error) {
+      wishlistGroups.value = wishlistGroups.value.filter(g => g.id !== groupId)
+      // 해당 그룹에 속해 있던 찜 항목들도 상태에서 업데이트
+      wishlistsWithGroups.value = wishlistsWithGroups.value.filter(w => w.group_id !== groupId)
+      hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+      return { success: true }
+    }
+    return { success: false, error }
+  }
+
+  const updateWishlistGroup = async (groupId: number, name: string) => {
+    const { error } = await client
+      .from('wishlist_groups')
+      .update({ name } as any)
+      .eq('id', groupId)
+
+    if (!error) {
+      const idx = wishlistGroups.value.findIndex(g => g.id === groupId)
+      if (idx > -1) wishlistGroups.value[idx].name = name
+      return { success: true }
+    }
+    return { success: false, error }
+  }
+
   const fetchWishlist = async () => {
     const userId = await resolveUserId()
     if (!userId) {
       console.log('[useStock] Skipping fetchWishlist: No user logged in')
       hearts.value = []
+      wishlistsWithGroups.value = []
       return
     }
 
@@ -546,14 +632,23 @@ export const useStock = () => {
 
     isWishlistFetching.value = true
     try {
+      // 1. 그룹 목록 먼저 가져오기
+      await fetchWishlistGroups()
+
+      // 2. 찜 항목 가져오기
       const { data, error } = await client
         .from('wishlists')
-        .select('stock_id')
+        .select('stock_id, group_id')
         .eq('user_id', userId)
       
       if (!error && data) {
-        hearts.value = data.map((w: any) => Number(w.stock_id))
-        console.log('[useStock] Wishlist fetched and normalized:', hearts.value)
+        wishlistsWithGroups.value = data.map((w: any) => ({
+          stock_id: Number(w.stock_id),
+          group_id: Number(w.group_id)
+        }))
+        // hearts는 중복 제거된 stock_id 목록
+        hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+        console.log('[useStock] Wishlist fetched:', wishlistsWithGroups.value)
       } else if (error) {
         console.error('[useStock] Wishlist fetch error:', error)
       }
@@ -562,30 +657,12 @@ export const useStock = () => {
     }
   }
 
-  const { data: wishlistStocks, refresh: refreshWishlistStocks } = useAsyncData('wishlistStocks', async () => {
-    if (hearts.value.length === 0) return []
-    
-    const { data, error } = await client
-      .from('stocks')
-      .select('*')
-      .in('id', hearts.value)
-    
-    if (error) return []
-    return (data || []).map((s: any) => ({
-      id: s.id,
-      name: s.name,
-      code: s.code,
-      last_price: s.last_price || 0,
-      change_amount: s.change_amount || 0,
-      change_rate: s.change_rate || 0,
-      ai_recommendation_count: s.ai_recommendation_count || 0,
-      ai_win_count: s.ai_win_count || 0,
-      ai_processed_count: s.ai_processed_count || 0,
-      summary: decodeHtmlEntities(s.summary || '')
-    }))
-  }, { watch: [hearts] })
+  const wishlistStocks = computed(() => {
+    // 그룹 필터링 로직이 필요할 경우 여기를 확장
+    return hearts.value
+  })
 
-  const toggleHeart = async (stockId: number) => {
+  const toggleHeart = async (stockId: number, groupId?: number) => {
     const userId = await resolveUserId()
     if (!userId) {
       if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
@@ -597,74 +674,75 @@ export const useStock = () => {
     const id = Number(stockId)
     if (isNaN(id)) return
 
-    const isCurrentlyHearted = hearts.value.includes(id)
-    const previousHearts = [...hearts.value]
-
-    // 1. 낙관적 업데이트: UI 즉시 반영
-    if (isCurrentlyHearted) {
-      hearts.value = hearts.value.filter(hId => Number(hId) !== id)
-    } else {
-      hearts.value = [...hearts.value, id]
+    // 만약 groupId가 없으면 기본 그룹을 찾음
+    let targetGroupId = groupId
+    if (!targetGroupId) {
+      if (wishlistGroups.value.length === 0) {
+        await fetchWishlistGroups()
+      }
+      targetGroupId = wishlistGroups.value[0]?.id
     }
-    refreshWishlistStocks()
+
+    if (!targetGroupId) {
+       // 여전히 없으면 에러 (기본 그룹이 보장되어야 함)
+       console.error('[useStock] No wishlist group available')
+       return
+    }
+
+    const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && w.group_id === targetGroupId)
+    const isCurrentlyHeartedInGroup = itemIdx > -1
+    
+    const previousWishlists = [...wishlistsWithGroups.value]
+
+    // 1. 낙관적 업데이트
+    if (isCurrentlyHeartedInGroup) {
+      wishlistsWithGroups.value = wishlistsWithGroups.value.filter((_, i) => i !== itemIdx)
+    } else {
+      wishlistsWithGroups.value = [...wishlistsWithGroups.value, { stock_id: id, group_id: targetGroupId }]
+    }
+    hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
 
     try {
-      if (isCurrentlyHearted) {
-        // 제거 요청 (명시적 user_id + stock_id 필터)
+      if (isCurrentlyHeartedInGroup) {
         const { error } = await client
           .from('wishlists')
           .delete()
           .eq('user_id', userId)
           .eq('stock_id', id)
+          .eq('group_id', targetGroupId)
         
-        if (error) {
-          console.error('[useStock] Supabase delete error detail:', error)
-          throw new Error(`Delete failed: ${error.message} (code ${error.code})`)
-        }
+        if (error) throw error
+        
         toast.add({
-          title: '관심 종목에서 제거했어요',
-          description: '찜이 해제되었습니다.',
+          title: '관심 종목 폴더에서 제거했어요',
           color: 'neutral',
           icon: 'i-heroicons-heart'
         })
       } else {
-        // 추가 요청: upsert는 RLS UPDATE 정책이 없으면 충돌 시 실패할 수 있어 insert + unique 에러 무시 사용
         const { error } = await client
           .from('wishlists')
-          .insert({ user_id: userId, stock_id: id } as any) as any
+          .insert({ user_id: userId, stock_id: id, group_id: targetGroupId } as any) as any
         
-        // 이미 존재하는 찜(unique 위반)은 정상 상태이므로 무시
-        if (error && error.code !== '23505') {
-          console.error('[useStock] Supabase wishlist insert error:', error)
-          throw new Error(`Insert failed: ${error.message} (code ${error.code})`)
-        }
+        if (error && error.code !== '23505') throw error
+        
         toast.add({
-          title: '관심 종목에 추가했어요',
-          description: '찜 목록에서 바로 확인할 수 있습니다.',
+          title: '관심 종목 폴더에 추가했어요',
           color: 'primary',
           icon: 'i-heroicons-heart-20-solid'
         })
       }
       
-      // 서버 상태와 UI 상태를 즉시 동기화
       await fetchWishlist()
-      refreshWishlistStocks()
       
     } catch (err: any) {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
-      // 에러 발생 시 원래 상태로 복구
-      hearts.value = previousHearts
-      refreshWishlistStocks()
+      wishlistsWithGroups.value = previousWishlists
+      hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
       toast.add({
         title: '찜 상태 변경에 실패했어요',
-        description: '잠시 후 다시 시도해 주세요.',
         color: 'error',
         icon: 'i-heroicons-exclamation-triangle'
       })
-      
-      if (process.client && err.message.includes('RLS')) {
-         console.warn('[useStock] RLS error detected. Session might be stale.')
-      }
     }
   }
 
@@ -921,7 +999,16 @@ export const useStock = () => {
       rank,
       winRate,
       totalGames,
-      streak
+      streak,
+      isGuideOpen,
+      wishlistGroups,
+      wishlistsWithGroups,
+      fetchWishlistGroups,
+      createWishlistGroup,
+      deleteWishlistGroup,
+      updateWishlistGroup,
+      updateProfile,
+      fetchRankings
     }
   }
 
@@ -1249,6 +1336,8 @@ export const useStock = () => {
         llm_summary,
         ai_score,
         ai_result,
+        target_price,
+        target_date,
         stocks (
           id,
           name,
@@ -1338,7 +1427,9 @@ export const useStock = () => {
         summary: decodeHtmlEntities(ds.llm_summary || ''),
         rec_price: recPrice,
         days_passed: daysPassed,
-        cumulative_change_rate: cumulativeChangeRate
+        cumulative_change_rate: cumulativeChangeRate,
+        target_price: ds.target_price,
+        target_date: ds.target_date
       }
     })
 
@@ -1390,6 +1481,18 @@ export const useStock = () => {
     isHearted: (id: number) => hearts.value.includes(Number(id)),
     getPrediction: (id: number) => myPredictions.value.find(p => p.stockId === id) || null,
     getPredictionValue: (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null,
-    updateProfile
+    updateProfile,
+    fetchEconomicIndicators: async () => {
+      const { data, error } = await client
+        .from('economic_indicators')
+        .select('*')
+        .order('event_at', { ascending: false })
+      
+      if (error) {
+        console.error('Error fetching economic indicators:', error)
+        return []
+      }
+      return data || []
+    }
   }
 }
