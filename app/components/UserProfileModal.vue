@@ -75,17 +75,48 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 노출 여부</label>
-                <div class="flex items-center gap-4 bg-slate-800/50 border border-white/10 rounded-2xl p-4">
-                  <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    <img v-if="useAvatar && avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" />
-                    <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-7 h-7 text-slate-600" />
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 설정</label>
+                <div class="space-y-4">
+                  <!-- Preview -->
+                  <div class="flex items-center gap-4 bg-slate-800/30 border border-white/5 rounded-2xl p-4">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center relative group">
+                      <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
+                      <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-8 h-8 text-slate-600" />
+                      
+                      <!-- Upload Overlay -->
+                      <div @click="fileInput?.click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <UIcon v-if="!uploading" name="i-heroicons-camera" class="w-6 h-6 text-white" />
+                        <UIcon v-else name="i-heroicons-arrow-path" class="w-6 h-6 text-white animate-spin" />
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-bold text-slate-200">{{ sourceLabel }}</p>
+                      <p class="text-[10px] text-slate-500 font-medium mt-0.5">{{ sourceDescription }}</p>
+                    </div>
                   </div>
-                  <div class="flex-1">
-                    <p class="text-xs font-bold text-slate-200">{{ useAvatar ? '이미지 노출 중' : '이미지 숨김 처리' }}</p>
-                    <p class="text-[10px] text-slate-500 font-medium mt-0.5">이미지를 숨기면 성별에 따른 기본 아이콘이 노출됩니다.</p>
+
+                  <!-- Source Selection -->
+                  <div class="grid grid-cols-3 gap-2">
+                    <button 
+                      v-for="s in [
+                        { value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' },
+                        { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' },
+                        { value: 'default', label: '기본 이미지', icon: 'i-heroicons-no-symbol' }
+                      ]"
+                      :key="s.value"
+                      @click="handleSourceChange(s.value as any)"
+                      type="button"
+                      class="h-14 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1"
+                      :class="imageSource === s.value 
+                        ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
+                        : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
+                    >
+                      <UIcon :name="s.icon" class="w-5 h-5" />
+                      <span class="text-[10px] font-bold">{{ s.label }}</span>
+                    </button>
                   </div>
-                  <UToggle v-model="useAvatar" color="primary" />
+                  
+                  <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileUpload" />
                 </div>
               </div>
 
@@ -122,10 +153,10 @@
               </button>
               <button 
                 @click="handleUpdateProfile"
-                :disabled="updating"
+                :disabled="saving"
                 class="h-14 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
-                <UIcon v-if="updating" name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
+                <UIcon v-if="saving" name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
                 저장하기
               </button>
             </div>
@@ -151,16 +182,36 @@ const emit = defineEmits(['update:open', 'success'])
 
 const { updateProfile } = useStock()
 const toast = useToast()
+const client = useSupabaseClient()
+const user = useSupabaseUser()
 
 const username = ref('')
 const fullName = ref('')
 const displayNameType = ref<'nickname' | 'full_name'>('nickname')
 const gender = ref('none')
-const avatarUrl = ref('')
-const useAvatar = ref(true)
-const updating = ref(false)
+const imageSource = ref<'sns' | 'upload' | 'default'>('sns')
+const uploadUrl = ref('')
+const uploading = ref(false)
+const saving = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
 
-const user = useSupabaseUser()
+const previewUrl = computed(() => {
+  if (imageSource.value === 'sns') return user.value?.user_metadata?.avatar_url || ''
+  if (imageSource.value === 'upload') return uploadUrl.value
+  return ''
+})
+
+const sourceLabel = computed(() => {
+  if (imageSource.value === 'sns') return 'SNS 프로필 사용 중'
+  if (imageSource.value === 'upload') return '직접 업로드 이미지 사용 중'
+  return '기본 아이콘 사용 중'
+})
+
+const sourceDescription = computed(() => {
+  if (imageSource.value === 'sns') return '가입하신 서비스의 이미지를 보여줍니다.'
+  if (imageSource.value === 'upload') return '직접 업로드하신 이미지를 보여줍니다.'
+  return '성별에 따른 기본 아이콘을 보여줍니다.'
+})
 
 watch(() => props.open, (val) => {
   if (val) {
@@ -168,10 +219,69 @@ watch(() => props.open, (val) => {
     fullName.value = props.currentFullName || ''
     displayNameType.value = props.currentDisplayNameType || 'nickname'
     gender.value = props.currentGender || 'none'
-    avatarUrl.value = props.currentAvatarUrl || user.value?.user_metadata?.avatar_url || ''
-    useAvatar.value = !!props.currentAvatarUrl
+    
+    // 이미지 소스 판별
+    const current = props.currentAvatarUrl
+    const sns = user.value?.user_metadata?.avatar_url
+    
+    if (!current) {
+      imageSource.value = 'default'
+    } else if (sns && current === sns) {
+      imageSource.value = 'sns'
+    } else {
+      imageSource.value = 'upload'
+      uploadUrl.value = current
+    }
   }
 })
+
+const handleSourceChange = (source: 'sns' | 'upload' | 'default') => {
+  if (source === 'upload' && !uploadUrl.value) {
+    fileInput.value?.click()
+    return
+  }
+  imageSource.value = source
+}
+
+const handleFileUpload = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  // 용량 제한 (2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    toast.add({ title: '2MB 이하의 이미지만 업로드 가능합니다.', color: 'error' })
+    return
+  }
+
+  uploading.value = true
+  try {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = `${user.value!.id}/${fileName}`
+
+    const { error: uploadError } = await client.storage
+      .from('avatars')
+      .upload(filePath, file)
+
+    if (uploadError) throw uploadError
+
+    const { data: { publicUrl } } = client.storage
+      .from('avatars')
+      .getPublicUrl(filePath)
+
+    uploadUrl.value = publicUrl
+    imageSource.value = 'upload'
+    toast.add({ title: '이미지가 업로드되었습니다.', color: 'primary' })
+  } catch (err: any) {
+    toast.add({ 
+      title: '업로드 실패', 
+      description: err.message || '오류가 발생했습니다.', 
+      color: 'error' 
+    })
+  } finally {
+    uploading.value = false
+  }
+}
 
 const handleUpdateProfile = async () => {
   const trimmedNickname = username.value.trim()
@@ -180,12 +290,20 @@ const handleUpdateProfile = async () => {
     return
   }
   
-  updating.value = true
+  saving.value = true
+  
+  let finalAvatarUrl: string | null = null
+  if (imageSource.value === 'sns') {
+    finalAvatarUrl = user.value?.user_metadata?.avatar_url || null
+  } else if (imageSource.value === 'upload') {
+    finalAvatarUrl = uploadUrl.value
+  }
+
   const result = await updateProfile({
     username: trimmedNickname,
     fullName: fullName.value.trim(),
     gender: gender.value === 'none' ? null : gender.value,
-    avatarUrl: useAvatar.value ? avatarUrl.value : null,
+    avatarUrl: finalAvatarUrl,
     displayNameType: displayNameType.value
   })
   
@@ -206,7 +324,7 @@ const handleUpdateProfile = async () => {
       icon: 'i-heroicons-exclamation-circle'
     })
   }
-  updating.value = false
+  saving.value = false
 }
 </script>
 
