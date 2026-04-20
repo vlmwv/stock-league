@@ -58,6 +58,7 @@
                 <div class="flex flex-col gap-1">
                   <div class="flex items-center gap-2">
                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ formatDateTime(item.created_at) }} 추천</span>
+                    <UBadge v-if="item.status === 'withdrawn'" color="error" variant="subtle" class="rounded-lg font-bold text-[8px] uppercase">추천 해제됨</UBadge>
                   </div>
                   <div class="flex items-baseline gap-1.5 mt-0.5">
                     <h4 class="text-lg font-black text-slate-200">{{ item.name }}</h4>

@@ -167,11 +167,11 @@ const sentinel = ref<HTMLElement | null>(null)
 
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
+  { key: 'volume', label: '거래량' },
   { key: 'interested', label: '관심' },
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },
-  { key: 'aiRecommendation', label: 'AI 추천' },
-  { key: 'volume', label: '거래량' }
+  { key: 'aiRecommendation', label: 'AI 추천' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
