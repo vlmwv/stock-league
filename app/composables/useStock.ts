@@ -1541,19 +1541,21 @@ export const useStock = () => {
         })
       }
       
-      // 2. 경제 지표 추가 (중요도 3점)
+      // 2. 경제 지표 추가 (중요도 3점 & 실제치 발표 완료)
       const indicators = useState<any[]>('recent_indicators', () => [])
       if (indicators.value) {
-        indicators.value.filter(idx => idx.importance >= 3).forEach((idx: any) => {
-          items.push({
-            id: `ind-${idx.id}`,
-            type: 'indicator',
-            title: idx.event_name,
-            summary: `${idx.country === 'US' ? '🇺🇸' : '🇰🇷'} 중요 경제 지표 발표: ${idx.forecast || '-'} (예측) / ${idx.actual || '발표전'} (실제)`,
-            date: idx.event_at,
-            importance: idx.importance
+        indicators.value
+          .filter(idx => idx.importance >= 3 && idx.actual && idx.actual !== '발표전')
+          .forEach((idx: any) => {
+            items.push({
+              id: `ind-${idx.id}`,
+              type: 'indicator',
+              title: idx.event_name,
+              summary: `${idx.country === 'US' ? '🇺🇸' : '🇰🇷'} 지표 발표: ${idx.actual} (예측: ${idx.forecast || '-'})`,
+              date: idx.event_at,
+              importance: idx.importance
+            })
           })
-        })
       }
       
       return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
