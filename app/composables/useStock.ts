@@ -1523,6 +1523,41 @@ export const useStock = () => {
       }
       return data || []
     },
+    notifications: computed(() => {
+      const items: any[] = []
+      
+      // 1. 추천 종목 추가
+      if (recommended.value) {
+        recommended.value.forEach((s: any) => {
+          items.push({
+            id: `rec-${s.id}`,
+            type: 'recommendation',
+            title: s.name,
+            summary: s.summary,
+            date: new Date().toISOString(),
+            code: s.code,
+            importance: 3
+          })
+        })
+      }
+      
+      // 2. 경제 지표 추가 (중요도 3점)
+      const indicators = useState<any[]>('recent_indicators', () => [])
+      if (indicators.value) {
+        indicators.value.filter(idx => idx.importance >= 3).forEach((idx: any) => {
+          items.push({
+            id: `ind-${idx.id}`,
+            type: 'indicator',
+            title: idx.event_name,
+            summary: `${idx.country === 'US' ? '🇺🇸' : '🇰🇷'} 중요 경제 지표 발표: ${idx.forecast || '-'} (예측) / ${idx.actual || '발표전'} (실제)`,
+            date: idx.event_at,
+            importance: idx.importance
+          })
+        })
+      }
+      
+      return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
+    }),
     reEvaluateRecommendation: async (dailyId: number) => {
       try {
         const { data, error } = await client.functions.invoke('re-evaluate-recommendation', {

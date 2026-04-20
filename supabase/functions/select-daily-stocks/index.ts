@@ -129,6 +129,7 @@ ${newsSummary}
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(30000), // 30초 타임아웃 추가
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -351,7 +352,7 @@ Deno.serve(async (req: any) => {
     // 3. 종목별 분석 및 점수 산출
     console.log('Analyzing candidates with Gemini...')
     const scoredStocks: any[] = []
-    const analysisTargetCount = Math.min(Math.max(10, filteredStocks.length), 20)
+    const analysisTargetCount = Math.min(Math.max(7, filteredStocks.length), 10)
     const stocksToAnalyze = filteredStocks.slice(0, analysisTargetCount)
     
     for (const stock of stocksToAnalyze) {

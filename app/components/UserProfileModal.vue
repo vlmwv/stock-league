@@ -15,6 +15,18 @@
             
             <div class="space-y-6">
               <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이메일 (수정 불가)</label>
+                <div class="relative">
+                   <input 
+                    :value="currentEmail" 
+                    type="email"
+                    disabled
+                    class="w-full h-14 bg-slate-800/30 border border-white/5 rounded-2xl px-5 text-slate-500 font-bold cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이름 (실명)</label>
                 <div class="relative">
                    <input 
@@ -36,18 +48,6 @@
                     placeholder="새 닉네임을 입력하세요" 
                     class="w-full h-14 bg-slate-800/50 border border-white/10 rounded-2xl px-5 text-white font-bold focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all"
                     @keyup.enter="handleUpdateProfile"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이메일 (수정 불가)</label>
-                <div class="relative">
-                   <input 
-                    :value="currentEmail" 
-                    type="email"
-                    disabled
-                    class="w-full h-14 bg-slate-800/30 border border-white/5 rounded-2xl px-5 text-slate-500 font-bold cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -75,7 +75,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 노출 여부</label>
                 <div class="flex items-center gap-4 bg-slate-800/50 border border-white/10 rounded-2xl p-4">
                   <div class="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
                     <img v-if="useAvatar && avatarUrl" :src="avatarUrl" class="w-full h-full object-cover" />
@@ -83,14 +83,14 @@
                   </div>
                   <div class="flex-1">
                     <p class="text-xs font-bold text-slate-200">{{ useAvatar ? '이미지 노출 중' : '이미지 숨김 처리' }}</p>
-                    <p class="text-[10px] text-slate-500 font-medium mt-0.5">프로필 이미지를 다른 사용자에게 보여줍니다.</p>
+                    <p class="text-[10px] text-slate-500 font-medium mt-0.5">이미지를 숨기면 성별에 따른 기본 아이콘이 노출됩니다.</p>
                   </div>
                   <UToggle v-model="useAvatar" color="primary" />
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 구분용)</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 설정)</label>
                 <div class="grid grid-cols-3 gap-3">
                   <button 
                     v-for="g in [

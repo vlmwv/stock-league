@@ -49,21 +49,36 @@
               </div>
               
               <div class="max-h-[320px] overflow-y-auto no-scrollbar">
-                <template v-if="recommendedStocks && recommendedStocks.length > 0">
+                <template v-if="notifications && notifications.length > 0">
                     <div 
-                      v-for="news in recommendedStocks.slice(0, 5)" 
-                      :key="news.id"
-                      @click="navigateTo('/stocks/' + news.code)"
+                      v-for="item in notifications" 
+                      :key="item.id"
+                      @click="item.type === 'recommendation' ? navigateTo('/stocks/' + item.code) : navigateTo('/news?tab=indicators')"
                       class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
                     >
                     <div class="flex flex-col gap-1">
                       <div class="flex justify-between items-start gap-2">
-                        <span class="text-[10px] font-black text-brand-primary uppercase tracking-tight">{{ news.name }}</span>
+                        <div class="flex items-center gap-1.5">
+                          <UIcon 
+                            :name="item.type === 'recommendation' ? 'i-heroicons-sparkles' : 'i-heroicons-calendar-days'" 
+                            class="w-3.5 h-3.5"
+                            :class="item.type === 'recommendation' ? 'text-brand-primary' : 'text-amber-500'"
+                          />
+                          <span 
+                            class="text-[10px] font-black uppercase tracking-tight"
+                            :class="item.type === 'recommendation' ? 'text-brand-primary' : 'text-amber-500'"
+                          >
+                            {{ item.type === 'recommendation' ? item.title : '경제 지표' }}
+                          </span>
+                        </div>
                         <span class="text-[10px] text-slate-500 font-medium">실시간</span>
                       </div>
                       <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
-                        {{ news.summary }}
+                        {{ item.type === 'recommendation' ? item.summary : item.title }}
                       </h4>
+                      <p v-if="item.type === 'indicator'" class="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                        {{ item.summary }}
+                      </p>
                     </div>
                   </div>
                 </template>
@@ -128,8 +143,15 @@ const isScrolled = ref(false)
 const userStats = ref<any>(null)
 
 
-const { recommendedStocks, refreshRecommended, fetchUserStats, isGuideOpen } = useStock()
-const hasNewNotifications = computed(() => recommendedStocks.value && recommendedStocks.value.length > 0)
+const { 
+  notifications, 
+  fetchEconomicIndicators, 
+  fetchUserStats, 
+  isGuideOpen, 
+  refreshRecommended 
+} = useStock()
+
+const hasNewNotifications = computed(() => notifications.value && notifications.value.length > 0)
 const role = ref('user')
 
 const handleLogout = async () => {
@@ -144,7 +166,12 @@ const handleLogout = async () => {
 }
 
 onMounted(async () => {
-  await refreshRecommended()
+  // 알림 데이터를 위해 추천 종목과 지표 동시 로드
+  const indicators = useState<any[]>('recent_indicators')
+  await Promise.all([
+    refreshRecommended(),
+    fetchEconomicIndicators().then(data => indicators.value = data)
+  ])
   
   if (user.value) {
     userStats.value = await fetchUserStats()
