@@ -106,9 +106,9 @@
             <!-- 액션 버튼 -->
             <div class="flex items-center gap-2 shrink-0">
               <button
-                @click.stop="handleToggleHeart(stock.id)"
-                class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-                :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
+                @click.stop="handleOpenModal(stock.id)"
+                class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-2xl"
+                :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500 shadow-rose-500/10' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
               >
                 <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
               </button>
@@ -125,12 +125,32 @@
     </main>
 
     <BottomNav />
+    
+    <WishlistGroupModal 
+      v-model:open="isGroupModalOpen"
+      :stock-id="selectedStockId"
+      :initial-group-ids="currentStockGroupIds"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
-const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats } = useStock()
+const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats, wishlistsWithGroups } = useStock()
+
+const isGroupModalOpen = ref(false)
+const selectedStockId = ref<number | null>(null)
+const currentStockGroupIds = computed(() => {
+  if (!selectedStockId.value) return []
+  return wishlistsWithGroups.value
+    .filter(w => w.stock_id === selectedStockId.value)
+    .map(w => w.group_id)
+})
+
+const handleOpenModal = (id: number) => {
+  selectedStockId.value = id
+  isGroupModalOpen.value = true
+}
 
 const searchQuery = ref('')
 const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume'>('marketCap')

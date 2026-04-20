@@ -146,6 +146,7 @@ export const useStock = () => {
         ai_result,
         target_price,
         target_date,
+        status,
         stocks (
           id,
           code,
@@ -159,6 +160,7 @@ export const useStock = () => {
         )
       `)
       .eq('game_date', targetDate as any)
+      .neq('status', 'withdrawn')
     
     let { data, error } = await query
     
@@ -297,6 +299,7 @@ export const useStock = () => {
       .select(`
         ai_score,
         llm_summary,
+        status,
         stocks (
           id,
           code,
@@ -310,6 +313,7 @@ export const useStock = () => {
         )
       `)
       .eq('game_date', today as any)
+      .neq('status', 'withdrawn')
       .order('ai_score', { ascending: false })
       .limit(5)
 
@@ -1442,6 +1446,7 @@ export const useStock = () => {
         change_rate: ds.stocks.change_rate || 0,
         ai_score: ds.ai_score || 0,
         ai_result: ds.ai_result || 'pending',
+        status: ds.status || 'pending',
         summary: decodeHtmlEntities(ds.llm_summary || ''),
         rec_price: recPrice,
         days_passed: daysPassed,
@@ -1517,6 +1522,30 @@ export const useStock = () => {
         return []
       }
       return data || []
+    },
+    reEvaluateRecommendation: async (dailyId: number) => {
+      try {
+        const { data, error } = await client.functions.invoke('re-evaluate-recommendation', {
+          body: { daily_stock_id: dailyId }
+        })
+        if (error) throw error
+        return { success: true, data }
+      } catch (err: any) {
+        console.error('[useStock] Re-evaluation failed:', err.message)
+        return { success: false, message: err.message }
+      }
+    },
+    withdrawRecommendation: async (dailyId: number) => {
+      const { error } = await client
+        .from('daily_stocks')
+        .update({ status: 'withdrawn' } as any)
+        .eq('id', dailyId)
+      
+      if (error) {
+        console.error('[useStock] Withdrawal failed:', error.message)
+        return { success: false, message: error.message }
+      }
+      return { success: true }
     }
   }
 }

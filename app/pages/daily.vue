@@ -162,9 +162,9 @@
               </span>
             </button>
             <button 
-              @click.stop="toggleHeart(stock.id)"
-              class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5"
-              :class="isHearted(stock.id) ? 'text-rose-500' : 'text-slate-600'"
+              @click.stop="handleOpenModal(stock.id)"
+              class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5 shadow-2xl"
+              :class="isHearted(stock.id) ? 'text-rose-500 shadow-rose-500/10' : 'text-slate-600'"
             >
               <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
             </button>
@@ -187,13 +187,49 @@
 
     
     <BottomNav />
+    
+    <WishlistGroupModal 
+      v-model:open="isGroupModalOpen"
+      :stock-id="selectedStockId"
+      :initial-group-ids="currentStockGroupIds"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 
 
-const { dailyStocks, hearts, myPredictions, refresh, fetchWishlist, fetchPredictions, toggleHeart, predict, isLeagueOpen, isResultPublished, allPredicted, isHearted, getPrediction, getPredictionValue } = useStock()
+const { 
+  dailyStocks, 
+  hearts, 
+  myPredictions, 
+  refresh, 
+  fetchWishlist, 
+  fetchPredictions, 
+  toggleHeart, 
+  predict, 
+  isLeagueOpen, 
+  isResultPublished, 
+  allPredicted, 
+  isHearted, 
+  getPrediction, 
+  getPredictionValue,
+  wishlistsWithGroups
+} = useStock()
+
+const isGroupModalOpen = ref(false)
+const selectedStockId = ref<number | null>(null)
+const currentStockGroupIds = computed(() => {
+  if (!selectedStockId.value) return []
+  return wishlistsWithGroups.value
+    .filter(w => w.stock_id === selectedStockId.value)
+    .map(w => w.group_id)
+})
+
+const handleOpenModal = (id: number) => {
+  selectedStockId.value = id
+  isGroupModalOpen.value = true
+}
 
 const getKstDate = () => {
   const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const

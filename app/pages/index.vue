@@ -155,7 +155,7 @@
                     </div>
                     
                     <button 
-                      @click.stop="toggleHeart(stock.id)"
+                      @click.stop="handleOpenModal(stock.id)"
                       class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
                       :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
                     >
@@ -226,7 +226,7 @@
             :is-hearted="isHearted(item.stockId)"
             :formatted-date="formatDate(item.published_at)"
             @navigate-news="navigateToNews(item)"
-            @toggle-heart="toggleHeart"
+            @open-wishlist-modal="handleOpenModal"
             @navigate-stock="(stockCode) => navigateTo('/stocks/' + stockCode)"
           />
           
@@ -241,14 +241,53 @@
 
     
     <BottomNav />
- 
-
+    
+    <WishlistGroupModal 
+      v-model:open="isGroupModalOpen"
+      :stock-id="selectedStockId"
+      :initial-group-ids="currentStockGroupIds"
+    />
   </div>
 </template>
  
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
-const { dailyStocks, recommendedStocks, hearts, myPredictions, participantCount, totalMemberCount, refresh, fetchWishlist, fetchPredictions, toggleHeart, fetchParticipantCount, fetchNews, refreshMarketCap, fetchGlobalAiStats, isLeagueOpen, isResultPublished, isGuideOpen, allPredicted, refreshAll } = useStock()
+const { 
+  dailyStocks, 
+  recommendedStocks, 
+  hearts, 
+  myPredictions, 
+  participantCount, 
+  totalMemberCount, 
+  refresh, 
+  fetchWishlist, 
+  fetchPredictions, 
+  toggleHeart, 
+  fetchParticipantCount, 
+  fetchNews, 
+  refreshMarketCap, 
+  fetchGlobalAiStats, 
+  isLeagueOpen, 
+  isResultPublished, 
+  isGuideOpen, 
+  allPredicted, 
+  refreshAll,
+  wishlistsWithGroups
+} = useStock()
+
+const isGroupModalOpen = ref(false)
+const selectedStockId = ref<number | null>(null)
+const currentStockGroupIds = computed(() => {
+  if (!selectedStockId.value) return []
+  return wishlistsWithGroups.value
+    .filter(w => w.stock_id === selectedStockId.value)
+    .map(w => w.group_id)
+})
+
+const handleOpenModal = (id: number) => {
+  selectedStockId.value = id
+  isGroupModalOpen.value = true
+}
 
 const kstTime = useState<{ hour: number, minute: number, timeVal: number }>('kst_time')
 const getKstTimeVal = () => kstTime.value?.timeVal || 0

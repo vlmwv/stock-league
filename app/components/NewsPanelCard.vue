@@ -16,7 +16,7 @@
         <div class="flex items-center gap-4">
           <button
             v-if="item.stockId"
-            @click.stop="$emit('toggle-heart', item.stockId)"
+            @click.stop="$emit('openWishlistModal', item.stockId)"
             class="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-90 border border-white/5"
             :class="isHearted ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
           >
@@ -71,7 +71,7 @@ defineProps<{
 
 defineEmits<{
   (e: 'navigate-news'): void
-  (e: 'toggle-heart', stockId: number): void
+  (e: 'openWishlistModal', stockId: number): void
   (e: 'navigate-stock', stockCode: string): void
 }>()
 </script>

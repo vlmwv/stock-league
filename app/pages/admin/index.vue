@@ -171,6 +171,7 @@
                 <th class="px-6 py-4 text-center">점수</th>
                 <th class="px-6 py-4">결과</th>
                 <th class="px-6 py-4">분석 근거</th>
+                <th class="px-6 py-4 text-center">관리</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
@@ -204,6 +205,34 @@
                   <p class="text-xs text-slate-300 leading-relaxed max-w-md line-clamp-2 hover:line-clamp-none transition-all cursor-help">
                     {{ row.ai_reasoning || row.llm_summary || '분석 정보 없음' }}
                   </p>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <UButton
+                      v-if="row.status === 'pending'"
+                      size="xs"
+                      color="neutral"
+                      variant="soft"
+                      icon="i-heroicons-arrow-path"
+                      :loading="recheckingState[row.id]"
+                      @click="handleReCheck(row)"
+                    >
+                      검증
+                    </UButton>
+                    <UButton
+                      v-if="row.status === 'pending'"
+                      size="xs"
+                      color="error"
+                      variant="soft"
+                      icon="i-heroicons-x-mark"
+                      @click="handleWithdraw(row)"
+                    >
+                      해제
+                    </UButton>
+                    <UBadge v-else-if="row.status === 'withdrawn'" color="error" variant="subtle" class="rounded-lg font-bold text-[10px]">
+                      추천 해제됨
+                    </UBadge>
+                  </div>
                 </td>
               </tr>
               <tr v-if="detailedAiRows.length === 0">
@@ -289,6 +318,57 @@
         </div>
       </div>
     </UContainer>
+
+    <!-- Re-check Result Modal -->
+    <UModal v-model="isReCheckModalOpen">
+      <UCard :ui="{ ring: '', divide: 'divide-y divide-white/10', background: 'bg-slate-900' }">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-white">추천 유효성 검증 결과</h3>
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="isReCheckModalOpen = false" />
+          </div>
+        </template>
+
+        <div class="space-y-4 py-2" v-if="reCheckResult">
+          <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+            <div>
+              <p class="text-xs text-slate-500 mb-1">상태 판단</p>
+              <UBadge 
+                :color="reCheckResult.judgment === 'STAY' ? 'primary' : 'error'" 
+                variant="solid" 
+                class="font-black px-3 py-1 rounded-lg"
+              >
+                {{ reCheckResult.judgment === 'STAY' ? '추천 유지 권고' : '추천 철회 권고' }}
+              </UBadge>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-500 mb-1">신규 AI 점수</p>
+              <p class="text-2xl font-black" :class="getScoreColor(reCheckResult.new_score)">{{ reCheckResult.new_score }}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-slate-500 mb-2 font-bold uppercase tracking-wider">AI 분석 의견</p>
+            <div class="p-4 rounded-xl bg-slate-950 border border-white/10 text-sm text-slate-200 leading-relaxed">
+              {{ reCheckResult.reason }}
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="neutral" variant="ghost" @click="isReCheckModalOpen = false">닫기</UButton>
+            <UButton 
+              v-if="reCheckResult?.judgment === 'WITHDRAW'" 
+              color="error" 
+              @click="handleWithdraw({ id: reCheckResult.daily_id, stocks: { name: reCheckResult.stock_name } }); isReCheckModalOpen = false"
+            >
+              추천 즉시 해제
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
@@ -314,6 +394,11 @@ const systemStats = ref([
   { label: '활성 종목', value: '0', icon: 'i-heroicons-banknotes', gradient: 'from-orange-500 to-yellow-400' },
   { label: '최근 이슈', value: '0건', icon: 'i-heroicons-megaphone', gradient: 'from-purple-500 to-indigo-400' }
 ])
+
+const { reEvaluateRecommendation, withdrawRecommendation } = useStock()
+const recheckingState = ref<Record<string, boolean>>({})
+const reCheckResult = ref<any>(null)
+const isReCheckModalOpen = ref(false)
 
 const batchFunctions = ref([
   { id: 'calculate-rankings', name: '랭킹 정산', isRunning: false },
@@ -477,6 +562,33 @@ const runBatch = async (batch: any) => {
     })
   } finally {
     batch.isRunning = false
+  }
+}
+
+const handleReCheck = async (row: any) => {
+  recheckingState.value[row.id] = true
+  try {
+    const res = await reEvaluateRecommendation(row.id)
+    if (res.success) {
+      reCheckResult.value = res.data
+      isReCheckModalOpen.value = true
+    } else {
+      toast.add({ title: '검증 실패', description: res.message, color: 'error' })
+    }
+  } finally {
+    recheckingState.value[row.id] = false
+  }
+}
+
+const handleWithdraw = async (row: any) => {
+  if (!confirm(`${row.stocks?.name}의 추천을 해제하시겠습니까? 메인 화면에서 더 이상 노출되지 않습니다.`)) return
+  
+  const res = await withdrawRecommendation(row.id)
+  if (res.success) {
+    toast.add({ title: '추천 해제 완료', color: 'success' })
+    await fetchAiDashboard()
+  } else {
+    toast.add({ title: '추천 해제 실패', description: res.message, color: 'error' })
   }
 }
 
