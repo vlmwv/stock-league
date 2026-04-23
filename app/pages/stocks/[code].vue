@@ -72,6 +72,7 @@
           <div v-if="chartSeries.length > 0" class="min-h-[220px]">
             <client-only>
               <apexchart
+                :key="`chart-${chartSeries.length}-${chartAnnotations.xaxis.length}-${chartAnnotations.yaxis.length}`"
                 type="area"
                 height="220"
                 :options="chartOptions"
@@ -474,19 +475,25 @@ const chartAnnotations = computed(() => {
 
     aiHistory.value.forEach(item => {
       // 차트 범위 내에 있는 추천 이력만 표시
+      // 날짜 문자열 직접 비교 (YYYY-MM-DD 형식일 경우 안전함)
       if (item.game_date >= minDate && item.game_date <= maxDate) {
+        const timestamp = new Date(item.game_date).getTime()
+        
         // 세로선 (추천 시점)
         ann.xaxis.push({
-          x: new Date(item.game_date).getTime(),
-          borderColor: '#6366f1',
-          strokeDashArray: 2,
+          x: timestamp,
+          borderColor: '#818cf8',
+          strokeDashArray: 3,
+          width: 2,
           label: {
-            borderColor: '#6366f1',
+            borderColor: '#818cf8',
+            orientation: 'horizontal',
             style: {
               color: '#fff',
-              background: '#6366f1',
-              fontSize: '9px',
-              fontWeight: 700
+              background: '#818cf8',
+              fontSize: '10px',
+              fontWeight: 900,
+              padding: { left: 5, right: 5, top: 2, bottom: 2 }
             },
             text: 'AI 추천'
           }
@@ -495,25 +502,26 @@ const chartAnnotations = computed(() => {
         // 포인트 (추천가)
         if (item.rec_price) {
           ann.points.push({
-            x: new Date(item.game_date).getTime(),
+            x: timestamp,
             y: item.rec_price,
             marker: {
-              size: 4,
-              fillColor: '#fff',
-              strokeColor: '#6366f1',
-              strokeWidth: 2,
-              radius: 4,
+              size: 5,
+              fillColor: '#ffffff',
+              strokeColor: '#818cf8',
+              strokeWidth: 3,
+              shape: "circle",
+              radius: 2,
             },
             label: {
-              borderColor: '#6366f1',
-              offsetY: 0,
+              borderColor: '#818cf8',
+              offsetY: -5,
               style: {
                 color: '#fff',
-                background: '#6366f1',
-                fontSize: '9px',
-                fontWeight: 700
+                background: '#818cf8',
+                fontSize: '10px',
+                fontWeight: 900
               },
-              text: '추천가'
+              text: `${item.rec_price.toLocaleString()}원`
             }
           })
         }
