@@ -348,38 +348,34 @@ Deno.serve(async (req: any) => {
       }
     }
 
-    // 3. 종목별 분석 및 점수 산출
-    console.log('Analyzing candidates with Gemini...')
-    const scoredStocks: any[] = []
-    const analysisTargetCount = Math.min(Math.max(6, filteredStocks.length), 8)
+    // 3. 종목별 분석 및 점수 산출 (병렬 처리로 속도 개선)
+    console.log('Analyzing candidates with Gemini in parallel...')
+    const analysisTargetCount = Math.min(Math.max(5, filteredStocks.length), 6)
     const stocksToAnalyze = filteredStocks.slice(0, analysisTargetCount)
     
-    for (const stock of stocksToAnalyze) {
-      console.log(`Analyzing ${stock.name}...`)
+    const analysisResults = await Promise.all(stocksToAnalyze.map(async (stock) => {
       try {
+        console.log(`Starting analysis for ${stock.name}...`)
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
         
         let newsItems = []
         let priceHistory: any[] = []
 
-        try {
-          // 20일치 시세 데이터 조회 (기술적 지표 분석을 위해 확장)
-          const { data: history } = await supabase
+        // 데이터 가져오기 (병렬)
+        const [historyRes, newsRes] = await Promise.all([
+          supabase
             .from('stock_price_history')
             .select('price_date, close_price, change_rate, volume')
             .eq('stock_id', stock.id)
             .order('price_date', { ascending: false })
-            .limit(20)
-          
-          priceHistory = history || []
+            .limit(20),
+          fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) }).catch(() => null)
+        ])
+        
+        priceHistory = historyRes.data || []
+        if (newsRes && newsRes.ok) newsItems = (await newsRes.json())?.items || []
 
-          const [newsRes] = await Promise.all([
-            fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
-          ])
-          if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
-        } catch (e) { /* ignore fetch errors */ }
-
-        const { summary, score, reasoning, target_price, target_date } = await analyzeStockWithGemini(
+        const analysis = await analyzeStockWithGemini(
           newsItems, 
           priceHistory,
           stock.code,
@@ -388,15 +384,15 @@ Deno.serve(async (req: any) => {
           marketContext,
           targetDateStr
         )
-        scoredStocks.push({ ...stock, summary, score, reasoning, target_price, target_date })
         
-        // Rate Limit(free tier) 준수를 위한 지연 제거 (타임아웃 방지 우선)
-        // await new Promise(resolve => setTimeout(resolve, 1000))
-        
+        return { ...stock, ...analysis }
       } catch (err: any) {
         console.warn(`Failed to analyze ${stock.name}:`, err.message)
+        return null
       }
-    }
+    }))
+
+    const scoredStocks = analysisResults.filter(s => s !== null) as any[]
 
     // 4. 점수 높은 순으로 정렬 후 상위 5개 선정
     scoredStocks.sort((a, b) => b.score - a.score)
