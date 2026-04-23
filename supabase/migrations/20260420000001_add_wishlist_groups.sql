@@ -55,7 +55,12 @@ ALTER TABLE public.wishlists DROP CONSTRAINT IF EXISTS wishlists_user_id_stock_i
 
 -- 새로운 유니크 제약 조건 추가 (user_id, stock_id, group_id)
 -- 만약 group_id가 NULL인 데이터가 남아있다면 에러가 날 수 있으므로 주의
-ALTER TABLE public.wishlists ADD CONSTRAINT wishlists_user_id_stock_id_group_id_key UNIQUE(user_id, stock_id, group_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'wishlists_user_id_stock_id_group_id_key') THEN
+        ALTER TABLE public.wishlists ADD CONSTRAINT wishlists_user_id_stock_id_group_id_key UNIQUE(user_id, stock_id, group_id);
+    END IF;
+END $$;
 
 -- 5. 프로필 생성 시 기본 그룹 자동 생성 트리거
 CREATE OR REPLACE FUNCTION public.handle_new_user_wishlist_group()

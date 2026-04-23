@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || ''
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY_2') || Deno.env.get('GEMINI_API_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
@@ -33,13 +33,18 @@ Deno.serve(async (req) => {
     let newsItems = []
     try {
       const newsRes = await fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-      if (newsRes.ok) newsItems = (await newsRes.json())?.items || []
+      if (newsRes.ok) {
+        const newsData = await newsRes.json()
+        newsItems = Array.isArray(newsData) 
+          ? newsData.flatMap((section: any) => section.items || []) 
+          : (newsData?.items || [])
+      }
     } catch (e) {
       console.warn('Failed to fetch news for re-evaluation')
     }
 
     const newsSummary = newsItems.length > 0
-      ? newsItems.map((item: any) => `- ${item.tit}`).join('\n')
+      ? newsItems.slice(0, 5).map((item: any) => `- ${item.title || item.titleFull || item.tit}`).join('\n')
       : '최근 주요 뉴스 없음'
 
     // 3. Ask Gemini for Re-evaluation
@@ -65,9 +70,10 @@ ${newsSummary}
   "new_score": 산출된 신규 점수,
   "judgment": "STAY" 또는 "WITHDRAW",
   "reason": "판단 근거 (150자 이내)"
-}`
+}
+`
 
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
