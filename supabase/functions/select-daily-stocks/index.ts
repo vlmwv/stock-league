@@ -17,7 +17,7 @@ async function fetchMarketIndices(): Promise<string> {
     const data = await res.json()
     const indices = data?.datas || []
     return indices.map((idx: any) => 
-      `${idx.nm}: ${idx.clssv} (${idx.cr >= 0 ? '+' : ''}${idx.cr}%)`
+      `${idx.stockName}: ${idx.closePrice} (${idx.fluctuationsRatioRaw >= 0 ? '+' : ''}${idx.fluctuationsRatio}%)`
     ).join(', ')
   } catch (e) {
     return '시장 지수 정보가 제공되지 않았습니다.'

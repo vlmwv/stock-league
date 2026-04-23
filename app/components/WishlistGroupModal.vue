@@ -133,7 +133,10 @@ const handleCreateGroup = async () => {
 }
 
 const handleSave = async () => {
-  if (!props.stockId) return
+  if (!props.stockId) {
+    toast.add({ title: '종목 정보가 없습니다.', color: 'error' })
+    return
+  }
   
   saving.value = true
   try {
@@ -143,20 +146,35 @@ const handleSave = async () => {
       .map(w => w.group_id)
     
     // 추가해야 할 그룹
-    const toAdd = selectedGroupIds.value.filter(id => !currentGroups.includes(id))
-    // 제거해야 할 그룹
-    const toRemove = currentGroups.filter(id => !selectedGroupIds.value.includes(id))
+    const toAdd = selectedGroupIds.value.filter(id => id !== null && !currentGroups.includes(id))
+    // 제거해야 할 그룹 (null 포함 기존 항목들 모두 체크)
+    const toRemove = currentGroups.filter(id => !selectedGroupIds.value.includes(id as any))
     
     // 순차적으로 처리하여 낙관적 업데이트 충돌 방지
     for (const groupId of toAdd) {
       await toggleHeart(props.stockId!, groupId)
     }
     for (const groupId of toRemove) {
-      await toggleHeart(props.stockId!, groupId)
+      // groupId가 null인 경우 toggleHeart 내부에서 기본 그룹으로 매핑되거나 처리됨
+      // 여기서는 명확히 해당 항목을 제거하기 위해 toggleHeart를 호출
+      await toggleHeart(props.stockId!, groupId as any)
     }
+    
+    toast.add({
+      title: '변경사항이 저장되었습니다',
+      color: 'primary',
+      icon: 'i-heroicons-check-circle'
+    })
     
     emit('success')
     emit('update:open', false)
+  } catch (err: any) {
+    console.error('[WishlistGroupModal] Save failed:', err)
+    toast.add({
+      title: '저장에 실패했습니다',
+      description: err.message,
+      color: 'error'
+    })
   } finally {
     saving.value = false
   }

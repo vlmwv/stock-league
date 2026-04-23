@@ -580,7 +580,7 @@ export const useStock = () => {
       .single()
 
     if (!error && data) {
-      wishlistGroups.value.push(data as any)
+      wishlistGroups.value = [...wishlistGroups.value, data as any]
       toast.add({
         title: '새 폴더가 생성되었어요',
         color: 'primary',
@@ -749,8 +749,13 @@ export const useStock = () => {
     if (!targetGroupId) {
       if (wishlistGroups.value.length === 0) {
         await fetchWishlistGroups()
+        if (wishlistGroups.value.length === 0) {
+           // 그래도 없으면 생성 시도
+           const res = await createWishlistGroup('기본 폴더')
+           if (res.success) targetGroupId = res.data.id
+        }
       }
-      targetGroupId = wishlistGroups.value[0]?.id
+      if (!targetGroupId) targetGroupId = wishlistGroups.value[0]?.id
     }
 
     if (!targetGroupId) {
