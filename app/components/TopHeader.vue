@@ -140,15 +140,13 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isScrolled = ref(false)
-const userStats = ref<any>(null)
-
-
 const { 
   notifications, 
   fetchEconomicIndicators, 
   fetchUserStats, 
   isGuideOpen, 
-  refreshRecommended 
+  refreshRecommended,
+  currentUserProfile: userStats
 } = useStock()
 
 const hasNewNotifications = computed(() => notifications.value && notifications.value.length > 0)
@@ -174,8 +172,8 @@ onMounted(async () => {
   ])
   
   if (user.value) {
-    userStats.value = await fetchUserStats()
-    if (userStats.value) role.value = userStats.value.role
+    const stats = await fetchUserStats()
+    if (stats) role.value = stats.role
   }
 
   window.addEventListener('scroll', () => {

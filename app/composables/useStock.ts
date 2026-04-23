@@ -998,12 +998,12 @@ export const useStock = () => {
 
     return results.map((r, i) => ({ ...r, rank: i + 1 }))
   }
+  const currentUserProfile = useState<any | null>('current_user_profile', () => null)
 
   const fetchUserStats = async () => {
     const userId = await resolveUserId()
     if (!userId) return null
 
-    // 1. Get points and profile
     let { data: profile, error: profileError } = await client
       .from('profiles')
       .select('username, full_name, display_name_type, email, avatar_url, points, role, gender')
@@ -1078,7 +1078,7 @@ export const useStock = () => {
       }
     }
 
-    return {
+    const stats = {
       username: (profile as any)?.username,
       fullName: (profile as any)?.full_name,
       displayNameType: (profile as any)?.display_name_type || 'nickname',
@@ -1093,6 +1093,9 @@ export const useStock = () => {
       totalGames,
       streak
     }
+    
+    currentUserProfile.value = stats
+    return stats
   }
 
   const updateProfile = async (updates: { username?: string, fullName?: string, gender?: string | null, avatarUrl?: string | null, displayNameType?: 'nickname' | 'full_name' }) => {
@@ -1116,6 +1119,10 @@ export const useStock = () => {
       console.error('Error updating profile:', error)
       return { success: false, message: '프로필 수정에 실패했습니다.' }
     }
+
+    // 성공 시 전역 상태 즉시 갱신
+    await fetchUserStats()
+    
     return { success: true }
   }
 
@@ -1545,6 +1552,7 @@ export const useStock = () => {
     hearts,
     myPredictions,
     wishlistStocks,
+    currentUserProfile,
     participantCount,
     totalMemberCount,
     refresh,
