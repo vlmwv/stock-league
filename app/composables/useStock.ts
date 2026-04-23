@@ -767,18 +767,13 @@ export const useStock = () => {
     const id = Number(stockId)
     if (isNaN(id)) return
 
-    // 만약 groupId가 없으면 기본 그룹을 찾음 (그룹 기능 지원 시)
+    // groupId가 undefined인 경우에만 기본 폴더를 찾음. null은 '폴더 없음'으로 명시적 처리.
     let targetGroupId = groupId
-    if (isWishlistGroupsSupported.value && !targetGroupId) {
+    if (targetGroupId === undefined) {
       if (wishlistGroups.value.length === 0) {
         await fetchWishlistGroups()
-        if (isWishlistGroupsSupported.value && wishlistGroups.value.length === 0) {
-           // 그래도 없으면 생성 시도
-           const res = await createWishlistGroup('기본 폴더')
-           if (res.success) targetGroupId = res.data.id
-        }
       }
-      if (!targetGroupId) targetGroupId = wishlistGroups.value[0]?.id
+      targetGroupId = wishlistGroups.value[0]?.id || null
     }
 
     const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && w.group_id === targetGroupId)
@@ -790,18 +785,21 @@ export const useStock = () => {
     if (isCurrentlyHeartedInGroup) {
       wishlistsWithGroups.value = wishlistsWithGroups.value.filter((_, i) => i !== itemIdx)
     } else {
-      wishlistsWithGroups.value = [...wishlistsWithGroups.value, { stock_id: id, group_id: targetGroupId || null }]
+      wishlistsWithGroups.value = [...wishlistsWithGroups.value, { stock_id: id, group_id: targetGroupId }]
     }
     hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
 
     try {
       if (isCurrentlyHeartedInGroup) {
         let query = client.from('wishlists').delete().eq('user_id', userId).eq('stock_id', id)
-        if (targetGroupId) {
+        
+        if (targetGroupId === null) {
+          query = query.is('group_id', null)
+        } else {
           query = query.eq('group_id', targetGroupId)
         }
-        const { error } = await query
         
+        const { error } = await query
         if (error) throw error
         
         toast.add({
@@ -810,14 +808,11 @@ export const useStock = () => {
           icon: 'i-heroicons-heart'
         })
       } else {
-        const payload: any = { user_id: userId, stock_id: id }
-        if (targetGroupId) {
-          payload.group_id = targetGroupId
-        }
+        const payload: any = { user_id: userId, stock_id: id, group_id: targetGroupId }
         
         const { error } = await client
           .from('wishlists')
-          .insert(payload) as any
+          .insert(payload)
         
         if (error && error.code !== '23505') throw error
         
