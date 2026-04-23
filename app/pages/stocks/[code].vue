@@ -29,15 +29,19 @@
         <header class="flex items-center gap-4">
           <StockIcon :code="stock.code" :name="stock.name" size="lg" class="shadow-lg border border-white/5 flex-shrink-0" />
           <div class="flex-1 min-w-0">
-            <!-- 1행: 종목명과 현재가 -->
-            <div class="flex items-center justify-between gap-2 mb-1">
-              <h1 class="text-xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
+            <!-- 1행: 종목명, 종목코드, 현재가 -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-baseline gap-2 min-w-0">
+                <h1 class="text-xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
+                <span class="text-xs font-bold text-slate-500 flex-shrink-0">{{ stock.code }}</span>
+              </div>
               <div class="text-xl font-black text-slate-100 whitespace-nowrap">{{ stock.last_price?.toLocaleString() }}</div>
             </div>
             
-            <!-- 2행: 추천수, 종목코드, 시장, 변동정보 -->
-            <div class="flex items-center justify-between text-[11px] font-bold">
+            <!-- 2행: 코스피/코스닥, 추천수, 금일변동금액(비율) -->
+            <div class="flex items-center justify-between text-[11px] font-bold mt-1">
               <div class="flex items-center gap-2">
+                <span class="text-slate-500">{{ stock.sector || 'KOSPI' }}</span>
                 <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-brand-primary">
                   <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5" />
                   <span>{{ stock.ai_recommendation_count }}회 추천</span>
@@ -47,13 +51,9 @@
                 </button>
               </div>
               
-              <div class="flex items-center gap-2">
-                <span class="text-slate-500">{{ stock.code }}</span>
-                <span class="text-slate-500">{{ stock.sector || 'KOSPI' }}</span>
-                <div :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'" class="whitespace-nowrap">
-                  {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }} 
-                  ({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)
-                </div>
+              <div :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'" class="whitespace-nowrap">
+                {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }} 
+                ({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)
               </div>
             </div>
           </div>
