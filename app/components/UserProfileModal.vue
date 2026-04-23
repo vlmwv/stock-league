@@ -89,7 +89,7 @@
                         <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-8 h-8 text-slate-600" />
                         
                         <!-- Upload Overlay -->
-                        <div @click="fileInput?.click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <div v-if="imageSource === 'upload' || !previewUrl" @click="fileInput?.click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                           <UIcon v-if="!uploading" name="i-heroicons-camera" class="w-6 h-6 text-white" />
                           <UIcon v-else name="i-heroicons-arrow-path" class="w-6 h-6 text-white animate-spin" />
                         </div>
@@ -101,11 +101,12 @@
                     </div>
 
                     <!-- Source Selection -->
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-3 gap-2">
                       <button 
                         v-for="s in [
                           { value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' },
-                          { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' }
+                          { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' },
+                          { value: 'default', label: '기본 이미지', icon: 'i-heroicons-no-symbol' }
                         ]"
                         :key="s.value"
                         @click="handleSourceChange(s.value as any)"
@@ -196,25 +197,28 @@ const fullName = ref('')
 const displayNameType = ref<'nickname' | 'full_name'>('nickname')
 const gender = ref('none')
 const useAvatar = ref(true)
-const imageSource = ref<'sns' | 'upload'>('sns')
+const imageSource = ref<'sns' | 'upload' | 'default'>('sns')
 const uploadUrl = ref('')
 const uploading = ref(false)
 const saving = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const previewUrl = computed(() => {
+  if (!useAvatar.value || imageSource.value === 'default') return ''
   if (imageSource.value === 'sns') return user.value?.user_metadata?.avatar_url || ''
   if (imageSource.value === 'upload') return uploadUrl.value
   return ''
 })
 
 const sourceLabel = computed(() => {
+  if (!useAvatar.value || imageSource.value === 'default') return '기본 아이콘 사용 중'
   if (imageSource.value === 'sns') return 'SNS 프로필 사용 중'
   if (imageSource.value === 'upload') return '직접 업로드 이미지 사용 중'
   return '기본 아이콘 사용 중'
 })
 
 const sourceDescription = computed(() => {
+  if (!useAvatar.value || imageSource.value === 'default') return '성별에 따른 기본 아이콘을 보여줍니다.'
   if (imageSource.value === 'sns') return '가입하신 서비스의 이미지를 보여줍니다.'
   if (imageSource.value === 'upload') return '직접 업로드하신 이미지를 보여줍니다.'
   return '성별에 따른 기본 아이콘을 보여줍니다.'
@@ -233,7 +237,7 @@ watch(() => props.open, (val) => {
     
     if (!current) {
       useAvatar.value = false
-      imageSource.value = 'sns' // 기본값
+      imageSource.value = 'default'
     } else {
       useAvatar.value = true
       if (sns && current === sns) {
@@ -246,7 +250,7 @@ watch(() => props.open, (val) => {
   }
 })
 
-const handleSourceChange = (source: 'sns' | 'upload') => {
+const handleSourceChange = (source: 'sns' | 'upload' | 'default') => {
   if (source === 'upload' && !uploadUrl.value) {
     fileInput.value?.click()
     return
@@ -267,14 +271,20 @@ const handleFileUpload = async (e: Event) => {
   uploading.value = true
   try {
     const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}.${fileExt}`
+    const fileName = `avatar_${Date.now()}.${fileExt}`
     const filePath = `${user.value!.id}/${fileName}`
 
-    const { error: uploadError } = await client.storage
+    const { data, error: uploadError } = await client.storage
       .from('avatars')
-      .upload(filePath, file)
+      .upload(filePath, file, {
+        upsert: true,
+        cacheControl: '3600'
+      })
 
-    if (uploadError) throw uploadError
+    if (uploadError) {
+      console.error('Upload error details:', uploadError)
+      throw new Error(`업로드 실패: ${uploadError.message}`)
+    }
 
     const { data: { publicUrl } } = client.storage
       .from('avatars')
@@ -282,8 +292,10 @@ const handleFileUpload = async (e: Event) => {
 
     uploadUrl.value = publicUrl
     imageSource.value = 'upload'
+    useAvatar.value = true
     toast.add({ title: '이미지가 업로드되었습니다.', color: 'primary' })
   } catch (err: any) {
+    console.error('Final catch error:', err)
     toast.add({ 
       title: '업로드 실패', 
       description: err.message || '오류가 발생했습니다.', 
@@ -291,6 +303,7 @@ const handleFileUpload = async (e: Event) => {
     })
   } finally {
     uploading.value = false
+    if (fileInput.value) fileInput.value.value = ''
   }
 }
 
@@ -304,7 +317,7 @@ const handleUpdateProfile = async () => {
   saving.value = true
   
   let finalAvatarUrl: string | null = null
-  if (useAvatar.value) {
+  if (useAvatar.value && imageSource.value !== 'default') {
     if (imageSource.value === 'sns') {
       finalAvatarUrl = user.value?.user_metadata?.avatar_url || null
     } else if (imageSource.value === 'upload') {
