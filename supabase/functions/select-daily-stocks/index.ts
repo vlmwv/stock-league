@@ -70,6 +70,7 @@ function buildFallbackAnalysis(
  * Gemini를 사용하여 종목 요약 및 추천 점수 산출
  */
 async function analyzeStockWithGemini(
+  stockId: number,
   newsItems: any[], 
   priceHistory: any[],
   stockCode: string,
@@ -85,7 +86,7 @@ async function analyzeStockWithGemini(
   console.log(`Analyzing ${stockName} with Gemini (Key exists: ${!!GEMINI_API_KEY})`)
 
   const newsSummary = newsItems.length > 0 
-    ? newsItems.map(item => `- ${item.tit}`).join('\n')
+    ? newsItems.map(item => `- ${item.title || item.titleFull || '제목 없음'}`).join('\n')
     : '최근 주요 뉴스 없음'
 
   const priceSummary = priceHistory.length > 0
@@ -185,9 +186,16 @@ ${newsSummary}
     let parsed: any = {}
     try {
       parsed = JSON.parse(resultText)
-    } catch (e) {
-      console.error('JSON Parse Error:', resultText)
-      parsed = {}
+    } catch (err: any) {
+      console.error(`Failed to parse Gemini response for ${stockName}:`, err)
+      await supabase.from('ai_analysis_logs').insert({
+        stock_id: stockId,
+        game_date: targetDate,
+        status: 'fail',
+        error_message: `Parse Error: ${err.message}`,
+        response_raw: resultText
+      });
+      return buildFallbackAnalysis(stockName, newsItems, priceHistory)
     }
 
     const fallback = buildFallbackAnalysis(stockName, newsItems, priceHistory)
@@ -373,13 +381,20 @@ Deno.serve(async (req: any) => {
         ])
         
         priceHistory = historyRes.data || []
-        if (newsRes && newsRes.ok) newsItems = (await newsRes.json())?.items || []
+        if (newsRes && newsRes.ok) {
+          const newsData = await newsRes.json()
+          // Naver News API returns an array of sections, each containing items
+          newsItems = Array.isArray(newsData) 
+            ? newsData.flatMap(section => section.items || []) 
+            : (newsData?.items || [])
+        }
 
         const analysis = await analyzeStockWithGemini(
+          stock.id,
           newsItems, 
           priceHistory,
           stock.code,
-          stock.name, 
+          stock.name,
           stock.sector, 
           marketContext,
           targetDateStr
