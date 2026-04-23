@@ -147,11 +147,13 @@ const handleSave = async () => {
     // 제거해야 할 그룹
     const toRemove = currentGroups.filter(id => !selectedGroupIds.value.includes(id))
     
-    // 병렬로 처리
-    await Promise.all([
-      ...toAdd.map(groupId => toggleHeart(props.stockId!, groupId)),
-      ...toRemove.map(groupId => toggleHeart(props.stockId!, groupId))
-    ])
+    // 순차적으로 처리하여 낙관적 업데이트 충돌 방지
+    for (const groupId of toAdd) {
+      await toggleHeart(props.stockId!, groupId)
+    }
+    for (const groupId of toRemove) {
+      await toggleHeart(props.stockId!, groupId)
+    }
     
     emit('success')
     emit('update:open', false)

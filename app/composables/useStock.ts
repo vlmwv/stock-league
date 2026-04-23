@@ -197,7 +197,7 @@ export const useStock = () => {
     
     // Fallback: If no future data, fetch latest available stock data
     if (!error && (!data || data.length === 0)) {
-      console.log(`No daily stocks found for ${today}, fetching latest available...`)
+      console.log(`[useStock] No daily stocks found for ${targetDate}, fetching latest available...`)
       const { data: latestDateData } = await client
         .from('daily_stocks')
         .select('game_date')
@@ -207,7 +207,9 @@ export const useStock = () => {
       const latestDateItem = (latestDateData as any)?.[0]
       if (latestDateItem && latestDateItem.game_date) {
         const latestDate = latestDateItem.game_date
-        let q = client
+        console.log(`[useStock] Found latest available date: ${latestDate}`)
+        
+        const q = client
           .from('daily_stocks')
           .select(`
             id,
@@ -215,6 +217,9 @@ export const useStock = () => {
             llm_summary,
             ai_score,
             ai_result,
+            target_price,
+            target_date,
+            status,
             stocks (
               id,
               code,
@@ -228,6 +233,7 @@ export const useStock = () => {
             )
           `)
           .eq('game_date', latestDate)
+          .neq('status', 'withdrawn')
         
         let { data: fallbackData, error: fallbackError } = await q
         
@@ -239,6 +245,8 @@ export const useStock = () => {
               game_date,
               llm_summary,
               ai_score,
+              target_price,
+              target_date,
               stocks (
                 id,
                 code,
@@ -399,17 +407,7 @@ export const useStock = () => {
   })
 
   const dailyStocks = computed(() => {
-    if (stocks.value && stocks.value.length > 0) {
-      return stocks.value
-    }
-    const today = getKstDate()
-    return [
-      { id: 1, daily_id: 1, game_date: today, name: '삼성전자(MOCK)', code: '005930', last_price: 72500, change_amount: 1200, change_rate: 1.68, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 2, daily_id: 2, game_date: today, name: 'SK하이닉스(MOCK)', code: '000660', last_price: 142000, change_amount: -500, change_rate: -0.35, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 3, daily_id: 3, game_date: today, name: 'LG에너지솔루션(MOCK)', code: '373220', last_price: 385000, change_amount: 0, change_rate: 0.0, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 4, daily_id: 4, game_date: today, name: 'NAVER(MOCK)', code: '035420', last_price: 198000, change_amount: 4500, change_rate: 2.33, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' },
-      { id: 5, daily_id: 5, game_date: today, name: '카카오(MOCK)', code: '035720', last_price: 48000, change_amount: -200, change_rate: -0.42, ai_recommendation_count: 0, ai_score: 0, summary: 'DB 데이터가 없거나 로드 전입니다.' }
-    ]
+    return stocks.value || []
   })
 
   const hearts = useState<number[]>('wishlist', () => [])
@@ -570,6 +568,9 @@ export const useStock = () => {
 
     if (!error && data) {
       wishlistGroups.value = data as any
+      console.log('[useStock] Wishlist groups fetched:', wishlistGroups.value)
+    } else if (error) {
+      console.error('[useStock] fetchWishlistGroups error:', error)
     }
   }
 
@@ -585,8 +586,21 @@ export const useStock = () => {
 
     if (!error && data) {
       wishlistGroups.value.push(data as any)
+      toast.add({
+        title: '새 폴더가 생성되었어요',
+        color: 'primary',
+        icon: 'i-heroicons-folder-plus'
+      })
       return { success: true, data: data as any }
     }
+
+    console.error('[useStock] createWishlistGroup error:', error)
+    toast.add({
+      title: '폴더 생성에 실패했습니다',
+      description: error?.message || '알 수 없는 오류가 발생했습니다.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
+    })
     return { success: false, error }
   }
 
@@ -598,11 +612,24 @@ export const useStock = () => {
 
     if (!error) {
       wishlistGroups.value = wishlistGroups.value.filter(g => g.id !== groupId)
-      // 해당 그룹에 속해 있던 찜 항목들도 상태에서 업데이트
       wishlistsWithGroups.value = wishlistsWithGroups.value.filter(w => w.group_id !== groupId)
       hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+      
+      toast.add({
+        title: '폴더를 삭제했습니다',
+        color: 'neutral',
+        icon: 'i-heroicons-trash'
+      })
       return { success: true }
     }
+
+    console.error('[useStock] deleteWishlistGroup error:', error)
+    toast.add({
+      title: '폴더 삭제에 실패했습니다',
+      description: error?.message || '알 수 없는 오류가 발생했습니다.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
+    })
     return { success: false, error }
   }
 
@@ -615,8 +642,20 @@ export const useStock = () => {
     if (!error) {
       const idx = wishlistGroups.value.findIndex(g => g.id === groupId)
       if (idx > -1) wishlistGroups.value[idx].name = name
+      toast.add({
+        title: '폴더 이름을 변경했습니다',
+        color: 'primary',
+        icon: 'i-heroicons-pencil-square'
+      })
       return { success: true }
     }
+
+    console.error('[useStock] updateWishlistGroup error:', error)
+    toast.add({
+      title: '폴더 이름 변경에 실패했습니다',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
+    })
     return { success: false, error }
   }
 
@@ -639,7 +678,14 @@ export const useStock = () => {
       // 1. 그룹 목록 먼저 가져오기
       await fetchWishlistGroups()
 
-      // 2. 찜 항목 가져오기
+      // 만약 그룹이 하나도 없다면 (트리거 실패 등의 경우), 기본 폴더 하나 생성 시도
+      if (wishlistGroups.value.length === 0) {
+        console.warn('[useStock] No wishlist groups found, attempting to create default...')
+        const result = await createWishlistGroup('기본 폴더')
+        if (!result.success) {
+          console.error('[useStock] Failed to create default wishlist group:', result.error)
+        }
+      }
       const { data, error } = await client
         .from('wishlists')
         .select('stock_id, group_id')
@@ -648,9 +694,8 @@ export const useStock = () => {
       if (!error && data) {
         wishlistsWithGroups.value = data.map((w: any) => ({
           stock_id: Number(w.stock_id),
-          group_id: Number(w.group_id)
+          group_id: w.group_id ? Number(w.group_id) : null // null 허용 (이전 버전 호환성)
         }))
-        // hearts는 중복 제거된 stock_id 목록
         hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
         console.log('[useStock] Wishlist fetched:', wishlistsWithGroups.value)
       } else if (error) {
@@ -714,8 +759,13 @@ export const useStock = () => {
     }
 
     if (!targetGroupId) {
-       // 여전히 없으면 에러 (기본 그룹이 보장되어야 함)
        console.error('[useStock] No wishlist group available')
+       toast.add({
+         title: '찜하기 폴더를 찾을 수 없습니다',
+         description: '기본 폴더가 생성되지 않았거나 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+         color: 'warning',
+         icon: 'i-heroicons-exclamation-circle'
+       })
        return
     }
 

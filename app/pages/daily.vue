@@ -26,8 +26,47 @@
         </p>
       </header>
 
+      <!-- Loading State -->
+      <section v-if="pending && dailyStocks.length === 0" class="space-y-4">
+        <div v-for="i in 3" :key="i" class="glass-dark rounded-3xl p-6 border border-white/5 animate-pulse">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex gap-4 flex-1">
+              <div class="w-12 h-12 rounded-2xl bg-white/5"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 w-16 bg-white/5 rounded"></div>
+                <div class="h-6 w-32 bg-white/5 rounded"></div>
+              </div>
+            </div>
+            <div class="w-16 h-8 bg-white/5 rounded-lg"></div>
+          </div>
+          <div class="h-16 w-full bg-white/5 rounded-2xl mb-6"></div>
+          <div class="flex gap-3">
+            <div class="flex-1 h-14 rounded-2xl bg-white/5"></div>
+            <div class="flex-1 h-14 rounded-2xl bg-white/5"></div>
+            <div class="w-12 h-12 rounded-2xl bg-white/5"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Empty State -->
+      <section v-else-if="!pending && dailyStocks.length === 0" class="flex flex-col items-center justify-center py-20 px-4 text-center">
+        <div class="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mb-6 border border-white/5">
+          <UIcon name="i-heroicons-face-frown" class="w-10 h-10 text-slate-500" />
+        </div>
+        <h3 class="text-xl font-black text-slate-100 mb-2">데이터가 없습니다</h3>
+        <p class="text-sm text-slate-500 leading-relaxed mb-8">
+          리그 데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해 주세요.
+        </p>
+        <button 
+          @click="refresh"
+          class="px-6 py-3 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+        >
+          다시 시도하기
+        </button>
+      </section>
+
       <!-- Stock List -->
-      <section class="space-y-4">
+      <section v-else class="space-y-4">
         <div 
           v-for="stock in dailyStocks" 
           :key="stock.id"
@@ -172,7 +211,7 @@
 
           <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
             <span class="px-4 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-black text-slate-400 uppercase tracking-widest shadow-2xl">
-              {{ (getKstDate() === stock.game_date && getKstTimeVal() >= 2120) ? '내일 종목 준비 중' : '응모 마감' }}
+              {{ (getKstDate() === (stock as any).game_date && getKstTimeVal() >= 2120) ? '내일 종목 준비 중' : '응모 마감' }}
             </span>
           </div>
 
@@ -204,6 +243,7 @@ const {
   hearts, 
   myPredictions, 
   refresh, 
+  pending,
   fetchWishlist, 
   fetchPredictions, 
   toggleHeart, 

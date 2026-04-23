@@ -75,49 +75,55 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 설정</label>
-                <div class="space-y-4">
-                  <!-- Preview -->
-                  <div class="flex items-center gap-4 bg-slate-800/30 border border-white/5 rounded-2xl p-4">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center relative group">
-                      <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
-                      <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-8 h-8 text-slate-600" />
-                      
-                      <!-- Upload Overlay -->
-                      <div @click="fileInput?.click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                        <UIcon v-if="!uploading" name="i-heroicons-camera" class="w-6 h-6 text-white" />
-                        <UIcon v-else name="i-heroicons-arrow-path" class="w-6 h-6 text-white animate-spin" />
+                <div class="flex items-center justify-between mb-3 ml-1">
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">프로필 이미지 노출 여부</label>
+                  <UToggle v-model="useAvatar" color="primary" />
+                </div>
+                
+                <Transition name="fade">
+                  <div v-if="useAvatar" class="space-y-4 mt-4">
+                    <!-- Preview -->
+                    <div class="flex items-center gap-4 bg-slate-800/30 border border-white/5 rounded-2xl p-4">
+                      <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center relative group">
+                        <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-cover" />
+                        <UIcon v-else :name="gender === 'female' ? 'i-mdi-gender-female' : gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-8 h-8 text-slate-600" />
+                        
+                        <!-- Upload Overlay -->
+                        <div @click="fileInput?.click()" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          <UIcon v-if="!uploading" name="i-heroicons-camera" class="w-6 h-6 text-white" />
+                          <UIcon v-else name="i-heroicons-arrow-path" class="w-6 h-6 text-white animate-spin" />
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-200">{{ sourceLabel }}</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">{{ sourceDescription }}</p>
                       </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs font-bold text-slate-200">{{ sourceLabel }}</p>
-                      <p class="text-[10px] text-slate-500 font-medium mt-0.5">{{ sourceDescription }}</p>
+
+                    <!-- Source Selection -->
+                    <div class="grid grid-cols-2 gap-2">
+                      <button 
+                        v-for="s in [
+                          { value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' },
+                          { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' }
+                        ]"
+                        :key="s.value"
+                        @click="handleSourceChange(s.value as any)"
+                        type="button"
+                        class="h-14 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1"
+                        :class="imageSource === s.value 
+                          ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
+                          : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
+                      >
+                        <UIcon :name="s.icon" class="w-5 h-5" />
+                        <span class="text-[10px] font-bold">{{ s.label }}</span>
+                      </button>
                     </div>
                   </div>
-
-                  <!-- Source Selection -->
-                  <div class="grid grid-cols-3 gap-2">
-                    <button 
-                      v-for="s in [
-                        { value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' },
-                        { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' },
-                        { value: 'default', label: '기본 이미지', icon: 'i-heroicons-no-symbol' }
-                      ]"
-                      :key="s.value"
-                      @click="handleSourceChange(s.value as any)"
-                      type="button"
-                      class="h-14 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1"
-                      :class="imageSource === s.value 
-                        ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
-                        : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
-                    >
-                      <UIcon :name="s.icon" class="w-5 h-5" />
-                      <span class="text-[10px] font-bold">{{ s.label }}</span>
-                    </button>
-                  </div>
-                  
-                  <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileUpload" />
-                </div>
+                </Transition>
+                
+                <!-- Hidden inputs -->
+                <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileUpload" />
               </div>
 
               <div>
@@ -189,7 +195,8 @@ const username = ref('')
 const fullName = ref('')
 const displayNameType = ref<'nickname' | 'full_name'>('nickname')
 const gender = ref('none')
-const imageSource = ref<'sns' | 'upload' | 'default'>('sns')
+const useAvatar = ref(true)
+const imageSource = ref<'sns' | 'upload'>('sns')
 const uploadUrl = ref('')
 const uploading = ref(false)
 const saving = ref(false)
@@ -225,17 +232,21 @@ watch(() => props.open, (val) => {
     const sns = user.value?.user_metadata?.avatar_url
     
     if (!current) {
-      imageSource.value = 'default'
-    } else if (sns && current === sns) {
-      imageSource.value = 'sns'
+      useAvatar.value = false
+      imageSource.value = 'sns' // 기본값
     } else {
-      imageSource.value = 'upload'
-      uploadUrl.value = current
+      useAvatar.value = true
+      if (sns && current === sns) {
+        imageSource.value = 'sns'
+      } else {
+        imageSource.value = 'upload'
+        uploadUrl.value = current
+      }
     }
   }
 })
 
-const handleSourceChange = (source: 'sns' | 'upload' | 'default') => {
+const handleSourceChange = (source: 'sns' | 'upload') => {
   if (source === 'upload' && !uploadUrl.value) {
     fileInput.value?.click()
     return
@@ -293,10 +304,12 @@ const handleUpdateProfile = async () => {
   saving.value = true
   
   let finalAvatarUrl: string | null = null
-  if (imageSource.value === 'sns') {
-    finalAvatarUrl = user.value?.user_metadata?.avatar_url || null
-  } else if (imageSource.value === 'upload') {
-    finalAvatarUrl = uploadUrl.value
+  if (useAvatar.value) {
+    if (imageSource.value === 'sns') {
+      finalAvatarUrl = user.value?.user_metadata?.avatar_url || null
+    } else if (imageSource.value === 'upload') {
+      finalAvatarUrl = uploadUrl.value
+    }
   }
 
   const result = await updateProfile({
