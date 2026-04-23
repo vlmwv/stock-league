@@ -362,12 +362,13 @@ Deno.serve(async (req: any) => {
       }
     }
 
-    // 3. 종목별 분석 및 점수 산출 (병렬 처리로 속도 개선)
-    console.log('Analyzing candidates with Gemini in parallel...')
+    // 3. 종목별 분석 및 점수 산출 (안정성을 위해 순차 처리)
+    console.log('Analyzing candidates with Gemini...')
     const analysisTargetCount = Math.min(Math.max(5, filteredStocks.length), 6)
     const stocksToAnalyze = filteredStocks.slice(0, analysisTargetCount)
     
-    const analysisResults = await Promise.all(stocksToAnalyze.map(async (stock) => {
+    const scoredStocks: any[] = []
+    for (const stock of stocksToAnalyze) {
       try {
         console.log(`Starting analysis for ${stock.name}...`)
         const newsUrl = `https://m.stock.naver.com/api/news/stock/${stock.code}?pageSize=3`
@@ -375,24 +376,26 @@ Deno.serve(async (req: any) => {
         let newsItems = []
         let priceHistory: any[] = []
 
-        // 데이터 가져오기 (병렬)
-        const [historyRes, newsRes] = await Promise.all([
-          supabase
-            .from('stock_price_history')
-            .select('price_date, close_price, change_rate, volume')
-            .eq('stock_id', stock.id)
-            .order('price_date', { ascending: false })
-            .limit(20),
-          fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) }).catch(() => null)
-        ])
+        // 데이터 가져오기
+        const { data: historyData } = await supabase
+          .from('stock_price_history')
+          .select('price_date, close_price, change_rate, volume')
+          .eq('stock_id', stock.id)
+          .order('price_date', { ascending: false })
+          .limit(20)
         
-        priceHistory = historyRes.data || []
-        if (newsRes && newsRes.ok) {
-          const newsData = await newsRes.json()
-          // Naver News API returns an array of sections, each containing items
-          newsItems = Array.isArray(newsData) 
-            ? newsData.flatMap(section => section.items || []) 
-            : (newsData?.items || [])
+        priceHistory = historyData || []
+        
+        try {
+          const newsRes = await fetch(newsUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(2500) })
+          if (newsRes.ok) {
+            const newsData = await newsRes.json()
+            newsItems = Array.isArray(newsData) 
+              ? newsData.flatMap(section => section.items || []) 
+              : (newsData?.items || [])
+          }
+        } catch (e) {
+          console.warn(`Failed to fetch news for ${stock.name}`)
         }
 
         const analysis = await analyzeStockWithGemini(
@@ -406,14 +409,14 @@ Deno.serve(async (req: any) => {
           targetDateStr
         )
         
-        return { ...stock, ...analysis }
+        scoredStocks.push({ ...stock, ...analysis })
+        
+        // Rate Limit 방지를 위한 짧은 지연
+        await new Promise(resolve => setTimeout(resolve, 1000))
       } catch (err: any) {
         console.warn(`Failed to analyze ${stock.name}:`, err.message)
-        return null
       }
-    }))
-
-    const scoredStocks = analysisResults.filter(s => s !== null) as any[]
+    }
 
     // 4. 점수 높은 순으로 정렬 후 상위 5개 선정
     scoredStocks.sort((a, b) => b.score - a.score)
