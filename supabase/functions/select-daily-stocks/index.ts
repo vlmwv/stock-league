@@ -81,6 +81,12 @@ async function analyzeStockWithGemini(
 ): Promise<{ summary: string, score: number, reasoning: string, target_price: number | null, target_date: string | null }> {
   if (!GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY is missing in Edge Function environment!')
+    await supabase.from('ai_analysis_logs').insert({
+      stock_id: stockId,
+      game_date: targetDate,
+      status: 'fail',
+      error_message: 'GEMINI_API_KEY is missing'
+    });
     return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
   console.log(`Analyzing ${stockName} with Gemini (Key exists: ${!!GEMINI_API_KEY})`)
