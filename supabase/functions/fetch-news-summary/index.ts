@@ -10,7 +10,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 // Gemini API를 이용한 뉴스, 공시, IR 통합 요약 함수
 async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosureItems: any[], irItems: any[], stockName: string): Promise<{ title: string, summary: string }> {
   if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is not set')
+    throw new Error('GEMINI_API_KEY_2 is not set in Supabase Secrets')
   }
 
   const primaryItem = irItems[0] || disclosureItems[0] || newsItems[0]

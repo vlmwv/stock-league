@@ -6,6 +6,10 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY_1') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
+if (!GEMINI_API_KEY) {
+  console.error('GEMINI_API_KEY_1 is not set in Supabase Secrets')
+}
+
 /**
  * 시장 지수(KOSPI, KOSDAQ) 정보 수집
  */

@@ -7,6 +7,9 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY_2') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 Deno.serve(async (req) => {
+  if (!GEMINI_API_KEY) {
+    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY_2 is not set in Supabase Secrets' }), { status: 500 })
+  }
   try {
     const { daily_stock_id } = await req.json()
     if (!daily_stock_id) {
