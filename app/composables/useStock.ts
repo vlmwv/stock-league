@@ -413,6 +413,7 @@ export const useStock = () => {
   const hearts = useState<number[]>('wishlist', () => [])
   const wishlistGroups = useState<WishlistGroup[]>('wishlistGroups', () => [])
   const wishlistsWithGroups = useState<WishlistItem[]>('wishlistsWithGroups', () => [])
+  const isWishlistGroupsSupported = useState<boolean>('isWishlistGroupsSupported', () => true)
   const myPredictions = useState<{ stockId: number, prediction: 'up' | 'down', result?: 'win' | 'lose' | 'draw' | 'pending' }[]>('myPredictions', () => [])
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
@@ -563,13 +564,21 @@ export const useStock = () => {
 
     if (!error && data) {
       wishlistGroups.value = data as any
+      isWishlistGroupsSupported.value = true
       console.log('[useStock] Wishlist groups fetched:', wishlistGroups.value)
     } else if (error) {
       console.error('[useStock] fetchWishlistGroups error:', error)
+      // 테이블이 없거나 스키마 캐시 오류인 경우 지원 중단 표시
+      if (error.code === 'PGRST205' || error.code === '42P01') {
+        console.warn('[useStock] Wishlist groups not supported by database schema')
+        isWishlistGroupsSupported.value = false
+      }
     }
   }
 
   const createWishlistGroup = async (name: string) => {
+    if (!isWishlistGroupsSupported.value) return { success: false }
+    
     const userId = await resolveUserId()
     if (!userId) return { success: false }
 
@@ -590,6 +599,9 @@ export const useStock = () => {
     }
 
     console.error('[useStock] createWishlistGroup error:', error)
+    if (error?.code === 'PGRST205' || error?.code === '42P01') {
+      isWishlistGroupsSupported.value = false
+    }
     toast.add({
       title: '폴더 생성에 실패했습니다',
       description: error?.message || '알 수 없는 오류가 발생했습니다.',
@@ -600,6 +612,8 @@ export const useStock = () => {
   }
 
   const deleteWishlistGroup = async (groupId: number) => {
+    if (!isWishlistGroupsSupported.value) return { success: false }
+    
     const { error } = await client
       .from('wishlist_groups')
       .delete()
@@ -629,6 +643,8 @@ export const useStock = () => {
   }
 
   const updateWishlistGroup = async (groupId: number, name: string) => {
+    if (!isWishlistGroupsSupported.value) return { success: false }
+    
     const { error } = await client
       .from('wishlist_groups')
       .update({ name } as any)
@@ -670,21 +686,38 @@ export const useStock = () => {
 
     isWishlistFetching.value = true
     try {
-      // 1. 그룹 목록 먼저 가져오기
-      await fetchWishlistGroups()
+      // 1. 그룹 목록 먼저 가져오기 (지원되는 경우에만)
+      if (isWishlistGroupsSupported.value) {
+        await fetchWishlistGroups()
 
-      // 만약 그룹이 하나도 없다면 (트리거 실패 등의 경우), 기본 폴더 하나 생성 시도
-      if (wishlistGroups.value.length === 0) {
-        console.warn('[useStock] No wishlist groups found, attempting to create default...')
-        const result = await createWishlistGroup('기본 폴더')
-        if (!result.success) {
-          console.error('[useStock] Failed to create default wishlist group:', result.error)
+        // 만약 그룹이 하나도 없다면 (트리거 실패 등의 경우), 기본 폴더 하나 생성 시도
+        if (isWishlistGroupsSupported.value && wishlistGroups.value.length === 0) {
+          console.warn('[useStock] No wishlist groups found, attempting to create default...')
+          const result = await createWishlistGroup('기본 폴더')
+          if (!result.success) {
+            console.error('[useStock] Failed to create default wishlist group:', result.error)
+          }
         }
       }
-      const { data, error } = await client
-        .from('wishlists')
-        .select('stock_id, group_id')
-        .eq('user_id', userId)
+
+      // 2. 위시리스트 데이터 가져오기
+      let query = client.from('wishlists').select('stock_id, group_id').eq('user_id', userId)
+      
+      // 그룹 기능이 지원되지 않으면 group_id 제외
+      if (!isWishlistGroupsSupported.value) {
+        query = client.from('wishlists').select('stock_id').eq('user_id', userId)
+      }
+
+      let { data, error } = await query
+      
+      // group_id 컬럼 부재 오류 시 폴백
+      if (error && error.code === '42703') {
+        console.warn('[useStock] group_id column missing in wishlists table, retrying without it...')
+        const fallback = await client.from('wishlists').select('stock_id').eq('user_id', userId)
+        data = fallback.data
+        error = fallback.error
+        isWishlistGroupsSupported.value = false
+      }
       
       if (!error && data) {
         wishlistsWithGroups.value = data.map((w: any) => ({
@@ -735,8 +768,16 @@ export const useStock = () => {
   const toggleHeart = async (stockId: number, groupId?: number) => {
     const userId = await resolveUserId()
     if (!userId) {
-      if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-        navigateTo('/login')
+      if (process.client) {
+        toast.add({
+          title: '로그인이 필요합니다',
+          description: '관심 종목 기능을 이용하려면 로그인해 주세요.',
+          color: 'warning',
+          icon: 'i-heroicons-user'
+        })
+        if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+          navigateTo('/login')
+        }
       }
       return
     }
@@ -744,12 +785,12 @@ export const useStock = () => {
     const id = Number(stockId)
     if (isNaN(id)) return
 
-    // 만약 groupId가 없으면 기본 그룹을 찾음
+    // 만약 groupId가 없으면 기본 그룹을 찾음 (그룹 기능 지원 시)
     let targetGroupId = groupId
-    if (!targetGroupId) {
+    if (isWishlistGroupsSupported.value && !targetGroupId) {
       if (wishlistGroups.value.length === 0) {
         await fetchWishlistGroups()
-        if (wishlistGroups.value.length === 0) {
+        if (isWishlistGroupsSupported.value && wishlistGroups.value.length === 0) {
            // 그래도 없으면 생성 시도
            const res = await createWishlistGroup('기본 폴더')
            if (res.success) targetGroupId = res.data.id
@@ -758,18 +799,7 @@ export const useStock = () => {
       if (!targetGroupId) targetGroupId = wishlistGroups.value[0]?.id
     }
 
-    if (!targetGroupId) {
-       console.error('[useStock] No wishlist group available')
-       toast.add({
-         title: '찜하기 폴더를 찾을 수 없습니다',
-         description: '기본 폴더가 생성되지 않았거나 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
-         color: 'warning',
-         icon: 'i-heroicons-exclamation-circle'
-       })
-       return
-    }
-
-    const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && w.group_id === targetGroupId)
+    const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && (!isWishlistGroupsSupported.value || w.group_id === targetGroupId))
     const isCurrentlyHeartedInGroup = itemIdx > -1
     
     const previousWishlists = [...wishlistsWithGroups.value]
@@ -778,18 +808,17 @@ export const useStock = () => {
     if (isCurrentlyHeartedInGroup) {
       wishlistsWithGroups.value = wishlistsWithGroups.value.filter((_, i) => i !== itemIdx)
     } else {
-      wishlistsWithGroups.value = [...wishlistsWithGroups.value, { stock_id: id, group_id: targetGroupId }]
+      wishlistsWithGroups.value = [...wishlistsWithGroups.value, { stock_id: id, group_id: targetGroupId || null }]
     }
     hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
 
     try {
       if (isCurrentlyHeartedInGroup) {
-        const { error } = await client
-          .from('wishlists')
-          .delete()
-          .eq('user_id', userId)
-          .eq('stock_id', id)
-          .eq('group_id', targetGroupId)
+        let query = client.from('wishlists').delete().eq('user_id', userId).eq('stock_id', id)
+        if (isWishlistGroupsSupported.value && targetGroupId) {
+          query = query.eq('group_id', targetGroupId)
+        }
+        const { error } = await query
         
         if (error) throw error
         
@@ -799,9 +828,14 @@ export const useStock = () => {
           icon: 'i-heroicons-heart'
         })
       } else {
+        const payload: any = { user_id: userId, stock_id: id }
+        if (isWishlistGroupsSupported.value && targetGroupId) {
+          payload.group_id = targetGroupId
+        }
+        
         const { error } = await client
           .from('wishlists')
-          .insert({ user_id: userId, stock_id: id, group_id: targetGroupId } as any) as any
+          .insert(payload) as any
         
         if (error && error.code !== '23505') throw error
         
@@ -818,6 +852,14 @@ export const useStock = () => {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
       wishlistsWithGroups.value = previousWishlists
       hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+      
+      // 만약 group_id 관련 에러라면 지원 중단 처리
+      if (err.code === '42703' || err.code === 'PGRST205' || err.code === '42P01') {
+        isWishlistGroupsSupported.value = false
+        // 재시도 유도 (그룹 없이)
+        return toggleHeart(stockId)
+      }
+
       toast.add({
         title: '찜 상태 변경에 실패했어요',
         color: 'error',
