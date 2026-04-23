@@ -76,21 +76,81 @@
       </div>
 
       <!-- Wishlist Stack -->
-      <div v-else class="space-y-6 mt-4">
-        <StockCard 
-          v-for="(stock, idx) in filteredStocks" 
-          :key="stock.id"
-          :stock="stock"
-          :is-hearted="hearts.includes(Number(stock.id))"
-          :is-league-open="isLeagueOpen"
-          :is-predictable="isLeagueStock(stock.id)"
-          :prediction="getPredictionValue(stock.id)"
-          :is-top="idx === 0"
-          :index="idx"
-          @predict="onPredict"
-          @open-wishlist-modal="handleOpenModal"
-          @cancel-prediction="cancelPrediction"
-        />
+      <div v-else class="space-y-10 mt-4">
+        <!-- 1. 개별 폴더 선택 시 단일 리스트 -->
+        <template v-if="selectedGroupId !== null">
+          <div class="space-y-4">
+            <StockCard 
+              v-for="(stock, idx) in filteredStocks" 
+              :key="stock.id"
+              :stock="stock"
+              :is-hearted="hearts.includes(Number(stock.id))"
+              :is-league-open="isLeagueOpen"
+              :is-predictable="isLeagueStock(stock.id)"
+              :prediction="getPredictionValue(stock.id)"
+              :index="idx"
+              @predict="onPredict"
+              @open-wishlist-modal="handleOpenModal"
+              @cancel-prediction="cancelPrediction"
+            />
+          </div>
+        </template>
+
+        <!-- 2. 전체 보기 시 폴더별 그룹화 리스트 -->
+        <template v-else>
+          <div v-for="group in wishlistGroups" :key="group.id" class="space-y-4">
+            <div v-if="getStocksByGroup(group.id).length > 0" class="flex items-center gap-2 mb-2 px-2">
+              <div class="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400">
+                <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-4 h-4" />
+              </div>
+              <h4 class="text-sm font-black text-slate-200">{{ group.name }}</h4>
+              <span class="text-[10px] text-slate-500 font-bold bg-white/5 px-2 py-0.5 rounded-full">
+                {{ getStocksByGroup(group.id).length }}
+              </span>
+            </div>
+            
+            <div class="space-y-4">
+              <StockCard 
+                v-for="(stock, idx) in getStocksByGroup(group.id)" 
+                :key="`${group.id}-${stock.id}`"
+                :stock="stock"
+                :is-hearted="hearts.includes(Number(stock.id))"
+                :is-league-open="isLeagueOpen"
+                :is-predictable="isLeagueStock(stock.id)"
+                :prediction="getPredictionValue(stock.id)"
+                :index="idx"
+                @predict="onPredict"
+                @open-wishlist-modal="handleOpenModal"
+                @cancel-prediction="cancelPrediction"
+              />
+            </div>
+          </div>
+
+          <!-- 폴더에 속하지 않은 종목 (혹시 있을 경우 대비) -->
+          <div v-if="ungroupedStocks.length > 0" class="space-y-4">
+            <div class="flex items-center gap-2 mb-2 px-2">
+              <div class="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400">
+                <UIcon name="i-heroicons-question-mark-circle" class="w-4 h-4" />
+              </div>
+              <h4 class="text-sm font-black text-slate-200">기타 / 분류 안됨</h4>
+            </div>
+            <div class="space-y-4">
+              <StockCard 
+                v-for="(stock, idx) in ungroupedStocks" 
+                :key="`ungrouped-${stock.id}`"
+                :stock="stock"
+                :is-hearted="hearts.includes(Number(stock.id))"
+                :is-league-open="isLeagueOpen"
+                :is-predictable="isLeagueStock(stock.id)"
+                :prediction="getPredictionValue(stock.id)"
+                :index="idx"
+                @predict="onPredict"
+                @open-wishlist-modal="handleOpenModal"
+                @cancel-prediction="cancelPrediction"
+              />
+            </div>
+          </div>
+        </template>
       </div>
     </main>
 
@@ -122,6 +182,20 @@ const filteredStocks = computed(() => {
   
   return (wishlistStocks.value as any[]).filter(stock => {
     return stock.group_ids && stock.group_ids.includes(selectedGroupId.value)
+  })
+})
+
+const getStocksByGroup = (groupId: number) => {
+  if (!wishlistStocks.value) return []
+  return (wishlistStocks.value as any[]).filter(stock => {
+    return stock.group_ids && stock.group_ids.includes(groupId)
+  })
+}
+
+const ungroupedStocks = computed(() => {
+  if (!wishlistStocks.value) return []
+  return (wishlistStocks.value as any[]).filter(stock => {
+    return !stock.group_ids || stock.group_ids.length === 0 || stock.group_ids.every((id: any) => id === null)
   })
 })
 
