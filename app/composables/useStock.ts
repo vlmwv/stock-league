@@ -434,7 +434,7 @@ export const useStock = () => {
     // 현재 시간이 참여 가능 시간대인지 판단 (21:20 ~ 다음날 08:00)
     const isInOpenWindow = currentTimeVal >= 2120 || hour < 8
 
-    if (stocks.value && (stocks.value as any).length > 0) {
+    if (stocks.value && (stocks.value as any).length >= 5) {
       const firstStockDate = (stocks.value as any)[0].game_date
       
       // 과거 데이터는 마감
@@ -451,13 +451,8 @@ export const useStock = () => {
       }
     }
 
-    // stocks 데이터가 없거나, 아직 내일 종목이 준비되지 않은 21:20 이후라면 false 반환
-    // (모의 데이터 상태에서는 isInOpenWindow를 따라가지 않도록 함)
-    if (currentTimeVal >= 2120 && (!stocks.value || stocks.value.length === 0 || (stocks.value[0]?.game_date <= today))) {
-      return false
-    }
-
-    return isInOpenWindow
+    // 데이터가 없거나 5개 미만이면 참여 불가능
+    return false
   })
 
   // 5. Result Status (Published after 20:30 KST)
@@ -471,14 +466,14 @@ export const useStock = () => {
       // 과거 데이터는 항상 결과 발표됨
       if (firstStockDate < today) return true
       
-      // 오늘 데이터인 경우 20:30 이후면 발표됨
+      // 오늘 데이터인 경우 20:30 이후면 발표됨 (데이터가 있을 때만)
       if (firstStockDate === today) {
         return currentTimeVal >= 2030
       }
     }
 
-    // 만약 데이터가 없더라도 오늘 20:30 이후라면 결과 발표 화면을 보여줄 수 있도록 함
-    return currentTimeVal >= 2030
+    // 데이터가 없으면 결과 발표를 보여줄 수 없음
+    return false
   })
 
   const fetchPredictions = async (date?: string) => {
@@ -1166,7 +1161,8 @@ export const useStock = () => {
     page = 1,
     pageSize = 10,
     searchQuery = '',
-    onlyHearted = false
+    onlyHearted = false,
+    market: 'KOSPI' | 'KOSDAQ' | 'ALL' = 'ALL'
   ) => {
     try {
       const from = (page - 1) * pageSize
@@ -1188,6 +1184,10 @@ export const useStock = () => {
         } else {
           return { data: [], count: 0 }
         }
+      }
+
+      if (market && market !== 'ALL') {
+        query = query.eq('sector', market)
       }
 
       let finalQuery = query.order(orderBy, { ascending: orderBy === 'market_cap_rank' })
@@ -1220,6 +1220,10 @@ export const useStock = () => {
           } else {
             return { data: [], count: 0 }
           }
+        }
+
+        if (market && market !== 'ALL') {
+          fallbackQuery = fallbackQuery.eq('sector', market)
         }
 
         const fallbackOrderBy = orderBy === 'market_cap_rank' ? 'market_cap_rank' : 'market_cap_rank'

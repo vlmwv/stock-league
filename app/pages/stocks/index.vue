@@ -38,6 +38,21 @@
         </div>
       </section>
 
+      <!-- 상세 필터 (코스피/코스닥) -->
+      <section v-if="currentSort === 'marketCap' || currentSort === 'volume'" class="px-6 mb-4 animate-fade-in">
+        <div class="flex p-1 bg-slate-800/30 rounded-xl border border-white/5 gap-1 w-fit mx-auto">
+          <button
+            v-for="m in marketTabs"
+            :key="m.key"
+            @click="currentMarket = m.key"
+            class="px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300"
+            :class="currentMarket === m.key ? 'bg-slate-700 text-brand-primary shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          >
+            {{ m.label }}
+          </button>
+        </div>
+      </section>
+
       <!-- 종목 수 표시 -->
       <section class="px-6 mb-4 flex justify-between items-center">
         <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -154,6 +169,7 @@ const handleOpenModal = (id: number) => {
 
 const searchQuery = ref('')
 const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume'>('marketCap')
+const currentMarket = ref<'ALL' | 'KOSPI' | 'KOSDAQ'>('ALL')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
@@ -172,6 +188,12 @@ const sortTabs = [
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },
   { key: 'aiRecommendation', label: 'AI 추천' }
+] as const
+
+const marketTabs = [
+  { key: 'ALL', label: '전체' },
+  { key: 'KOSPI', label: '코스피' },
+  { key: 'KOSDAQ', label: '코스닥' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
@@ -219,7 +241,8 @@ const loadStocks = async (isAppend = false) => {
       page.value, 
       pageSize, 
       searchQuery.value,
-      currentSort.value === 'interested'
+      currentSort.value === 'interested',
+      currentMarket.value
     )
     
     const newData = response.data || []
@@ -271,6 +294,12 @@ watch(searchQuery, () => {
 
 // 정렬 탭 변경 시 데이터 다시 불러오기
 watch(currentSort, () => {
+  currentMarket.value = 'ALL'
+  loadStocks()
+})
+
+// 상세 필터 변경 시 데이터 다시 불러오기
+watch(currentMarket, () => {
   loadStocks()
 })
 

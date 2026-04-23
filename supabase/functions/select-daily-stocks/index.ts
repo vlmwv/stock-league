@@ -79,8 +79,10 @@ async function analyzeStockWithGemini(
   targetDate: string
 ): Promise<{ summary: string, score: number, reasoning: string, target_price: number | null, target_date: string | null }> {
   if (!GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is missing in Edge Function environment!')
     return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
+  console.log(`Analyzing ${stockName} with Gemini (Key exists: ${!!GEMINI_API_KEY})`)
 
   const newsSummary = newsItems.length > 0 
     ? newsItems.map(item => `- ${item.tit}`).join('\n')
@@ -152,19 +154,16 @@ ${newsSummary}
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`Gemini API Error (${response.status}):`, errorText)
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`Gemini API Error for ${stockName}:`, response.status, JSON.stringify(errorData));
       
-      // 로그 저장 (실패)
       await supabase.from('ai_analysis_logs').insert({
-        stock_code: stockCode,
-        stock_name: stockName,
-        prompt: prompt,
-        response_raw: { error: errorText, status: response.status },
-        ai_score: 50,
-        game_date: targetDate
-      })
-
+        stock_id: stockId,
+        game_date: targetDate,
+        status: 'fail',
+        error_message: `API Status ${response.status}`,
+        response_raw: JSON.stringify(errorData)
+      });
       return buildFallbackAnalysis(stockName, newsItems, priceHistory)
     }
 
