@@ -1186,7 +1186,8 @@ export const useStock = () => {
     pageSize = 10,
     searchQuery = '',
     onlyHearted = false,
-    market: 'KOSPI' | 'KOSDAQ' | 'ALL' = 'ALL'
+    market: 'KOSPI' | 'KOSDAQ' | 'ALL' = 'ALL',
+    groupId: number | null = null
   ) => {
     try {
       const from = (page - 1) * pageSize
@@ -1202,9 +1203,26 @@ export const useStock = () => {
         query = query.or(`name.ilike.%${q}%,code.ilike.%${q}%`)
       }
 
+      // 관심 폴더 필터링
       if (onlyHearted) {
-        if (hearts.value.length > 0) {
-          query = query.in('id', hearts.value)
+        let targetStockIds = hearts.value
+
+        // 특정 그룹(폴더)이 지정된 경우 해당 그룹의 stock_id만 필터링
+        if (groupId !== null) {
+          const { data: wishlistData } = await client
+            .from('wishlists')
+            .select('stock_id')
+            .eq('group_id', groupId)
+          
+          if (wishlistData) {
+            targetStockIds = (wishlistData as any[]).map(w => Number(w.stock_id))
+          } else {
+            targetStockIds = []
+          }
+        }
+
+        if (targetStockIds.length > 0) {
+          query = query.in('id', targetStockIds)
         } else {
           return { data: [], count: 0 }
         }

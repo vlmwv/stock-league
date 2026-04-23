@@ -99,40 +99,61 @@
         <!-- 2. 전체 보기 시 폴더별 그룹화 리스트 -->
         <template v-else>
           <div v-for="group in wishlistGroups" :key="group.id" class="space-y-4">
-            <div v-if="getStocksByGroup(group.id).length > 0" class="flex items-center gap-2 mb-2 px-2">
-              <div class="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400">
-                <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-4 h-4" />
+            <div class="flex items-center justify-between mb-2 px-2 group/header">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-brand-primary shadow-inner">
+                  <UIcon :name="group.icon || 'i-heroicons-folder-20-solid'" class="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-black text-slate-200 tracking-tight">{{ group.name }}</h4>
+                  <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{{ getStocksByGroup(group.id).length }} STOCKS</p>
+                </div>
               </div>
-              <h4 class="text-sm font-black text-slate-200">{{ group.name }}</h4>
-              <span class="text-[10px] text-slate-500 font-bold bg-white/5 px-2 py-0.5 rounded-full">
-                {{ getStocksByGroup(group.id).length }}
-              </span>
+              
+              <button 
+                @click="selectedGroupId = group.id"
+                class="text-[10px] font-bold text-slate-500 hover:text-brand-primary transition-colors flex items-center gap-1 opacity-0 group-hover/header:opacity-100"
+              >
+                자세히 보기
+                <UIcon name="i-heroicons-chevron-right-20-solid" class="w-3 h-3" />
+              </button>
             </div>
             
             <div class="space-y-4">
-              <StockCard 
-                v-for="(stock, idx) in getStocksByGroup(group.id)" 
-                :key="`${group.id}-${stock.id}`"
-                :stock="stock"
-                :is-hearted="hearts.includes(Number(stock.id))"
-                :is-league-open="isLeagueOpen"
-                :is-predictable="isLeagueStock(stock.id)"
-                :prediction="getPredictionValue(stock.id)"
-                :index="idx"
-                @predict="onPredict"
-                @open-wishlist-modal="handleOpenModal"
-                @cancel-prediction="cancelPrediction"
-              />
+              <template v-if="getStocksByGroup(group.id).length > 0">
+                <StockCard 
+                  v-for="(stock, idx) in getStocksByGroup(group.id)" 
+                  :key="`${group.id}-${stock.id}`"
+                  :stock="stock"
+                  :is-hearted="hearts.includes(Number(stock.id))"
+                  :is-league-open="isLeagueOpen"
+                  :is-predictable="isLeagueStock(stock.id)"
+                  :prediction="getPredictionValue(stock.id)"
+                  :index="idx"
+                  @predict="onPredict"
+                  @open-wishlist-modal="handleOpenModal"
+                  @cancel-prediction="cancelPrediction"
+                />
+              </template>
+              <div v-else class="py-6 px-4 rounded-[2rem] border border-dashed border-white/5 bg-white/[0.02] text-center">
+                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">폴더가 비어 있습니다</p>
+              </div>
             </div>
+            
+            <!-- 폴더 간 간격 조절용 구분선 -->
+            <div class="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent my-6"></div>
           </div>
 
-          <!-- 폴더에 속하지 않은 종목 (혹시 있을 경우 대비) -->
+          <!-- 폴더에 속하지 않은 종목 -->
           <div v-if="ungroupedStocks.length > 0" class="space-y-4">
             <div class="flex items-center gap-2 mb-2 px-2">
-              <div class="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-400">
-                <UIcon name="i-heroicons-question-mark-circle" class="w-4 h-4" />
+              <div class="w-8 h-8 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400">
+                <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-4 h-4" />
               </div>
-              <h4 class="text-sm font-black text-slate-200">기타 / 분류 안됨</h4>
+              <div>
+                <h4 class="text-sm font-black text-slate-200 tracking-tight">기타 / 분류 안됨</h4>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{{ ungroupedStocks.length }} STOCKS</p>
+              </div>
             </div>
             <div class="space-y-4">
               <StockCard 

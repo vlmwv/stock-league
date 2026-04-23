@@ -53,6 +53,33 @@
         </div>
       </section>
 
+      <!-- 상세 필터 (관심 폴더) -->
+      <section v-if="currentSort === 'interested' && wishlistGroups.length > 0" class="px-6 mb-4 animate-fade-in">
+        <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-6 px-6">
+          <button
+            @click="currentGroupId = null"
+            class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300 border whitespace-nowrap"
+            :class="currentGroupId === null 
+              ? 'bg-brand-primary text-slate-900 border-brand-primary shadow-lg shadow-brand-primary/20' 
+              : 'bg-slate-800/50 text-slate-500 border-white/5 hover:bg-slate-700'"
+          >
+            전체
+          </button>
+          <button
+            v-for="group in wishlistGroups"
+            :key="group.id"
+            @click="currentGroupId = group.id"
+            class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300 border whitespace-nowrap flex items-center gap-1.5"
+            :class="currentGroupId === group.id 
+              ? 'bg-slate-100 text-slate-900 border-slate-100 shadow-lg' 
+              : 'bg-slate-800/50 text-slate-500 border-white/5 hover:bg-slate-700'"
+          >
+            <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-3 h-3" />
+            {{ group.name }}
+          </button>
+        </div>
+      </section>
+
       <!-- 종목 수 표시 -->
       <section class="px-6 mb-4 flex justify-between items-center">
         <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -151,10 +178,11 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats, wishlistsWithGroups } = useStock()
+const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats, wishlistsWithGroups, wishlistGroups, fetchWishlistGroups } = useStock()
 
 const isGroupModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
+const currentGroupId = ref<number | null>(null)
 const currentStockGroupIds = computed(() => {
   if (!selectedStockId.value) return []
   return wishlistsWithGroups.value
@@ -227,7 +255,7 @@ const loadStocks = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count'> = {
+    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume'> = {
       marketCap: 'market_cap_rank',
       interested: 'market_cap_rank', // 관심 탭도 시총순으로 정렬
       wishlist: 'wishlist_count',
@@ -242,7 +270,8 @@ const loadStocks = async (isAppend = false) => {
       pageSize, 
       searchQuery.value,
       currentSort.value === 'interested',
-      currentMarket.value
+      currentMarket.value,
+      currentGroupId.value // 그룹 ID 추가
     )
     
     const newData = response.data || []
@@ -295,11 +324,17 @@ watch(searchQuery, () => {
 // 정렬 탭 변경 시 데이터 다시 불러오기
 watch(currentSort, () => {
   currentMarket.value = 'ALL'
+  currentGroupId.value = null // 정렬 변경 시 그룹 필터 초기화
   loadStocks()
 })
 
 // 상세 필터 변경 시 데이터 다시 불러오기
 watch(currentMarket, () => {
+  loadStocks()
+})
+
+// 관심 그룹 변경 시 데이터 다시 불러오기
+watch(currentGroupId, () => {
   loadStocks()
 })
 
@@ -324,6 +359,7 @@ onMounted(() => {
   // 찜 목록과 종목 리스트를 병렬로 로드하여 초기 로딩 성능 개선
   Promise.all([
     fetchWishlist(),
+    fetchWishlistGroups(),
     loadStocks()
   ])
 })
