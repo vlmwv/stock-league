@@ -689,15 +689,6 @@ export const useStock = () => {
       // 1. 그룹 목록 먼저 가져오기
       await fetchWishlistGroups()
 
-      // 만약 그룹이 하나도 없다면 (트리거 실패 등의 경우), 기본 폴더 하나 생성 시도
-      if (wishlistGroups.value.length === 0) {
-        console.warn('[useStock] No wishlist groups found, attempting to create default...')
-        const result = await createWishlistGroup('기본 폴더')
-        if (!result.success) {
-          console.error('[useStock] Failed to create default wishlist group:', result.error)
-        }
-      }
-
       // 2. 위시리스트 데이터 가져오기
       const { data, error } = await client.from('wishlists').select('stock_id, group_id').eq('user_id', userId)
       
@@ -767,14 +758,8 @@ export const useStock = () => {
     const id = Number(stockId)
     if (isNaN(id)) return
 
-    // groupId가 undefined인 경우에만 기본 폴더를 찾음. null은 '폴더 없음'으로 명시적 처리.
-    let targetGroupId = groupId
-    if (targetGroupId === undefined) {
-      if (wishlistGroups.value.length === 0) {
-        await fetchWishlistGroups()
-      }
-      targetGroupId = wishlistGroups.value[0]?.id || null
-    }
+    // groupId가 undefined인 경우 null(미지정/전체)로 처리
+    let targetGroupId = groupId === undefined ? null : groupId
 
     const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && w.group_id === targetGroupId)
     const isCurrentlyHeartedInGroup = itemIdx > -1
