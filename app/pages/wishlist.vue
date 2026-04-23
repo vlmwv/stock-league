@@ -45,9 +45,9 @@
             {{ group.name }}
           </button>
           
-          <!-- Delete button for folders -->
+          <!-- Delete button for custom folders (not '기본 폴더') -->
           <button 
-            v-if="selectedGroupId === group.id"
+            v-if="group.name !== '기본 폴더' && selectedGroupId === group.id"
             @click.stop="handleDeleteGroup(group)"
             class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg transform transition-transform border border-slate-900"
           >
