@@ -31,23 +31,8 @@ CREATE POLICY "Users can delete their own groups" ON public.wishlist_groups
 -- 2. wishlists 테이블 확장
 ALTER TABLE public.wishlists ADD COLUMN IF NOT EXISTS group_id BIGINT REFERENCES public.wishlist_groups(id) ON DELETE CASCADE;
 
--- 3. 기존 사용자를 위한 기본 그룹 생성 및 마이그레이션
-DO $$
-DECLARE
-    user_rec RECORD;
-    new_group_id BIGINT;
-BEGIN
-    -- 기존 찜 데이터가 있는 사용자들에 대해 기본 폴더 생성
-    FOR user_rec IN SELECT DISTINCT user_id FROM public.wishlists LOOP
-        INSERT INTO public.wishlist_groups (user_id, name, sort_order)
-        VALUES (user_rec.user_id, '기본 폴더', 0)
-        RETURNING id INTO new_group_id;
-
-        UPDATE public.wishlists
-        SET group_id = new_group_id
-        WHERE user_id = user_rec.user_id AND group_id IS NULL;
-    END LOOP;
-END $$;
+-- 3. 기존 사용자를 위한 마이그레이션 (필요 시)
+-- (기본 폴더 생성 로직 제거됨)
 
 -- 4. 제약 조건 강화
 -- 기존 유니크 제약 조건 제거 (user_id, stock_id)
@@ -62,17 +47,4 @@ BEGIN
     END IF;
 END $$;
 
--- 5. 프로필 생성 시 기본 그룹 자동 생성 트리거
-CREATE OR REPLACE FUNCTION public.handle_new_user_wishlist_group()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.wishlist_groups (user_id, name, sort_order)
-  VALUES (NEW.id, '기본 폴더', 0);
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_profile_created_wishlist_group ON public.profiles;
-CREATE TRIGGER on_profile_created_wishlist_group
-  AFTER INSERT ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_wishlist_group();
+-- 5. 프로필 생성 시 자동 처리 (기본 폴더 생성 로직 제거됨)
