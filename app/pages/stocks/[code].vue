@@ -449,8 +449,9 @@ const chartAnnotations = computed(() => {
   if (latestTargetPrice.value) {
     ann.yaxis.push({
       y: latestTargetPrice.value,
-      borderColor: '#10b981',
-      strokeDashArray: 4,
+      borderColor: '#10b981', // Emerald 500
+      strokeDashArray: 0, // 실선으로 변경
+      borderWidth: 2,
       label: {
         borderColor: '#10b981',
         position: 'right',
@@ -458,44 +459,43 @@ const chartAnnotations = computed(() => {
         style: {
           color: '#fff',
           background: '#10b981',
-          fontSize: '10px',
-          fontWeight: 900
+          fontSize: '11px',
+          fontWeight: 900,
+          padding: { left: 8, right: 8, top: 4, bottom: 4 }
         },
-        text: `목표가 ${latestTargetPrice.value.toLocaleString()}원`
+        text: `🎯 목표가 ${latestTargetPrice.value.toLocaleString()}원`
       }
     })
   }
 
   // 2. 추천 시점 및 추천가 표시 (차트 범위 내)
   if (priceHistory.value.length > 0 && aiHistory.value.length > 0) {
-    // 차트의 날짜 범위 확인 (priceHistory는 DESC 정렬임)
     const dates = priceHistory.value.map(h => h.price_date)
     const minDate = dates[dates.length - 1]
     const maxDate = dates[0]
 
     aiHistory.value.forEach(item => {
-      // 차트 범위 내에 있는 추천 이력만 표시
-      // 날짜 문자열 직접 비교 (YYYY-MM-DD 형식일 경우 안전함)
       if (item.game_date >= minDate && item.game_date <= maxDate) {
         const timestamp = new Date(item.game_date).getTime()
         
         // 세로선 (추천 시점)
         ann.xaxis.push({
           x: timestamp,
-          borderColor: '#818cf8',
-          strokeDashArray: 3,
-          width: 2,
+          borderColor: '#6366f1', // Indigo 500
+          strokeDashArray: 0, // 실선
+          borderWidth: 2,
           label: {
-            borderColor: '#818cf8',
+            borderColor: '#6366f1',
             orientation: 'horizontal',
+            offsetY: 0,
             style: {
               color: '#fff',
-              background: '#818cf8',
-              fontSize: '10px',
+              background: '#6366f1',
+              fontSize: '11px',
               fontWeight: 900,
-              padding: { left: 5, right: 5, top: 2, bottom: 2 }
+              padding: { left: 8, right: 8, top: 4, bottom: 4 }
             },
-            text: 'AI 추천'
+            text: '✨ AI 추천'
           }
         })
 
@@ -505,23 +505,24 @@ const chartAnnotations = computed(() => {
             x: timestamp,
             y: item.rec_price,
             marker: {
-              size: 5,
+              size: 6,
               fillColor: '#ffffff',
-              strokeColor: '#818cf8',
+              strokeColor: '#6366f1',
               strokeWidth: 3,
               shape: "circle",
-              radius: 2,
+              radius: 4,
             },
             label: {
-              borderColor: '#818cf8',
+              borderColor: '#6366f1',
               offsetY: -5,
               style: {
                 color: '#fff',
-                background: '#818cf8',
+                background: '#6366f1',
                 fontSize: '10px',
-                fontWeight: 900
+                fontWeight: 900,
+                padding: { left: 5, right: 5, top: 2, bottom: 2 }
               },
-              text: `${item.rec_price.toLocaleString()}원`
+              text: `추천가 ${item.rec_price.toLocaleString()}원`
             }
           })
         }
