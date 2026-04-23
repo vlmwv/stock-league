@@ -437,6 +437,93 @@ const chartSeries = computed(() => {
   }]
 })
 
+const chartAnnotations = computed(() => {
+  const ann: any = {
+    yaxis: [],
+    xaxis: [],
+    points: []
+  }
+
+  // 1. 목표가 표시 (가장 최근 추천 기준)
+  if (latestTargetPrice.value) {
+    ann.yaxis.push({
+      y: latestTargetPrice.value,
+      borderColor: '#10b981',
+      strokeDashArray: 4,
+      label: {
+        borderColor: '#10b981',
+        position: 'right',
+        offsetX: -10,
+        style: {
+          color: '#fff',
+          background: '#10b981',
+          fontSize: '10px',
+          fontWeight: 900
+        },
+        text: `목표가 ${latestTargetPrice.value.toLocaleString()}원`
+      }
+    })
+  }
+
+  // 2. 추천 시점 및 추천가 표시 (차트 범위 내)
+  if (priceHistory.value.length > 0 && aiHistory.value.length > 0) {
+    // 차트의 날짜 범위 확인 (priceHistory는 DESC 정렬임)
+    const dates = priceHistory.value.map(h => h.price_date)
+    const minDate = dates[dates.length - 1]
+    const maxDate = dates[0]
+
+    aiHistory.value.forEach(item => {
+      // 차트 범위 내에 있는 추천 이력만 표시
+      if (item.game_date >= minDate && item.game_date <= maxDate) {
+        // 세로선 (추천 시점)
+        ann.xaxis.push({
+          x: new Date(item.game_date).getTime(),
+          borderColor: '#6366f1',
+          strokeDashArray: 2,
+          label: {
+            borderColor: '#6366f1',
+            style: {
+              color: '#fff',
+              background: '#6366f1',
+              fontSize: '9px',
+              fontWeight: 700
+            },
+            text: 'AI 추천'
+          }
+        })
+
+        // 포인트 (추천가)
+        if (item.rec_price) {
+          ann.points.push({
+            x: new Date(item.game_date).getTime(),
+            y: item.rec_price,
+            marker: {
+              size: 4,
+              fillColor: '#fff',
+              strokeColor: '#6366f1',
+              strokeWidth: 2,
+              radius: 4,
+            },
+            label: {
+              borderColor: '#6366f1',
+              offsetY: 0,
+              style: {
+                color: '#fff',
+                background: '#6366f1',
+                fontSize: '9px',
+                fontWeight: 700
+              },
+              text: '추천가'
+            }
+          })
+        }
+      }
+    })
+  }
+
+  return ann
+})
+
 const chartOptions = computed(() => ({
   chart: {
     type: 'area',
@@ -487,22 +574,7 @@ const chartOptions = computed(() => ({
     size: 0,
     hover: { size: 5 }
   },
-  annotations: {
-    yaxis: latestTargetPrice.value ? [{
-      y: latestTargetPrice.value,
-      borderColor: '#10b981',
-      label: {
-        borderColor: '#10b981',
-        style: {
-          color: '#fff',
-          background: '#10b981',
-          fontSize: '10px',
-          fontWeight: 900
-        },
-        text: `목표가 ${latestTargetPrice.value.toLocaleString()}원`
-      }
-    }] : []
-  }
+  annotations: chartAnnotations.value
 }))
 
 onMounted(async () => {
