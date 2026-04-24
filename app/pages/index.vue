@@ -218,11 +218,12 @@
             </NuxtLink>
         </div>
 
-        <div class="flex flex-col gap-3">
+        <div class="flex gap-4 overflow-x-auto pb-6 no-scrollbar -mx-4 px-4 snap-x snap-mandatory scroll-smooth">
           <NewsPanelCard
             v-for="item in recentNews"
             :key="item.id"
             :item="item"
+            class="w-[300px] flex-shrink-0 snap-center"
             :is-hearted="isHearted(item.stockId)"
             :formatted-date="formatDate(item.published_at)"
             @navigate-news="navigateToNews(item)"
@@ -230,7 +231,7 @@
             @navigate-stock="(stockCode) => navigateTo('/stocks/' + stockCode)"
           />
           
-          <div v-if="!recentNews.length" class="text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
+          <div v-if="!recentNews.length" class="w-full text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 mx-4">
             <UIcon name="i-heroicons-exclamation-circle" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />
             <p class="text-xs text-slate-600 font-black uppercase tracking-widest">데이터를 불러오는 중입니다</p>
           </div>

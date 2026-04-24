@@ -33,28 +33,13 @@
         </div>
       </div>
 
-      <h4 class="font-bold text-slate-100 text-[15px] leading-snug group-hover:text-brand-primary transition-colors line-clamp-2 tracking-tight">
-        {{ item.title }}
-      </h4>
-
-      <div v-if="item.llm_summary" class="bg-indigo-500/[0.04] rounded-2xl p-3.5 border border-white/5 transition-colors group-hover:border-brand-primary/20">
-        <div class="flex items-center gap-2 mb-1.5">
-          <span
-            v-if="item.ai_score"
-            class="flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-sm"
-            :class="[
-              item.ai_score > 55 ? 'text-rose-400 bg-rose-400/10 border-rose-400/20' :
-              item.ai_score < 45 ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' :
-              'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
-            ]"
-          >
-            {{ item.ai_score }}점
-          </span>
-          <span class="text-brand-primary text-[10px] font-black opacity-80 uppercase tracking-wider">AI INSIGHT</span>
+      <!-- 뉴스 제목 (파도타기 효과) -->
+      <div class="relative overflow-hidden bg-white/5 rounded-xl h-11 flex items-center border border-white/5 group/marquee px-4">
+        <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
+          <h4 class="font-bold text-slate-100 text-[14px] tracking-tight flex items-center h-full">
+            {{ item.title }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ item.title }}
+          </h4>
         </div>
-        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
-          {{ item.llm_summary }}
-        </p>
       </div>
     </div>
 
@@ -75,3 +60,16 @@ defineEmits<{
   (e: 'navigate-stock', stockCode: string): void
 }>()
 </script>
+
+<style scoped>
+@keyframes marquee-slow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee-slow {
+  animation: marquee-slow 15s linear infinite;
+}
+.animate-marquee-paused {
+  animation-play-state: paused;
+}
+</style>

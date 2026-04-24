@@ -111,7 +111,10 @@
             </button>
             <template #content>
               <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[9999]">
-                <div class="px-3 py-2 border-b border-slate-700/50 mb-1">
+                <div 
+                  @click="isProfileOpen = true"
+                  class="px-3 py-2 border-b border-slate-700/50 mb-1 hover:bg-white/5 cursor-pointer rounded-lg transition-all"
+                >
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
@@ -136,6 +139,16 @@
         </NuxtLink>
       </template>
     </div>
+    <UserProfileModal
+      v-model:open="isProfileOpen"
+      :current-username="userStats?.username"
+      :current-full-name="userStats?.fullName"
+      :current-gender="userStats?.gender"
+      :current-email="userStats?.email"
+      :current-avatar-url="userStats?.avatarUrl"
+      :current-display-name-type="userStats?.displayNameType"
+      @success="fetchUserStats"
+    />
   </header>
 </template>
 
@@ -143,6 +156,7 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isScrolled = ref(false)
+const isProfileOpen = ref(false)
 const { 
   notifications, 
   fetchEconomicIndicators, 

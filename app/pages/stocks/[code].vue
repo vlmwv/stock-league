@@ -65,7 +65,7 @@
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Price Chart</h3>
             <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
-              최근 30일
+              최근 100일
             </div>
           </div>
           
@@ -536,7 +536,24 @@ const chartAnnotations = computed(() => {
 const chartOptions = computed(() => ({
   chart: {
     type: 'area',
-    toolbar: { show: false },
+    toolbar: { 
+      show: true,
+      tools: {
+        download: false,
+        selection: false,
+        zoom: true,
+        zoomin: true,
+        zoomout: true,
+        pan: true,
+        reset: true
+      },
+      autoSelected: 'zoom'
+    },
+    zoom: {
+      enabled: true,
+      type: 'x',
+      autoScaleYaxis: true
+    },
     sparkline: { enabled: false },
     background: 'transparent',
     fontFamily: 'Pretendard, Inter, sans-serif'
@@ -562,12 +579,43 @@ const chartOptions = computed(() => ({
   },
   xaxis: {
     type: 'datetime',
-    labels: { show: false },
+    labels: { 
+      show: true,
+      style: {
+        colors: '#64748b',
+        fontSize: '10px',
+        fontWeight: 600
+      },
+      datetimeFormatter: {
+        year: 'yyyy',
+        month: 'MMM \'yy',
+        day: 'dd MMM',
+        hour: 'HH:mm'
+      }
+    },
     axisBorder: { show: false },
-    axisTicks: { show: false }
+    axisTicks: { show: false },
+    crosshairs: {
+      show: true,
+      position: 'back',
+      stroke: {
+        color: '#6366f1',
+        width: 1,
+        dashArray: 4,
+      },
+    }
   },
   yaxis: {
-    show: false
+    show: true,
+    opposite: true,
+    labels: {
+      style: {
+        colors: '#64748b',
+        fontSize: '10px',
+        fontWeight: 600
+      },
+      formatter: (val: number) => val >= 1000 ? (val / 1000).toLocaleString() + 'k' : val.toLocaleString()
+    }
   },
   tooltip: {
     theme: 'dark',
@@ -610,7 +658,7 @@ onMounted(async () => {
   
   // 3. 관련 데이터(이력, 찜, 뉴스, AI이력)를 병렬로 로드
   await Promise.all([
-    fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
+    fetchPriceHistory(stock.value.id, 100).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent(),
     loadAiHistory()
@@ -640,5 +688,29 @@ onMounted(async () => {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ApexCharts Toolbar Styling */
+:deep(.apexcharts-toolbar) {
+  top: -38px !important;
+  right: -10px !important;
+  padding: 4px 6px !important;
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+:deep(.apexcharts-toolbar svg) {
+  fill: #94a3b8 !important; /* slate-400 */
+  transform: scale(0.85) !important;
+}
+
+:deep(.apexcharts-toolbar svg:hover) {
+  fill: #6366f1 !important; /* indigo-500 */
+}
+
+:deep(.apexcharts-xcrosshairs), :deep(.apexcharts-ycrosshairs) {
+  stroke: #6366f1 !important;
 }
 </style>
