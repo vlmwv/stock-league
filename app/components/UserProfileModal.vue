@@ -103,11 +103,7 @@
                     <!-- Source Selection -->
                     <div class="grid grid-cols-3 gap-2">
                       <button 
-                        v-for="s in [
-                          { value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' },
-                          { value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' },
-                          { value: 'default', label: '기본 이미지', icon: 'i-heroicons-no-symbol' }
-                        ]"
+                        v-for="s in availableSources"
                         :key="s.value"
                         @click="handleSourceChange(s.value as any)"
                         type="button"
@@ -224,6 +220,20 @@ const sourceDescription = computed(() => {
   return '성별에 따른 기본 아이콘을 보여줍니다.'
 })
 
+const availableSources = computed(() => {
+  const sources = []
+  
+  // SNS 이미지가 있을 때만 노출
+  if (user.value?.user_metadata?.avatar_url) {
+    sources.push({ value: 'sns', label: 'SNS 이미지', icon: 'i-heroicons-user-circle' })
+  }
+  
+  sources.push({ value: 'upload', label: '직접 업로드', icon: 'i-heroicons-arrow-up-tray' })
+  sources.push({ value: 'default', label: '기본 이미지', icon: 'i-heroicons-no-symbol' })
+  
+  return sources
+})
+
 watch(() => props.open, (val) => {
   if (val) {
     username.value = props.currentUsername || ''
@@ -251,11 +261,10 @@ watch(() => props.open, (val) => {
 })
 
 const handleSourceChange = (source: 'sns' | 'upload' | 'default') => {
+  imageSource.value = source
   if (source === 'upload' && !uploadUrl.value) {
     fileInput.value?.click()
-    return
   }
-  imageSource.value = source
 }
 
 const handleFileUpload = async (e: Event) => {
