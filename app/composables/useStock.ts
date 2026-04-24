@@ -1665,6 +1665,28 @@ export const useStock = () => {
         return { success: false, message: error.message }
       }
       return { success: true }
+    },
+    createRecommendation: async (stockId: number, data: { ai_score: number, summary: string, reasoning: string, target_price: number, target_date: string, game_date?: string }) => {
+      const targetDate = data.game_date || getKstDate()
+      
+      const { error } = await client
+        .from('daily_stocks')
+        .insert({
+          stock_id: stockId,
+          game_date: targetDate,
+          llm_summary: data.summary,
+          ai_score: data.ai_score,
+          ai_reasoning: data.reasoning,
+          target_price: data.target_price,
+          target_date: data.target_date,
+          status: 'pending'
+        } as any)
+      
+      if (error) {
+        console.error('[useStock] Create recommendation failed:', error.message)
+        return { success: false, message: error.message }
+      }
+      return { success: true }
     }
   }
 }

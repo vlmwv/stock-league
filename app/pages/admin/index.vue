@@ -170,6 +170,7 @@
                 <th class="px-6 py-4">종목명</th>
                 <th class="px-6 py-4 text-center">점수</th>
                 <th class="px-6 py-4">결과</th>
+                <th class="px-6 py-4 text-right">목표가</th>
                 <th class="px-6 py-4">분석 근거</th>
                 <th class="px-6 py-4 text-center">관리</th>
               </tr>
@@ -200,6 +201,13 @@
                     {{ row.ai_result === 'win' ? '적중' : row.ai_result === 'draw' ? '무승부' : '실패' }}
                   </UBadge>
                   <span v-else class="text-xs text-slate-600 font-bold">진행중</span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div v-if="row.target_price" class="flex flex-col items-end">
+                    <span class="text-emerald-400 font-bold">{{ row.target_price.toLocaleString() }}</span>
+                    <span class="text-[9px] text-slate-500">{{ row.target_date }}</span>
+                  </div>
+                  <span v-else class="text-slate-600">-</span>
                 </td>
                 <td class="px-6 py-4">
                   <p class="text-xs text-slate-300 leading-relaxed max-w-md line-clamp-2 hover:line-clamp-none transition-all cursor-help">

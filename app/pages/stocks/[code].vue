@@ -8,6 +8,14 @@
         </button>
         <div class="flex items-center gap-2">
           <button
+            v-if="user && role === 'admin'"
+            @click="isAdminModalOpen = true"
+            class="px-4 h-10 rounded-2xl bg-brand-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all flex items-center gap-2"
+          >
+            <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
+            추천하기
+          </button>
+          <button
             v-if="stock"
             @click="handleToggleHeart"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors px-1"
@@ -22,6 +30,16 @@
         v-model:open="isGroupModalOpen"
         :stock-id="stock?.id"
         :initial-group-ids="currentStockGroupIds"
+      />
+
+      <AdminStockActionModal
+        v-if="stock"
+        v-model:open="isAdminModalOpen"
+        :stock-id="stock.id"
+        :stock-name="stock.name"
+        :stock-code="stock.code"
+        :last-price="stock.last_price"
+        @success="handleAdminSuccess"
       />
 
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
@@ -324,8 +342,13 @@ const {
   toggleHeart, 
   fetchWishlist,
   fetchAiHistory,
-  wishlistsWithGroups
+  wishlistsWithGroups,
+  fetchUserStats
 } = useStock()
+
+const user = useSupabaseUser()
+const role = ref('user')
+const isAdminModalOpen = ref(false)
 
 const isGroupModalOpen = ref(false)
 const currentStockGroupIds = computed(() => {
@@ -405,6 +428,13 @@ const isHearted = (id: number) => hearts.value.includes(Number(id))
 
 const handleToggleHeart = () => {
   isGroupModalOpen.value = true
+}
+
+const handleAdminSuccess = async () => {
+  await Promise.all([
+    loadAiHistory(),
+    fetchStockByCode(code).then(data => { if (data) stock.value = data })
+  ])
 }
 
 const navigateToNews = (item: any) => {
@@ -658,10 +688,13 @@ onMounted(async () => {
   
   // 3. 관련 데이터(이력, 찜, 뉴스, AI이력)를 병렬로 로드
   await Promise.all([
-    fetchPriceHistory(stock.value.id, 100).then(data => priceHistory.value = data),
+    fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent(),
-    loadAiHistory()
+    loadAiHistory(),
+    fetchUserStats().then(stats => {
+      if (stats) role.value = stats.role
+    })
   ])
 })
 </script>

@@ -1,9 +1,9 @@
 <template>
   <Transition name="fade">
-    <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-center justify-center px-6">
-      <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="$emit('close')"></div>
+    <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-start sm:items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
+      <div class="absolute inset-0" @click="$emit('close')"></div>
       
-      <div class="relative w-full max-w-sm glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in">
+      <div class="relative w-full max-w-sm glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in my-auto">
         <!-- Close Button -->
         <button 
           @click="$emit('close')"
