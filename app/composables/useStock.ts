@@ -42,12 +42,17 @@ export const useStock = () => {
 
   const resolveUserId = async () => {
     if (user.value?.id) return user.value.id
-    const { data, error } = await client.auth.getSession()
-    if (error) {
-      console.warn('[useStock] Failed to resolve auth session:', error.message)
+    try {
+      const { data, error } = await client.auth.getSession()
+      if (error) {
+        console.warn('[useStock] Failed to resolve auth session:', error.message)
+        return null
+      }
+      return data.session?.user?.id ?? null
+    } catch (e) {
+      console.error('[useStock] resolveUserId exception:', e)
       return null
     }
-    return data.session?.user?.id ?? null
   }
 
   const getKstDate = () => {
@@ -987,7 +992,10 @@ export const useStock = () => {
 
   const fetchUserStats = async () => {
     const userId = await resolveUserId()
-    if (!userId) return null
+    if (!userId) {
+      console.log('[useStock] Skipping fetchUserStats: No valid userId')
+      return null
+    }
 
     let { data: profile, error: profileError } = await client
       .from('profiles')
