@@ -1,10 +1,10 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="open" class="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+      <div v-if="open" class="fixed inset-0 z-[100] flex items-start justify-end p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
         <div class="absolute inset-0" @click="$emit('update:open', false)"></div>
         
-        <div class="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl overflow-hidden transform transition-all duration-300 scale-100 my-auto">
+        <div class="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl overflow-hidden transform transition-all duration-300 scale-100 sm:mt-16">
           <div class="px-8 py-10">
             <div class="flex items-center justify-between mb-8">
               <h3 class="text-2xl font-black text-white tracking-tight">프로필 수정</h3>
