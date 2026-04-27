@@ -19,16 +19,12 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   const prompt = `당신은 전문 경제 기자입니다. 다음은 '${stockName}' 주식에 대한 최근 주요 뉴스, 전자공시, IR 정보 내용입니다. 
 뉴스 ${newsItems.length}건, 공시 ${disclosureItems.length}건, IR ${irItems.length}건을 종합하여, 현재 이 종목의 핵심 쟁점과 시장 분위기를 딱 1문장(최대 50자 내외)으로 아주 명확하고 간결하게 요약해 주세요.
 불필요한 수식어는 배제하고 투자자가 참고할 만한 가장 중요한 팩트 위주로 작성해 주세요.
-또한 이 내용을 포괄하는 실제 뉴스 헤드라인 같은 제목을 1개 생성해 주세요.
 
 [중요 제약 조건]
 - 요약(summary)은 반드시 마침표(.)로 끝나는 완결된 한 문장이어야 합니다.
-- "${stockName} 주요 이슈", "${stockName} 실시간 요약" 같은 식상하고 반복적인 제목은 절대 금지합니다.
-- 실제 언론사에서 낼 법한 구체적이고 임팩트 있는 헤드라인을 만드세요.
 - 요약 작성 시 '${stockName}' 이라는 종목명을 문장 처음에 넣지 마세요.
 - 응답은 반드시 아래 JSON 형식으로만 작성해 주세요:
 {
-  "title": "뉴스 제목",
   "summary": "1문장 요약 내용."
 }
 `
@@ -86,13 +82,13 @@ async function summarizeNewsAndDisclosuresWithGemini(newsItems: any[], disclosur
   try {
     const parsed = JSON.parse(text)
     return {
-      title: parsed.title || `${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '...' : ''}`,
+      title: primaryTitle || '제목 없음',
       summary: parsed.summary || '요약 내용을 생성하지 못했습니다.'
     }
   } catch (e) {
     console.error('Failed to parse Gemini response as JSON:', text)
     return {
-      title: `${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '...' : ''}`,
+      title: primaryTitle || '제목 없음',
       summary: text || '요약 내용을 생성하지 못했습니다.'
     }
   }
