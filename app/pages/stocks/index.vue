@@ -123,7 +123,8 @@
                   class="text-[10px] font-black"
                   :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                 >
-                  {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%
+                  {{ stock.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(stock.change_amount).toLocaleString() }}
+                  <span class="opacity-60 ml-0.5 font-medium">({{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_rate }}%)</span>
                 </span>
                 <!-- 정렬 기준별 보조 정보 -->
                 <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
