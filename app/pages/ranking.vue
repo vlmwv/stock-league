@@ -116,7 +116,10 @@ onMounted(async () => {
         </p>
         <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/10 rounded-3xl p-4 border border-brand-primary/30 flex items-center shadow-lg shadow-brand-primary/5">
           <div class="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white font-black text-sm shadow-lg shrink-0">
-            {{ myRankingInfo.rank }}
+            <template v-if="myRankingInfo.rank === 1">🥇</template>
+            <template v-else-if="myRankingInfo.rank === 2">🥈</template>
+            <template v-else-if="myRankingInfo.rank === 3">🥉</template>
+            <template v-else>{{ myRankingInfo.rank }}</template>
           </div>
           <div class="flex-1 flex items-center gap-3 ml-4">
             <div class="w-10 h-10 rounded-xl bg-slate-900 border border-brand-primary/30 overflow-hidden shrink-0 flex items-center justify-center">
@@ -189,7 +192,7 @@ onMounted(async () => {
                   <UIcon :name="topThree[1].gender === 'female' ? 'i-mdi-gender-female' : topThree[1].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
                 </div>
               </div>
-              <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-slate-400 border-4 border-bg-deep flex items-center justify-center font-black text-slate-900 text-xs shadow-lg">2</div>
+              <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 border-2 border-bg-deep flex items-center justify-center text-sm shadow-lg z-10">🥈</div>
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[1].displayName || topThree[1].username }}</p>
             <div class="h-14 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
@@ -212,7 +215,7 @@ onMounted(async () => {
                   <UIcon :name="topThree[0].gender === 'female' ? 'i-mdi-gender-female' : topThree[0].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
                 </div>
               </div>
-              <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-brand-primary border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">1</div>
+              <div class="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-600 border-2 border-bg-deep flex items-center justify-center text-xl shadow-xl z-10">🥇</div>
             </div>
             <p class="text-xs font-black text-brand-primary mb-1 truncate w-24 text-center">{{ topThree[0].displayName || topThree[0].username }}</p>
             <div class="h-20 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
@@ -234,7 +237,7 @@ onMounted(async () => {
                   <UIcon :name="topThree[2].gender === 'female' ? 'i-mdi-gender-female' : topThree[2].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
                 </div>
               </div>
-              <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-700 border-4 border-bg-deep flex items-center justify-center font-black text-white text-xs shadow-lg">3</div>
+              <div class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 border-2 border-bg-deep flex items-center justify-center text-sm shadow-lg z-10">🥉</div>
             </div>
             <p class="text-xs font-bold text-slate-300 mb-1 truncate w-20 text-center">{{ topThree[2].displayName || topThree[2].username }}</p>
             <div class="h-12 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
@@ -268,7 +271,16 @@ onMounted(async () => {
           >
             <!-- Rank -->
             <div class="w-8 flex justify-center">
-              <span class="text-xs font-black" :class="rankingUser.rank <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ rankingUser.rank }}</span>
+              <template v-if="rankingUser.rank === 1">
+                <span class="text-lg">🥇</span>
+              </template>
+              <template v-else-if="rankingUser.rank === 2">
+                <span class="text-lg">🥈</span>
+              </template>
+              <template v-else-if="rankingUser.rank === 3">
+                <span class="text-lg">🥉</span>
+              </template>
+              <span v-else class="text-xs font-black" :class="rankingUser.rank <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ rankingUser.rank }}</span>
             </div>
 
             <!-- Profile & Name -->

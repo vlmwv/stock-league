@@ -419,6 +419,53 @@ export const useStock = () => {
     }))
   })
 
+  // 4. Fetch stocks with target prices
+  const { data: targetedStocks, refresh: refreshTargetedStocks, pending: pendingTargeted } = useAsyncData('targetedStocks', async () => {
+    const { data, error } = await client
+      .from('daily_stocks')
+      .select(`
+        id,
+        game_date,
+        llm_summary,
+        ai_score,
+        target_price,
+        target_date,
+        stocks (
+          id,
+          code,
+          name,
+          last_price,
+          change_amount,
+          change_rate,
+          ai_recommendation_count,
+          ai_win_count,
+          ai_processed_count
+        )
+      `)
+      .not('target_price', 'is', null)
+      .order('game_date', { ascending: false })
+
+    if (error) {
+      console.error('[useStock] fetchTargetedStocks error:', error)
+      return []
+    }
+
+    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
+      id: Number(ds.stocks.id),
+      daily_id: ds.id,
+      game_date: ds.game_date,
+      name: ds.stocks.name,
+      code: ds.stocks.code,
+      last_price: ds.stocks.last_price || 0,
+      change_amount: ds.stocks.change_amount || 0,
+      change_rate: ds.stocks.change_rate || 0,
+      ai_score: ds.ai_score || 0,
+      target_price: ds.target_price,
+      target_date: ds.target_date,
+      summary: decodeHtmlEntities(ds.llm_summary || '')
+    }))
+  })
+
   const dailyStocks = computed(() => {
     return stocks.value || []
   })
@@ -1661,6 +1708,9 @@ export const useStock = () => {
       
       return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
     }),
+    targetedStocks,
+    refreshTargetedStocks,
+    pendingTargeted,
     reEvaluateRecommendation: async (dailyId: number) => {
       try {
         const { data, error } = await client.functions.invoke('re-evaluate-recommendation', {

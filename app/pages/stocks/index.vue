@@ -114,7 +114,12 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-x-3 flex-wrap">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="text-[10px] font-black text-slate-500/80 mr-0.5">{{ (page - 1) * pageSize + index + 1 }}.</span>
+                  <span class="text-[10px] font-black text-slate-500/80 mr-0.5">
+                    <template v-if="(page - 1) * pageSize + index + 1 === 1">🥇</template>
+                    <template v-else-if="(page - 1) * pageSize + index + 1 === 2">🥈</template>
+                    <template v-else-if="(page - 1) * pageSize + index + 1 === 3">🥉</template>
+                    <template v-else>{{ (page - 1) * pageSize + index + 1 }}.</template>
+                  </span>
                   <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
                   <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
                 </div>

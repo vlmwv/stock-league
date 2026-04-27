@@ -26,7 +26,13 @@
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
               <div>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">순위</p>
-                <p class="text-lg font-black text-brand-primary">#{{ stats?.rank || '-' }}</p>
+                <p class="text-lg font-black text-brand-primary flex items-center justify-center gap-1">
+                  <template v-if="stats?.rank === 1">🥇</template>
+                  <template v-else-if="stats?.rank === 2">🥈</template>
+                  <template v-else-if="stats?.rank === 3">🥉</template>
+                  <span v-if="stats?.rank">#{{ stats.rank }}</span>
+                  <span v-else>-</span>
+                </p>
               </div>
               <div class="border-x border-white/5">
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">포인트</p>
