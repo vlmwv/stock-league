@@ -50,6 +50,7 @@ const { data: rankings, pending, refresh } = useAsyncData('userRankings', async 
     })
     
     return (data as any[]).map((r, index) => ({
+      user_id: r.user_id,
       username: r.profiles.username,
       fullName: r.profiles.full_name,
       displayName: r.profiles.display_name_type === 'full_name' ? (r.profiles.full_name || r.profiles.username) : r.profiles.username,
@@ -78,13 +79,14 @@ const getAvatar = (user: any) => {
 
 const myRankingInfo = computed(() => {
   if (!user.value || !rankings.value) return null
-  // 리스트 내에 내가 있는지 확인
-  const found = (rankings.value as any[]).find(r => r.username === (user.value?.user_metadata?.full_name || user.value?.email?.split('@')[0]))
+  // ID 기반으로 정확하게 본인 찾기
+  const found = (rankings.value as any[]).find(r => r.user_id === user.value?.id)
   if (found) return found
   
   // 리스트에 없으면 전체 스태츠에서 가져옴 (단, 필터가 '전체'일 때만 의미 있음)
   if (selectedYear.value === '전체' && myStats.value) {
     return {
+      user_id: user.value.id,
       username: myStats.value.displayName,
       avatar_url: myStats.value.avatarUrl,
       points: myStats.value.points,
@@ -125,7 +127,7 @@ onMounted(async () => {
             </div>
             <div class="min-w-0">
               <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.displayName || myRankingInfo.username }}</p>
-              <p class="text-[10px] font-bold text-brand-primary/80 uppercase">상위 {{ Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
+              <p class="text-[10px] font-bold text-brand-primary/80 uppercase">상위 {{ myRankingInfo.rank === 1 ? 1 : Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
             </div>
           </div>
           <div class="text-right">

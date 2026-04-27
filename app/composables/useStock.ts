@@ -926,6 +926,7 @@ export const useStock = () => {
     let query = client
       .from('profiles')
       .select(`
+        id,
         username,
         full_name,
         display_name_type,
@@ -948,6 +949,7 @@ export const useStock = () => {
       const fallbackQuery = client
         .from('profiles')
         .select(`
+          id,
           username,
           avatar_url,
           points,
@@ -971,6 +973,7 @@ export const useStock = () => {
     let results = ((data as any[]) || []).map((p) => {
       const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0, win_count: 0 }
       return {
+        user_id: p.id,
         username: p.username,
         full_name: p.full_name,
         display_name_type: p.display_name_type,
