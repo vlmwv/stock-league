@@ -13,7 +13,7 @@ function buildFallbackSummary(items: any[], stockName: string): { title: string,
   const rawTitle2 = String(second.title || second.tit || '').trim()
 
   const baseTitle = rawTitle1 || `${stockName} 뉴스 업데이트`
-  const title = `${baseTitle.substring(0, 22)}${baseTitle.length > 22 ? '...' : ''} (요약)`
+  const title = `${baseTitle.substring(0, 40)}${baseTitle.length > 40 ? '...' : ''}`
 
   if (rawTitle1 && rawTitle2) {
     return {
@@ -49,7 +49,7 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 
 [분석 및 요약 지침]
 1. 최신 이슈 중 주가에 실질적이고 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
-2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(25자 이내)을 만드세요. 제목 끝에는 반드시 '(요약)'을 붙이세요.
+2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(50자 이내)을 만드세요.
 3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
 4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요.
    - 100점에 가까울수록 강력한 호재, 0점에 가까울수록 강력한 악재입니다.
@@ -60,7 +60,7 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 [응답 형식]
 반드시 아래 JSON 형식으로만 응답하세요:
 {
-  "title": "{생성한 제목} (요약)",
+  "title": "{생성한 제목}",
   "summary": "{핵심 요약 내용}",
   "score": {0~100 사이의 숫자},
   "is_significant": {true 또는 false}
@@ -127,7 +127,7 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
 
     // 만약 제목이 비어있거나 너무 단순하면 원문 제목 활용
     if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
-      finalTitle = `${primaryTitle.substring(0, 20)}${primaryTitle.length > 20 ? '...' : ''} (요약)`
+      finalTitle = `${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '...' : ''}`
     }
 
     return {

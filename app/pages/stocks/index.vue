@@ -137,7 +137,7 @@
                 </span>
                 <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-0.5">
                   <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
-                  {{ stock.ai_recommendation_count ?? 0 }}회 추천
+                  {{ stock.ai_recommendation_count ?? 0 }}회
                 </span>
                 <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
