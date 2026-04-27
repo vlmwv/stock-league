@@ -59,7 +59,8 @@ Deno.serve(async (req) => {
           last_price: parseInt(data.closePriceRaw, 10),
           change_amount: parseInt(data.compareToPreviousClosePriceRaw, 10),
           change_rate: parseFloat(data.fluctuationsRatioRaw),
-          volume: parseInt(data.accumulatedTradingVolumeRaw, 10),
+          // 거래총액(거래대금)을 volume 컬럼에 저장
+          volume: parseInt(data.accumulatedTradingValueRaw, 10),
           updated_at: new Date().toISOString()
         }
       })

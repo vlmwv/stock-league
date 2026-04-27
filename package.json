@@ -31,7 +31,9 @@
   },
   "devDependencies": {
     "@nuxt/ui": "^4.5.1",
-    "@types/canvas-confetti": "^1.9.0"
+    "@supabase/supabase-js": "^2.104.1",
+    "@types/canvas-confetti": "^1.9.0",
+    "dotenv": "^17.4.2"
   },
   "optionalDependencies": {
     "@oxc-parser/binding-linux-x64-gnu": "0.117.0"
