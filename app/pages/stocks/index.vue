@@ -38,6 +38,21 @@
         </div>
       </section>
 
+      <!-- 상세 필터 (AI 추천: 추천 수/최근 순) -->
+      <section v-if="currentSort === 'aiRecommendation'" class="px-6 mb-4 animate-fade-in">
+        <div class="flex p-1 bg-slate-800/30 rounded-xl border border-white/5 gap-1 w-fit mx-auto">
+          <button
+            v-for="s in aiSortTabs"
+            :key="s.key"
+            @click="currentAiSort = s.key"
+            class="px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300"
+            :class="currentAiSort === s.key ? 'bg-slate-700 text-brand-primary shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+          >
+            {{ s.label }}
+          </button>
+        </div>
+      </section>
+
       <!-- 상세 필터 (코스피/코스닥) -->
       <section v-if="currentSort === 'marketCap' || currentSort === 'volume'" class="px-6 mb-4 animate-fade-in">
         <div class="flex p-1 bg-slate-800/30 rounded-xl border border-white/5 gap-1 w-fit mx-auto">
@@ -143,9 +158,14 @@
                     <UIcon name="i-heroicons-check-circle-20-solid" class="w-3 h-3 text-brand-primary/60" />
                     {{ stock.win_count ?? 0 }}
                   </span>
-                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-0.5">
-                    <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
-                    {{ stock.ai_recommendation_count ?? 0 }}회
+                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex flex-col items-end gap-0.5">
+                    <div class="flex items-center gap-0.5">
+                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
+                      {{ stock.ai_recommendation_count ?? 0 }}회
+                    </div>
+                    <div v-if="stock.last_recommendation_date" class="text-[8px] text-slate-500 font-bold opacity-60">
+                      최근 {{ formatDate(stock.last_recommendation_date) }}
+                    </div>
                   </span>
                   <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
@@ -208,6 +228,7 @@ const handleOpenModal = (id: number) => {
 const searchQuery = ref('')
 const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume'>('marketCap')
 const currentMarket = ref<'ALL' | 'KOSPI' | 'KOSDAQ'>('ALL')
+const currentAiSort = ref<'count' | 'recent'>('count')
 const isLoading = ref(true)
 const allStocks = ref<any[]>([])
 
@@ -232,6 +253,11 @@ const marketTabs = [
   { key: 'ALL', label: '전체' },
   { key: 'KOSPI', label: '코스피' },
   { key: 'KOSDAQ', label: '코스닥' }
+] as const
+
+const aiSortTabs = [
+  { key: 'count', label: '추천 수' },
+  { key: 'recent', label: '최근 순' }
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
@@ -265,12 +291,12 @@ const loadStocks = async (isAppend = false) => {
       isFetchingMore.value = true
     }
 
-    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume'> = {
+    const sortMap: Record<string, 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume' | 'last_recommendation_date'> = {
       marketCap: 'market_cap_rank',
       interested: 'market_cap_rank', // 관심 탭도 시총순으로 정렬
       wishlist: 'wishlist_count',
       prediction: 'win_count',
-      aiRecommendation: 'ai_recommendation_count',
+      aiRecommendation: currentAiSort.value === 'count' ? 'ai_recommendation_count' : 'last_recommendation_date',
       volume: 'volume'
     }
     
@@ -319,6 +345,24 @@ const formatVolume = (vol: number | undefined) => {
   return vol.toLocaleString()
 }
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  
+  if (d.getTime() === today.getTime()) return '오늘'
+  if (d.getTime() === yesterday.getTime()) return '어제'
+  
+  return dateStr.substring(5).replace('-', '/') // 04/27 형태
+}
+
 const loadMore = () => {
   if (!hasMore.value || isFetchingMore.value || isLoading.value) return
   page.value++
@@ -348,6 +392,11 @@ watch(currentMarket, () => {
 
 // 관심 그룹 변경 시 데이터 다시 불러오기
 watch(currentGroupId, () => {
+  loadStocks()
+})
+
+// AI 추천 상세 정렬 변경 시 데이터 다시 불러오기
+watch(currentAiSort, () => {
   loadStocks()
 })
 

@@ -20,6 +20,7 @@ interface Stock {
   volume?: number
   target_price?: number
   target_date?: string
+  last_recommendation_date?: string
 }
 
 interface WishlistGroup {
@@ -1232,7 +1233,7 @@ export const useStock = () => {
   }
 
   const fetchStocksWithStats = async (
-    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume' = 'market_cap_rank',
+    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume' | 'last_recommendation_date' = 'market_cap_rank',
     page = 1,
     pageSize = 10,
     searchQuery = '',
@@ -1247,7 +1248,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, volume', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -1285,7 +1286,17 @@ export const useStock = () => {
 
       let finalQuery = query.order(orderBy, { ascending: orderBy === 'market_cap_rank' })
       
-      // 찜순(wishlist_count), 예측성공 순(win_count) 등에서 중복 시 시가총액 순(market_cap_rank asc)으로 2차 정렬
+      // AI 추천 횟수 정렬 시 최근 추천일을 2차 정렬로 추가
+      if (orderBy === 'ai_recommendation_count') {
+        finalQuery = finalQuery.order('last_recommendation_date', { ascending: false, nullsFirst: false })
+      }
+      
+      // 최근 추천일 정렬 시 추천 횟수를 2차 정렬로 추가
+      if (orderBy === 'last_recommendation_date') {
+        finalQuery = finalQuery.order('ai_recommendation_count', { ascending: false })
+      }
+
+      // 중복 시 시가총액 순(market_cap_rank asc)으로 최종 정렬
       if (orderBy !== 'market_cap_rank') {
         finalQuery = finalQuery.order('market_cap_rank', { ascending: true })
       }
@@ -1366,7 +1377,8 @@ export const useStock = () => {
           ai_recommendation_count: s.ai_recommendation_count || 0,
           ai_win_count: s.ai_win_count || 0,
           ai_processed_count: s.ai_processed_count || 0,
-          volume: s.volume || 0
+          volume: s.volume || 0,
+          last_recommendation_date: s.last_recommendation_date
         })),
         count: count || 0
       }

@@ -28,6 +28,7 @@ erDiagram
         int ai_recommendation_count "AI 추천 횟수"
         int ai_win_count "AI 승리 횟수"
         int ai_processed_count "AI 처리 횟수"
+        date last_recommendation_date "최근 추천일"
         timestamp updated_at "수정 일시"
     }
     wishlist_groups {
