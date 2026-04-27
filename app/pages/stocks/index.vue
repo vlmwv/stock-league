@@ -140,7 +140,7 @@
                 </span>
                 <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
                   <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
-                  {{ formatVolume(stock.volume) }}
+                  {{ formatAmount(stock.volume) }}
                 </span>
               </div>
             </div>
@@ -211,7 +211,7 @@ const sentinel = ref<HTMLElement | null>(null)
 
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
-  { key: 'volume', label: '거래량' },
+  { key: 'volume', label: '거래총액' },
   { key: 'interested', label: '관심' },
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },
@@ -295,7 +295,7 @@ const loadStocks = async (isAppend = false) => {
   }
 }
 
-const formatVolume = (vol: number | undefined) => {
+const formatAmount = (vol: number | undefined) => {
   if (!vol) return '0'
   if (vol >= 100000000) {
     return `${(vol / 100000000).toFixed(1)}억`
