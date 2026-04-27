@@ -7,7 +7,6 @@
           <UIcon name="i-heroicons-chevron-left-20-solid" class="w-6 h-6" />
         </button>
         <div class="flex items-center gap-2">
-
           <button
             v-if="stock"
             @click="handleToggleHeart"
@@ -18,15 +17,11 @@
           </button>
         </div>
       </nav>
-
       <WishlistGroupModal 
         v-model:open="isGroupModalOpen"
         :stock-id="stock?.id"
         :initial-group-ids="currentStockGroupIds"
       />
-
-
-
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
         <!-- 종목 헤더 (Brand CI 포함) -->
         <header class="flex items-center gap-4">
