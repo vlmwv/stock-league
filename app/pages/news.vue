@@ -3,19 +3,8 @@
     <TopHeader />
 
     <main class="max-w-md mx-auto">
-      <!-- 헤더 -->
-      <section class="px-6 pt-8 pb-4">
-        <div class="flex items-baseline justify-between mb-4">
-          <h2 class="text-3xl font-black text-slate-100 tracking-tight">최신 뉴스</h2>
-          <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-            전체 <span class="text-brand-primary">{{ totalCount.toLocaleString() }}</span>건
-          </p>
-        </div>
-
-      </section>
-
       <!-- 탭 스위처 -->
-      <section class="px-6 mb-6">
+      <section class="px-6 pt-8 mb-6">
         <div class="flex p-1 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
           <button 
             @click="activeTab = 'news'"
@@ -49,6 +38,12 @@
         </div>
 
         <template v-else>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">최신 뉴스</span>
+            <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              전체 <span class="text-brand-primary">{{ totalCount.toLocaleString() }}</span>건
+            </p>
+          </div>
           <NewsPanelCard
             v-for="item in newsItems"
             :key="item.id"

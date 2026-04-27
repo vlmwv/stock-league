@@ -313,6 +313,8 @@ export const useStock = () => {
         ai_score,
         llm_summary,
         status,
+        target_price,
+        target_date,
         stocks (
           id,
           code,
@@ -344,6 +346,8 @@ export const useStock = () => {
           ai_win_count: d.stocks.ai_win_count || 0,
           ai_processed_count: d.stocks.ai_processed_count || 0,
           ai_score: d.ai_score || 0,
+          target_price: d.target_price,
+          target_date: d.target_date,
           summary: decodeHtmlEntities(d.llm_summary)
         }))
     }
@@ -354,6 +358,8 @@ export const useStock = () => {
       .select(`
         ai_score,
         llm_summary,
+        target_price,
+        target_date,
         stocks (
           id,
           code,
@@ -383,6 +389,8 @@ export const useStock = () => {
         ai_win_count: n.stocks.ai_win_count || 0,
         ai_processed_count: n.stocks.ai_processed_count || 0,
         ai_score: n.ai_score || 0,
+        target_price: (n as any).target_price,
+        target_date: (n as any).target_date,
         summary: decodeHtmlEntities(n.llm_summary)
       }))
   })

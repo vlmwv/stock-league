@@ -117,6 +117,19 @@
                 </p>
               </div>
 
+              <!-- 목표가 정보 추가 -->
+              <div v-if="item.target_price" class="mt-6 grid grid-cols-2 gap-4 py-4 px-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                <div class="space-y-0.5">
+                  <p class="text-[9px] font-black text-emerald-500/60 uppercase tracking-widest">목표가</p>
+                  <p class="text-sm font-black text-emerald-400 font-mono">{{ item.target_price.toLocaleString() }}원</p>
+                </div>
+                <div class="space-y-0.5 text-right">
+                  <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">목표기한</p>
+                  <p class="text-sm font-black text-slate-300">{{ item.target_date }}</p>
+                </div>
+              </div>
+
+
 
               <!-- AI 요약 -->
               <div class="mt-6 pt-6 border-t border-white/5 relative">

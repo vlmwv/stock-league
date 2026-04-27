@@ -7,9 +7,6 @@
       <section class="px-4 py-4">
         <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-6 shadow-3xl">
           <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4 animate-pulse-soft">
-              <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">오늘의 리그</span>
-            </div>
             <h2 class="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tighter text-slate-100">
               오늘의 차트를 <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
             </h2>
@@ -17,15 +14,14 @@
               <div class="flex items-center gap-2">
                 <div v-if="participantCount > 0" class="flex items-center gap-2">
                   <p class="text-xs text-slate-100 font-bold tracking-tight">
-                    오늘 {{ participantCount.toLocaleString() }}명 예측 완료
-                    <span class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여 중)</span>
+                    오늘 {{ participantCount.toLocaleString() }}명 누적 {{ totalMemberCount.toLocaleString() }}명 참여
                   </p>
                 </div>
                 <div v-else class="flex items-center gap-2">
                   <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
                   <p class="text-xs text-slate-100 font-bold tracking-tight">
                     가장 먼저 예측에 참여해 보세요!
-                    <span v-if="totalMemberCount > 0" class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여 중)</span>
+                    <span v-if="totalMemberCount > 0" class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여)</span>
                   </p>
                 </div>
               </div>
@@ -57,7 +53,7 @@
                 @click="handleParticipation"
                 class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
-                {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : '리그 마감 (결과 대기 중)'))) }}
+                {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : '오늘의리그 마감 (결과 대기 중)'))) }}
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               </button>
             </div>
@@ -192,6 +188,15 @@
                     </template>
                   </UPopover>
                 </div>
+
+                <!-- Row 3: Target Price Info -->
+                <div v-if="stock.target_price" class="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/5 rounded-lg border border-emerald-500/10 mt-0.5">
+                  <div class="flex items-center gap-1.5">
+                    <UIcon name="i-heroicons-target" class="w-3 h-3 text-emerald-500" />
+                    <span class="text-[8px] font-black text-emerald-500/70 uppercase tracking-widest">Target</span>
+                  </div>
+                  <span class="text-[10px] font-black text-emerald-400 font-mono">{{ stock.target_price.toLocaleString() }}원</span>
+                </div>
               </div>
             </div>
           </div>
@@ -218,12 +223,12 @@
             </NuxtLink>
         </div>
 
-        <div class="flex gap-4 overflow-x-auto pb-6 no-scrollbar -mx-4 px-4 snap-x snap-mandatory scroll-smooth">
+        <div class="flex flex-col gap-4">
           <NewsPanelCard
             v-for="item in recentNews"
             :key="item.id"
             :item="item"
-            class="w-[300px] flex-shrink-0 snap-center"
+            class="w-full animate-fade-in-up"
             :is-hearted="isHearted(item.stockId)"
             :formatted-date="formatDate(item.published_at)"
             @navigate-news="navigateToNews(item)"

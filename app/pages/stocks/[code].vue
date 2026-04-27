@@ -7,14 +7,7 @@
           <UIcon name="i-heroicons-chevron-left-20-solid" class="w-6 h-6" />
         </button>
         <div class="flex items-center gap-2">
-          <button
-            v-if="user && role === 'admin'"
-            @click="isAdminModalOpen = true"
-            class="px-4 h-10 rounded-2xl bg-brand-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all flex items-center gap-2"
-          >
-            <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
-            추천하기
-          </button>
+
           <button
             v-if="stock"
             @click="handleToggleHeart"
@@ -32,38 +25,24 @@
         :initial-group-ids="currentStockGroupIds"
       />
 
-      <AdminStockActionModal
-        v-if="stock"
-        v-model:open="isAdminModalOpen"
-        :stock-id="stock.id"
-        :stock-name="stock.name"
-        :stock-code="stock.code"
-        :last-price="stock.last_price"
-        @success="handleAdminSuccess"
-      />
+
 
       <main v-if="stock" class="px-5 space-y-5 animate-fade-in pb-16">
         <!-- 종목 헤더 (Brand CI 포함) -->
         <header class="flex items-center gap-4">
           <StockIcon :code="stock.code" :name="stock.name" size="lg" class="shadow-lg border border-white/5 flex-shrink-0" />
           <div class="flex-1 min-w-0">
-            <!-- 1행: 종목명, 종목코드, 현재가 -->
+            <!-- 1행: 종목명, 현재가 -->
             <div class="flex items-center justify-between gap-2">
-              <div class="flex items-baseline gap-2 min-w-0">
-                <h1 class="text-xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
-                <span class="text-xs font-bold text-slate-500 flex-shrink-0">{{ stock.code }}</span>
-              </div>
+              <h1 class="text-xl font-black text-slate-100 tracking-tight truncate">{{ stock.name }}</h1>
               <div class="text-xl font-black text-slate-100 whitespace-nowrap">{{ stock.last_price?.toLocaleString() }}</div>
             </div>
             
-            <!-- 2행: 코스피/코스닥, 추천수, 금일변동금액(비율) -->
+            <!-- 2행: 종목코드, 코스피/코스닥, 금일변동금액(비율) -->
             <div class="flex items-center justify-between text-[11px] font-bold mt-1">
               <div class="flex items-center gap-2">
+                <span class="text-slate-500">{{ stock.code }}</span>
                 <span class="text-slate-500">{{ stock.sector || 'KOSPI' }}</span>
-                <div v-if="stock.ai_recommendation_count > 0" class="flex items-center gap-1 text-brand-primary">
-                  <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3.5 h-3.5" />
-                  <span>{{ stock.ai_recommendation_count }}회 추천</span>
-                </div>
                 <button @click="clearAiHistoryAndGoToTab" class="text-slate-500 hover:text-slate-300 transition-colors flex items-center">
                   <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
                 </button>
@@ -342,13 +321,11 @@ const {
   toggleHeart, 
   fetchWishlist,
   fetchAiHistory,
-  wishlistsWithGroups,
-  fetchUserStats
+  wishlistsWithGroups
 } = useStock()
 
 const user = useSupabaseUser()
-const role = ref('user')
-const isAdminModalOpen = ref(false)
+
 
 const isGroupModalOpen = ref(false)
 const currentStockGroupIds = computed(() => {
@@ -430,12 +407,7 @@ const handleToggleHeart = () => {
   isGroupModalOpen.value = true
 }
 
-const handleAdminSuccess = async () => {
-  await Promise.all([
-    loadAiHistory(),
-    fetchStockByCode(code).then(data => { if (data) stock.value = data })
-  ])
-}
+
 
 const navigateToNews = (item: any) => {
   const url = repairNewsUrl(item.url, item.stockCode)
@@ -691,10 +663,7 @@ onMounted(async () => {
     fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent(),
-    loadAiHistory(),
-    fetchUserStats().then(stats => {
-      if (stats) role.value = stats.role
-    })
+    loadAiHistory()
   ])
 })
 </script>

@@ -75,13 +75,9 @@
               </div>
 
               <div>
-                <div class="flex items-center justify-between mb-3 ml-1">
-                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">프로필 이미지 노출 여부</label>
-                  <UToggle v-model="useAvatar" color="primary" />
-                </div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 설정</label>
                 
-                <Transition name="fade">
-                  <div v-if="useAvatar" class="space-y-4 mt-4">
+                <div class="space-y-4">
                     <!-- Preview -->
                     <div class="flex items-center gap-4 bg-slate-800/30 border border-white/5 rounded-2xl p-4">
                       <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center relative group">
@@ -101,7 +97,7 @@
                     </div>
 
                     <!-- Source Selection -->
-                    <div class="grid grid-cols-3 gap-2">
+                    <div :class="['grid gap-2', availableSources.length === 3 ? 'grid-cols-3' : 'grid-cols-2']">
                       <button 
                         v-for="s in availableSources"
                         :key="s.value"
@@ -117,7 +113,6 @@
                       </button>
                     </div>
                   </div>
-                </Transition>
                 
                 <!-- Hidden inputs -->
                 <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileUpload" />
@@ -192,7 +187,6 @@ const username = ref('')
 const fullName = ref('')
 const displayNameType = ref<'nickname' | 'full_name'>('nickname')
 const gender = ref('none')
-const useAvatar = ref(true)
 const imageSource = ref<'sns' | 'upload' | 'default'>('sns')
 const uploadUrl = ref('')
 const uploading = ref(false)
@@ -200,21 +194,21 @@ const saving = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const previewUrl = computed(() => {
-  if (!useAvatar.value || imageSource.value === 'default') return ''
+  if (imageSource.value === 'default') return ''
   if (imageSource.value === 'sns') return user.value?.user_metadata?.avatar_url || ''
   if (imageSource.value === 'upload') return uploadUrl.value
   return ''
 })
 
 const sourceLabel = computed(() => {
-  if (!useAvatar.value || imageSource.value === 'default') return '기본 아이콘 사용 중'
+  if (imageSource.value === 'default') return '기본 아이콘 사용 중'
   if (imageSource.value === 'sns') return 'SNS 프로필 사용 중'
   if (imageSource.value === 'upload') return '직접 업로드 이미지 사용 중'
   return '기본 아이콘 사용 중'
 })
 
 const sourceDescription = computed(() => {
-  if (!useAvatar.value || imageSource.value === 'default') return '성별에 따른 기본 아이콘을 보여줍니다.'
+  if (imageSource.value === 'default') return '성별에 따른 기본 아이콘을 보여줍니다.'
   if (imageSource.value === 'sns') return '가입하신 서비스의 이미지를 보여줍니다.'
   if (imageSource.value === 'upload') return '직접 업로드하신 이미지를 보여줍니다.'
   return '성별에 따른 기본 아이콘을 보여줍니다.'
@@ -246,10 +240,8 @@ watch(() => props.open, (val) => {
     const sns = user.value?.user_metadata?.avatar_url
     
     if (!current) {
-      useAvatar.value = false
       imageSource.value = 'default'
     } else {
-      useAvatar.value = true
       if (sns && current === sns) {
         imageSource.value = 'sns'
       } else {
@@ -301,7 +293,6 @@ const handleFileUpload = async (e: Event) => {
 
     uploadUrl.value = publicUrl
     imageSource.value = 'upload'
-    useAvatar.value = true
     toast.add({ title: '이미지가 업로드되었습니다.', color: 'primary' })
   } catch (err: any) {
     console.error('Final catch error:', err)
@@ -326,7 +317,7 @@ const handleUpdateProfile = async () => {
   saving.value = true
   
   let finalAvatarUrl: string | null = null
-  if (useAvatar.value && imageSource.value !== 'default') {
+  if (imageSource.value !== 'default') {
     if (imageSource.value === 'sns') {
       finalAvatarUrl = user.value?.user_metadata?.avatar_url || null
     } else if (imageSource.value === 'upload') {

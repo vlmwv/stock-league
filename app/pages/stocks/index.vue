@@ -30,7 +30,7 @@
             v-for="tab in sortTabs"
             :key="tab.key"
             @click="currentSort = tab.key"
-            class="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 leading-tight px-1"
+            class="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 leading-tight px-0.5 whitespace-nowrap"
             :class="currentSort === tab.key ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
           >
             {{ tab.label }}

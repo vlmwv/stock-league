@@ -33,13 +33,29 @@
         </div>
       </div>
 
-      <!-- 뉴스 제목 (파도타기 효과) -->
-      <div class="relative overflow-hidden bg-white/5 rounded-xl h-11 flex items-center border border-white/5 group/marquee px-4">
-        <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
-          <h4 class="font-bold text-slate-100 text-[14px] tracking-tight flex items-center h-full">
-            {{ item.title }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ item.title }}
-          </h4>
+      <!-- 뉴스 제목 (파도타기 효과 패널) -->
+      <div class="relative overflow-hidden bg-slate-900/50 rounded-xl h-11 flex items-center border border-white/5 group/marquee px-4 shadow-inner">
+        <div class="flex items-center gap-2 mr-3 shrink-0 opacity-40">
+          <UIcon name="i-heroicons-newspaper" class="w-3.5 h-3.5 text-slate-400" />
         </div>
+        <div class="flex-1 overflow-hidden relative">
+          <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
+            <h4 class="font-bold text-slate-100 text-[14px] tracking-tight flex items-center h-full">
+              {{ item.title }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ item.title }}
+            </h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 요약 (기존 Context 패널 스타일) -->
+      <div v-if="item.llm_summary" class="relative bg-brand-primary/5 rounded-xl p-4 border border-brand-primary/10 group-hover:bg-brand-primary/10 transition-all">
+        <div class="flex items-center gap-1.5 mb-2 opacity-60">
+          <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
+          <span class="text-[9px] font-black text-brand-primary uppercase tracking-widest">AI SUMMARY</span>
+        </div>
+        <p class="text-[12px] text-slate-300 leading-relaxed font-medium">
+          {{ item.llm_summary }}
+        </p>
       </div>
     </div>
 
