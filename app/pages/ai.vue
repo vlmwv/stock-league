@@ -31,12 +31,7 @@ watch(aiSubTab, (newSub) => {
     <TopHeader />
 
     <main class="max-w-md mx-auto px-6 py-8">
-      <div class="mb-10">
-        <h2 class="text-2xl font-black text-slate-100 tracking-tight flex items-center gap-2">
-          <UIcon name="i-heroicons-sparkles-20-solid" class="text-brand-primary" />
-          AI 추천 인사이트
-        </h2>
-      </div>
+
 
       <!-- 서브 탭 전환 -->
       <div class="flex gap-2 mb-8">

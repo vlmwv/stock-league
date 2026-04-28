@@ -14,10 +14,7 @@ onMounted(() => {
 
 <template>
   <div class="animate-fade-in">
-    <div class="mb-8">
-      <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 선정 목표가</h3>
-      <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">AI Predicted Target Prices</p>
-    </div>
+
 
     <!-- Loading State -->
     <section v-if="pendingTargeted" class="space-y-4">

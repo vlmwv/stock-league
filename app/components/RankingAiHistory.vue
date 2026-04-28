@@ -93,10 +93,7 @@ onMounted(async () => {
 
 <template>
   <div class="animate-fade-in">
-    <div class="mb-8">
-      <h3 class="text-xl font-black text-slate-100 tracking-tight">AI 추천 이력</h3>
-      <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Past AI Recommendations</p>
-    </div>
+
 
     <!-- History List Grouped by Date -->
     <div class="space-y-10">

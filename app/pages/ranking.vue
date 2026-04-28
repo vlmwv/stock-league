@@ -7,12 +7,7 @@
     <TopHeader />
 
     <main class="max-w-md mx-auto px-6 py-8">
-      <div class="mb-10">
-        <h2 class="text-2xl font-black text-slate-100 tracking-tight flex items-center gap-2">
-          <UIcon name="i-heroicons-trophy-20-solid" class="text-brand-primary" />
-          사용자 랭킹
-        </h2>
-      </div>
+
 
       <RankingUser />
     </main>
