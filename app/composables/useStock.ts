@@ -696,32 +696,57 @@ export const useStock = () => {
     const userId = await resolveUserId()
     if (!userId) return { success: false }
     
-    const { error } = await client
-      .from('wishlist_groups')
-      .delete()
-      .eq('id', groupId)
-
-    if (!error) {
-      wishlistGroups.value = wishlistGroups.value.filter(g => g.id !== groupId)
-      wishlistsWithGroups.value = wishlistsWithGroups.value.filter(w => w.group_id !== groupId)
-      hearts.value = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+    try {
+      console.log(`[useStock] Attempting to delete wishlist group: ${groupId}`)
       
-      toast.add({
-        title: '폴더를 삭제했습니다',
-        color: 'neutral',
-        icon: 'i-heroicons-trash'
-      })
-      return { success: true }
-    }
+      // 1. 해당 폴더의 종목들을 '미분류'로 변경 
+      // (DB 제약조건이 ON DELETE CASCADE로 되어 있어 폴더 삭제 시 종목도 찜하기에서 해제되는 것을 방지)
+      const { error: updateError } = await client
+        .from('wishlists')
+        .update({ group_id: null } as any)
+        .eq('group_id', groupId)
+        .eq('user_id', userId)
+      
+      if (updateError) {
+        console.warn('[useStock] Failed to nullify group_id before delete (might be okay if empty):', updateError)
+      }
 
-    console.error('[useStock] deleteWishlistGroup error:', error)
-    toast.add({
-      title: '폴더 삭제에 실패했습니다',
-      description: error?.message || '알 수 없는 오류가 발생했습니다.',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
-    return { success: false, error }
+      // 2. 폴더 삭제
+      const { error } = await client
+        .from('wishlist_groups')
+        .delete()
+        .eq('id', groupId)
+        .eq('user_id', userId)
+
+      if (!error) {
+        console.log(`[useStock] Successfully deleted group: ${groupId}`)
+        // 로컬 상태 동기화
+        wishlistGroups.value = wishlistGroups.value.filter(g => g.id !== groupId)
+        wishlistsWithGroups.value = wishlistsWithGroups.value.filter(w => w.group_id !== groupId)
+        
+        // hearts 업데이트 (중복 제거)
+        const remainingHearts = [...new Set(wishlistsWithGroups.value.map(w => w.stock_id))]
+        hearts.value = remainingHearts
+        
+        toast.add({
+          title: '폴더를 삭제했습니다',
+          color: 'primary',
+          icon: 'i-heroicons-trash'
+        })
+        return { success: true }
+      }
+
+      throw error
+    } catch (error: any) {
+      console.error('[useStock] deleteWishlistGroup error:', error)
+      toast.add({
+        title: '폴더 삭제에 실패했습니다',
+        description: error?.message || '알 수 없는 오류가 발생했습니다.',
+        color: 'error',
+        icon: 'i-heroicons-exclamation-circle'
+      })
+      return { success: false, error }
+    }
   }
 
   const updateWishlistGroup = async (groupId: number, name: string) => {

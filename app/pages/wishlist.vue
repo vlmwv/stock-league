@@ -49,9 +49,9 @@
           <button 
             v-if="group.name !== '기본 폴더' && selectedGroupId === group.id"
             @click.stop="handleDeleteGroup(group)"
-            class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg transform transition-transform border border-slate-900 z-10"
+            class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg transform transition-transform border border-slate-900 z-10 active:scale-90"
           >
-            <UIcon name="i-heroicons-x-mark-20-solid" class="w-3.5 h-3.5" />
+            <UIcon name="i-heroicons-x-mark-20-solid" class="w-4 h-4" />
           </button>
         </div>
       </div>
