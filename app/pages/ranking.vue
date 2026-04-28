@@ -12,7 +12,6 @@
           <UIcon name="i-heroicons-trophy-20-solid" class="text-brand-primary" />
           사용자 랭킹
         </h2>
-        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Global User Leaderboard</p>
       </div>
 
       <RankingUser />

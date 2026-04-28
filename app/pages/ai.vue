@@ -36,7 +36,6 @@ watch(aiSubTab, (newSub) => {
           <UIcon name="i-heroicons-sparkles-20-solid" class="text-brand-primary" />
           AI 추천 인사이트
         </h2>
-        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">AI-Powered Market Analysis</p>
       </div>
 
       <!-- 서브 탭 전환 -->
