@@ -77,9 +77,8 @@
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <NuxtLink to="/targets" class="px-3 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5 text-emerald-400 hover:bg-emerald-500 hover:text-slate-900 transition-all shadow-lg shadow-emerald-500/10 group/target">
-              <UIcon name="i-heroicons-target" class="w-3.5 h-3.5" />
-              <span class="text-[10px] font-black uppercase tracking-widest">목표가</span>
+            <NuxtLink to="/targets" class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 hover:bg-emerald-500 hover:text-slate-900 transition-all shadow-lg shadow-emerald-500/10 group/target" title="목표가 모아보기">
+              <UIcon name="i-heroicons-target" class="w-4 h-4" />
             </NuxtLink>
             <NuxtLink to="/daily-history" class="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm">
               <UIcon name="i-heroicons-clock" class="w-4 h-4" />

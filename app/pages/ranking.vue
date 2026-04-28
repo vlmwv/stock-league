@@ -13,8 +13,8 @@ const getKstInfo = () => {
 }
 
 const kst = getKstInfo()
-const selectedYear = ref(kst.year)
-const selectedMonth = ref(`${kst.month}월`)
+const selectedYear = ref('전체')
+const selectedMonth = ref('전체')
 const years = ['전체', kst.year, (parseInt(kst.year) - 1).toString()]
 const months = ['전체', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
@@ -49,19 +49,32 @@ const { data: rankings, pending, refresh } = useAsyncData('userRankings', async 
       query: { type, period_key, sort_by: sortBy.value }
     })
     
-    return (data as any[]).map((r, index) => ({
-      user_id: r.user_id,
-      username: r.profiles.username,
-      fullName: r.profiles.full_name,
-      displayName: r.profiles.display_name_type === 'full_name' ? (r.profiles.full_name || r.profiles.username) : r.profiles.username,
-      avatar_url: r.profiles.avatar_url,
-      gender: r.profiles.gender,
-      points: 0, 
-      prediction_count: r.prediction_count,
-      win_rate: r.win_rate,
-      win_count: r.win_count || Math.round(r.prediction_count * (r.win_rate / 100)),
-      rank: index + 1 // Always rank based on current sort
-    }))
+    let lastValue = -1
+    let lastRank = 0
+    return (data as any[]).map((r, index) => {
+      const currentValue = sortBy.value === 'win_rate' ? r.win_rate : 
+                         sortBy.value === 'prediction_count' ? r.prediction_count :
+                         sortBy.value === 'win_count' ? r.win_count : r.rank
+      
+      if (currentValue !== lastValue) {
+        lastRank = index + 1
+        lastValue = currentValue
+      }
+      
+      return {
+        user_id: r.user_id,
+        username: r.profiles.username,
+        fullName: r.profiles.full_name,
+        displayName: r.profiles.display_name_type === 'full_name' ? (r.profiles.full_name || r.profiles.username) : r.profiles.username,
+        avatar_url: r.profiles.avatar_url,
+        gender: r.profiles.gender,
+        points: 0, 
+        prediction_count: r.prediction_count,
+        win_rate: r.win_rate,
+        win_count: r.win_count || Math.round(r.prediction_count * (r.win_rate / 100)),
+        rank: lastRank // Use competition rank
+      }
+    })
   }
 }, { watch: [selectedYear, selectedMonth, sortBy] })
 

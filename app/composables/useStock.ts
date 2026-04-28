@@ -1036,16 +1036,20 @@ export const useStock = () => {
       }
     })
 
-    // 클라이언트 측 정렬 (복합 객체 기반이므로)
-    if (sortBy === 'win_rate') {
-      results.sort((a, b) => b.win_rate - a.win_rate || b.prediction_count - a.prediction_count)
-    } else if (sortBy === 'prediction_count') {
-      results.sort((a, b) => b.prediction_count - a.prediction_count || b.win_rate - a.win_rate)
-    } else if (sortBy === 'win_count') {
-      results.sort((a, b) => b.win_count - a.win_count || b.win_rate - a.win_rate)
-    }
-
-    return results.map((r, i) => ({ ...r, rank: i + 1 }))
+    // 공동 순위(Competition Ranking) 계산
+    let lastValue = -1
+    let lastRank = 0
+    return results.map((r, i) => {
+      const currentValue = sortBy === 'win_rate' ? r.win_rate : 
+                         sortBy === 'prediction_count' ? r.prediction_count :
+                         sortBy === 'win_count' ? r.win_count : r.points
+      
+      if (currentValue !== lastValue) {
+        lastRank = i + 1
+        lastValue = currentValue
+      }
+      return { ...r, rank: lastRank }
+    })
   }
   const currentUserProfile = useState<any | null>('current_user_profile', () => null)
 
