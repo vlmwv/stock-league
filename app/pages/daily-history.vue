@@ -1,6 +1,6 @@
 <script setup lang="ts">
 onMounted(() => {
-  navigateTo('/ranking?tab=ai&sub=history')
+  navigateTo('/ai?sub=history')
 })
 </script>
 

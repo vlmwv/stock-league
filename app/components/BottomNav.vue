@@ -27,6 +27,7 @@ const navItems = [
   { id: 'stocks', label: '종목', icon: 'i-heroicons-chart-bar-20-solid', to: '/stocks' },
   { id: 'ranking', label: '랭킹', icon: 'i-heroicons-trophy-20-solid', to: '/ranking' },
   { id: 'news', label: '뉴스', icon: 'i-heroicons-newspaper-20-solid', to: '/news' },
+  { id: 'ai', label: 'AI', icon: 'i-heroicons-sparkles-20-solid', to: '/ai' },
   { id: 'mypage', label: '마이', icon: 'i-heroicons-user-20-solid', to: '/mypage' }
 ]
 
