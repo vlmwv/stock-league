@@ -478,6 +478,7 @@ export const useStock = () => {
   const participantCount = useState<number>('participantCount', () => 0)
   const totalMemberCount = useState<number>('totalMemberCount', () => 0)
   const isWishlistFetching = useState<boolean>('isWishlistFetching', () => false)
+  const isCreatingGroup = useState<boolean>('isCreatingGroup', () => false)
   const isGuideOpen = useState<boolean>('isGuideOpen', () => false)
   
   // 참여 완료 여부 (현재 활성화된 리그 기준)
@@ -642,32 +643,53 @@ export const useStock = () => {
       return { success: false }
     }
 
-    const { data, error } = await client
-      .from('wishlist_groups')
-      .insert({ user_id: userId, name, sort_order: wishlistGroups.value.length } as any)
-      .select()
-      .single()
+    const trimmedName = name.trim()
+    if (!trimmedName) return { success: false }
 
-    if (!error && data) {
-      wishlistGroups.value = [...wishlistGroups.value, data as any]
+    // 1. 중복 체크 (기존 폴더가 있는지 확인)
+    const existing = wishlistGroups.value.find(g => g.name === trimmedName)
+    if (existing) {
       toast.add({
-        title: '새 폴더가 생성되었어요',
-        color: 'primary',
-        icon: 'i-heroicons-folder-plus'
+        title: '이미 존재하는 폴더 이름입니다',
+        color: 'warning',
+        icon: 'i-heroicons-information-circle'
       })
-      return { success: true, data: data as any }
+      return { success: true, data: existing, alreadyExists: true }
     }
 
-    if (error) {
-      console.error('[useStock] createWishlistGroup error:', error)
-      toast.add({
-        title: '폴더 생성에 실패했습니다',
-        description: error?.message || '알 수 없는 오류가 발생했습니다.',
-        color: 'error',
-        icon: 'i-heroicons-exclamation-circle'
-      })
+    if (isCreatingGroup.value) return { success: false }
+    isCreatingGroup.value = true
+
+    try {
+      const { data, error } = await client
+        .from('wishlist_groups')
+        .insert({ user_id: userId, name: trimmedName, sort_order: wishlistGroups.value.length } as any)
+        .select()
+        .single()
+
+      if (!error && data) {
+        wishlistGroups.value = [...wishlistGroups.value, data as any]
+        toast.add({
+          title: '새 폴더가 생성되었어요',
+          color: 'primary',
+          icon: 'i-heroicons-folder-plus'
+        })
+        return { success: true, data: data as any }
+      }
+
+      if (error) {
+        console.error('[useStock] createWishlistGroup error:', error)
+        toast.add({
+          title: '폴더 생성에 실패했습니다',
+          description: error?.message || '알 수 없는 오류가 발생했습니다.',
+          color: 'error',
+          icon: 'i-heroicons-exclamation-circle'
+        })
+      }
+      return { success: false, error }
+    } finally {
+      isCreatingGroup.value = false
     }
-    return { success: false, error }
   }
 
   const deleteWishlistGroup = async (groupId: number) => {
@@ -799,7 +821,7 @@ export const useStock = () => {
     })
   }, { watch: [hearts, wishlistsWithGroups] })
 
-  const toggleHeart = async (stockId: number, groupId?: number) => {
+  const toggleHeart = async (stockId: number, groupId?: number, options?: { skipRefresh?: boolean }) => {
     const userId = await resolveUserId()
     if (!userId) {
       if (process.client) {
@@ -869,7 +891,9 @@ export const useStock = () => {
         })
       }
       
-      await fetchWishlist()
+      if (!options?.skipRefresh) {
+        await fetchWishlist()
+      }
       
     } catch (err: any) {
       console.error('[useStock] toggleHeart fallback! error:', err.message || err)
@@ -1673,6 +1697,7 @@ export const useStock = () => {
     wishlistsWithGroups,
     fetchWishlistGroups,
     createWishlistGroup,
+    isCreatingGroup,
     deleteWishlistGroup,
     updateWishlistGroup,
     fetchEconomicIndicators: async () => {

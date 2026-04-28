@@ -45,9 +45,11 @@
                 />
                 <button 
                   @click="handleCreateGroup"
-                  class="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-lg shadow-brand-primary/20"
+                  :disabled="isCreatingGroup"
+                  class="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-lg shadow-brand-primary/20 disabled:opacity-50 transition-all"
                 >
-                  <UIcon name="i-heroicons-plus-20-solid" class="w-6 h-6" />
+                  <UIcon v-if="isCreatingGroup" name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+                  <UIcon v-else name="i-heroicons-plus-20-solid" class="w-6 h-6" />
                 </button>
               </div>
               <button 
@@ -92,7 +94,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'success'])
 
-const { wishlistGroups, createWishlistGroup, toggleHeart, wishlistsWithGroups } = useStock()
+const { wishlistGroups, createWishlistGroup, isCreatingGroup, toggleHeart, fetchWishlist, wishlistsWithGroups } = useStock()
 const toast = useToast()
 
 const selectedGroupIds = ref<number[]>([])
@@ -152,13 +154,15 @@ const handleSave = async () => {
     
     // 순차적으로 처리하여 낙관적 업데이트 충돌 방지
     for (const groupId of toAdd) {
-      await toggleHeart(props.stockId!, groupId)
+      await toggleHeart(props.stockId!, groupId, { skipRefresh: true })
     }
     for (const groupId of toRemove) {
       // groupId가 null인 경우 toggleHeart 내부에서 기본 그룹으로 매핑되거나 처리됨
-      // 여기서는 명확히 해당 항목을 제거하기 위해 toggleHeart를 호출
-      await toggleHeart(props.stockId!, groupId as any)
+      await toggleHeart(props.stockId!, groupId as any, { skipRefresh: true })
     }
+    
+    // 모든 처리가 끝난 후 한 번만 최신 데이터 페치
+    await fetchWishlist()
     
     toast.add({
       title: '변경사항이 저장되었습니다',
