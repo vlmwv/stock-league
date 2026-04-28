@@ -12,8 +12,7 @@ function buildFallbackSummary(items: any[], stockName: string): { title: string,
   const rawTitle1 = String(first.title || first.tit || '').trim()
   const rawTitle2 = String(second.title || second.tit || '').trim()
 
-  const baseTitle = rawTitle1 || `${stockName} 뉴스 업데이트`
-  const title = `${baseTitle.substring(0, 40)}${baseTitle.length > 40 ? '...' : ''}`
+  const title = rawTitle1 || `${stockName} 뉴스 업데이트`
 
   if (rawTitle1 && rawTitle2) {
     return {
@@ -43,24 +42,22 @@ async function summarizeWithGemini(items: any[], stockName: string): Promise<{ t
 
   // 첫 번째 항목(가장 임팩트 있는 항목)을 주 대상으로 정보 요약
   const primaryItem = items[0]
-  const primaryTitle = primaryItem.title || primaryItem.tit || ""
+  const primaryTitle = (primaryItem.title || primaryItem.tit || "").trim()
 
   const prompt = `당신은 전문 경제 기자이자 주식 분석가입니다. 다음은 '${stockName}' 주식의 최신 뉴스/공시 목록입니다. 
 
 [분석 및 요약 지침]
 1. 최신 이슈 중 주가에 실질적이고 큰 영향을 줄 핵심 내용 1가지를 선정하세요.
-2. 해당 내용을 바탕으로 실제 뉴스 헤드라인 같은 제목(50자 이내)을 만드세요.
-3. 핵심 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
-4. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요.
+2. 해당 내용을 1~2문장으로 아주 짧고 강렬하게 요약하세요.
+3. 해당 뉴스가 당일 또는 익일 주가에 미칠 긍정적 영향(상승 확률/강도)을 0~100점 사이의 점수로 산출하세요.
    - 100점에 가까울수록 강력한 호재, 0점에 가까울수록 강력한 악재입니다.
-5. **(중요) 중요도 판별(is_significant)**:
+4. **(중요) 중요도 판별(is_significant)**:
    - 다음의 경우에만 true로 설정하세요: 실적 발표(어닝 서프라이즈/쇼크), 대규모 공급계약, M&A, 신사업 진출, 특허/임상 결과, 주요 규제/소송, 혹은 주가 추세를 바꿀만한 강력한 이슈.
    - 단순 시황 중계, 일반적인 증권사 워딩 리포트, 일상적인 뉴스, 혹은 이미 반영된 정보라면 false로 설정하세요.
 
 [응답 형식]
 반드시 아래 JSON 형식으로만 응답하세요:
 {
-  "title": "{생성한 제목}",
   "summary": "{핵심 요약 내용}",
   "score": {0~100 사이의 숫자},
   "is_significant": {true 또는 false}
@@ -114,7 +111,6 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
     }
 
     const parsed = JSON.parse(text)
-    let finalTitle = parsed.title || ""
     let finalSummary = parsed.summary || ""
     let isSignificant = parsed.is_significant === true
     
@@ -125,13 +121,8 @@ ${items.map((item, i) => `${i + 1}. ${item.title || item.tit}`).join('\n')}
       if (isNaN(finalScore)) finalScore = 50;
     }
 
-    // 만약 제목이 비어있거나 너무 단순하면 원문 제목 활용
-    if (!finalTitle || finalTitle.includes('주요 이슈') || finalTitle.includes('실시간 요약')) {
-      finalTitle = `${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '...' : ''}`
-    }
-
     return {
-      title: finalTitle,
+      title: primaryTitle || '제목 없음',
       summary: finalSummary || '요약을 생성할 수 없습니다.',
       score: finalScore,
       is_significant: isSignificant
