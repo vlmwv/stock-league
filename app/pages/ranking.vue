@@ -116,9 +116,9 @@ onMounted(async () => {
         </p>
         <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/10 rounded-3xl p-4 border border-brand-primary/30 flex items-center shadow-lg shadow-brand-primary/5">
           <div class="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white font-black text-sm shadow-lg shrink-0">
-            <template v-if="myRankingInfo.rank === 1">🥇</template>
-            <template v-else-if="myRankingInfo.rank === 2">🥈</template>
-            <template v-else-if="myRankingInfo.rank === 3">🥉</template>
+            <template v-if="myRankingInfo.rank == 1">🥇</template>
+            <template v-else-if="myRankingInfo.rank == 2">🥈</template>
+            <template v-else-if="myRankingInfo.rank == 3">🥉</template>
             <template v-else>{{ myRankingInfo.rank }}</template>
           </div>
           <div class="flex-1 flex items-center gap-3 ml-4">
@@ -271,13 +271,13 @@ onMounted(async () => {
           >
             <!-- Rank -->
             <div class="w-8 flex justify-center">
-              <template v-if="rankingUser.rank === 1">
+              <template v-if="rankingUser.rank == 1">
                 <span class="text-lg">🥇</span>
               </template>
-              <template v-else-if="rankingUser.rank === 2">
+              <template v-else-if="rankingUser.rank == 2">
                 <span class="text-lg">🥈</span>
               </template>
-              <template v-else-if="rankingUser.rank === 3">
+              <template v-else-if="rankingUser.rank == 3">
                 <span class="text-lg">🥉</span>
               </template>
               <span v-else class="text-xs font-black" :class="rankingUser.rank <= 10 ? 'text-brand-primary' : 'text-slate-500'">{{ rankingUser.rank }}</span>
