@@ -124,40 +124,6 @@ onMounted(async () => {
 
 <template>
   <div class="animate-fade-in">
-    <!-- My Rank (Sticky/Top) -->
-    <div v-if="user && myRankingInfo" class="mb-10">
-      <p class="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-        나의 현재 순위
-      </p>
-      <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/10 rounded-3xl p-4 border border-brand-primary/30 flex items-center shadow-lg shadow-brand-primary/5">
-        <div class="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white font-black text-sm shadow-lg shrink-0">
-          <template v-if="myRankingInfo.rank == 1">🥇</template>
-          <template v-else-if="myRankingInfo.rank == 2">🥈</template>
-          <template v-else-if="myRankingInfo.rank == 3">🥉</template>
-          <template v-else>{{ myRankingInfo.rank }}</template>
-        </div>
-        <div class="flex-1 flex items-center gap-3 ml-4">
-          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-brand-primary/30 overflow-hidden shrink-0 flex items-center justify-center">
-             <img v-if="myRankingInfo.avatar_url" :src="myRankingInfo.avatar_url" alt="me" class="w-full h-full object-cover" />
-             <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
-               <UIcon :name="myRankingInfo.gender === 'female' ? 'i-mdi-gender-female' : myRankingInfo.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-7 h-7" />
-             </div>
-          </div>
-          <div class="min-w-0">
-            <p class="text-sm font-black text-slate-100 truncate">{{ myRankingInfo.displayName || myRankingInfo.username }}</p>
-            <p class="text-[10px] font-bold text-brand-primary/80 uppercase">상위 {{ myRankingInfo.rank === 1 ? 1 : Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
-          </div>
-        </div>
-        <div class="text-right">
-          <p class="text-sm font-black text-slate-100">
-            {{ selectedYear === '전체' ? `${(myRankingInfo.points || 0).toLocaleString()}P` : `${myRankingInfo.win_rate}%` }}
-          </p>
-          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-            {{ myRankingInfo.win_count }}승 / {{ myRankingInfo.prediction_count }}회
-          </p>
-        </div>
-      </div>
-    </div>
 
     <!-- Filters -->
     <div class="flex gap-3 mb-8">
@@ -193,6 +159,41 @@ onMounted(async () => {
         <UIcon :name="opt.icon" class="w-3.5 h-3.5" />
         {{ opt.label }}
       </button>
+    </div>
+
+    <!-- My Rank (Moved before Top 3) -->
+    <div v-if="user && myRankingInfo" class="mb-8">
+      <div class="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/5 rounded-2xl p-3.5 border border-brand-primary/20 flex items-center shadow-sm">
+        <div class="w-9 h-9 rounded-xl bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center text-brand-primary font-black text-xs shrink-0">
+          <template v-if="myRankingInfo.rank == 1">🥇</template>
+          <template v-else-if="myRankingInfo.rank == 2">🥈</template>
+          <template v-else-if="myRankingInfo.rank == 3">🥉</template>
+          <template v-else>{{ myRankingInfo.rank }}</template>
+        </div>
+        <div class="flex-1 flex items-center gap-3 ml-3">
+          <div class="w-9 h-9 rounded-lg bg-slate-900 border border-brand-primary/20 overflow-hidden shrink-0 flex items-center justify-center">
+             <img v-if="myRankingInfo.avatar_url" :src="myRankingInfo.avatar_url" alt="me" class="w-full h-full object-cover" />
+             <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
+               <UIcon :name="myRankingInfo.gender === 'female' ? 'i-mdi-gender-female' : myRankingInfo.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-6 h-6" />
+             </div>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-black text-slate-200 truncate">
+              <span class="text-[10px] text-brand-primary mr-1">나의 순위:</span>
+              {{ myRankingInfo.displayName || myRankingInfo.username }}
+            </p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">상위 {{ myRankingInfo.rank === 1 ? 1 : Math.max(1, Math.round((myRankingInfo.rank / (totalMemberCount || 100)) * 100)) }}%</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-black text-slate-100">
+            {{ selectedYear === '전체' ? `${(myRankingInfo.points || 0).toLocaleString()}P` : `${myRankingInfo.win_rate}%` }}
+          </p>
+          <p class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+            {{ myRankingInfo.win_count }}승 / {{ myRankingInfo.prediction_count }}회
+          </p>
+        </div>
+      </div>
     </div>
 
     <div v-if="pending" class="flex justify-center py-20">
