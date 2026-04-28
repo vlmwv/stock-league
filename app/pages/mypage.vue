@@ -25,7 +25,7 @@
             
             <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
               <div>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">순위</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">이번 달 순위</p>
                 <p class="text-lg font-black text-brand-primary flex items-center justify-center gap-1">
                   <template v-if="stats?.rank == 1">🥇</template>
                   <template v-else-if="stats?.rank == 2">🥈</template>

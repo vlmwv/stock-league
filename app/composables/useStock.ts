@@ -1102,13 +1102,28 @@ export const useStock = () => {
       profileError = retry.error
     }
 
-    // 2. Get rank (number of users with more points + 1)
+    // 2. Get all-time rank (number of users with more points + 1)
     const { count: higherRankCount } = await client
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .gt('points', (profile as any)?.points || 0)
 
-    const rank = (higherRankCount || 0) + 1
+    const allTimeRank = (higherRankCount || 0) + 1
+
+    // 2.5 Get current monthly rank
+    const kstDate = getKstDate() // "YYYY-MM-DD"
+    const periodKey = kstDate.substring(0, 7) // "YYYY-MM"
+    const { data: monthlyRankData } = await client
+      .from('rankings')
+      .select('rank, win_rate, prediction_count, win_count')
+      .eq('user_id', userId)
+      .eq('ranking_type', 'monthly')
+      .eq('period_key', periodKey)
+      .maybeSingle()
+    
+    const monthlyRank = (monthlyRankData as any)?.rank || null
+    // Use monthly rank as primary, fallback to all-time if no monthly data yet
+    const rank = monthlyRank || allTimeRank
 
     // 3. Get win rate and total games
     const { data: predictions } = await client
@@ -1169,6 +1184,13 @@ export const useStock = () => {
       role: (profile as any)?.role || 'user',
       gender: (profile as any)?.gender,
       rank,
+      allTimeRank,
+      monthlyStats: monthlyRankData ? {
+        rank: (monthlyRankData as any).rank,
+        winRate: (monthlyRankData as any).win_rate,
+        predictionCount: (monthlyRankData as any).prediction_count,
+        winCount: (monthlyRankData as any).win_count
+      } : null,
       winRate,
       totalGames,
       streak

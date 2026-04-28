@@ -75,10 +75,19 @@ const loadMore = () => {
 
 const myRankingInfo = computed(() => {
   if (!user.value || !rankings.value) return null
+  
+  // 1. 현재 필터링된 리스트(Top 100)에서 나를 찾음
   const found = (rankings.value as any[]).find(r => r.user_id === user.value?.id)
   if (found) return found
   
-  if (selectedYear.value === '전체' && myStats.value) {
+  // 2. 리스트에 없으면 fetchUserStats의 정보 활용
+  if (!myStats.value) return null
+  
+  const isCurrentMonth = selectedYear.value === kst.year && selectedMonth.value === `${kst.month}월`
+  const isAllTime = selectedYear.value === '전체'
+
+  // 필터가 '전체'일 때
+  if (isAllTime) {
     return {
       user_id: user.value.id,
       username: myStats.value.displayName,
@@ -87,9 +96,24 @@ const myRankingInfo = computed(() => {
       prediction_count: myStats.value.totalGames,
       win_rate: myStats.value.winRate,
       win_count: Math.round(myStats.value.totalGames * (myStats.value.winRate / 100)),
-      rank: myStats.value.rank
+      rank: myStats.value.allTimeRank
     }
   }
+
+  // 필터가 '현재 월'일 때 (리스트에 없어도 stats에 monthly 정보가 있으면 표시)
+  if (isCurrentMonth && myStats.value.monthlyStats) {
+    return {
+      user_id: user.value.id,
+      username: myStats.value.displayName,
+      avatar_url: myStats.value.avatarUrl,
+      points: 0,
+      prediction_count: myStats.value.monthlyStats.predictionCount,
+      win_rate: myStats.value.monthlyStats.winRate,
+      win_count: myStats.value.monthlyStats.winCount,
+      rank: myStats.value.monthlyStats.rank
+    }
+  }
+
   return null
 })
 
@@ -125,8 +149,12 @@ onMounted(async () => {
           </div>
         </div>
         <div class="text-right">
-          <p class="text-sm font-black text-slate-100">{{ selectedYear === '전체' ? `${myRankingInfo.points.toLocaleString()}P` : `${myRankingInfo.win_rate}%` }}</p>
-          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{{ myRankingInfo.win_count }}승 / {{ myRankingInfo.prediction_count }}회</p>
+          <p class="text-sm font-black text-slate-100">
+            {{ selectedYear === '전체' ? `${(myRankingInfo.points || 0).toLocaleString()}P` : `${myRankingInfo.win_rate}%` }}
+          </p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+            {{ myRankingInfo.win_count }}승 / {{ myRankingInfo.prediction_count }}회
+          </p>
         </div>
       </div>
     </div>
