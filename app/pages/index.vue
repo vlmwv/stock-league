@@ -143,7 +143,13 @@
                         <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[8px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
                         <span v-if="stock.ai_recommendation_count > 0" class="text-[8px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
                       </div>
-                      <span class="text-[12px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[12px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
+                        <span v-if="stock.target_price" class="text-[9px] font-bold text-emerald-400 tracking-tighter leading-none flex items-center gap-0.5">
+                          <span class="text-[8px] opacity-60">→</span>
+                          {{ stock.target_price.toLocaleString() }}
+                        </span>
+                      </div>
                       <div 
                         class="text-[8px] font-black leading-none mt-1"
                         :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
@@ -192,14 +198,7 @@
                   </UPopover>
                 </div>
 
-                <!-- Row 3: Target Price Info -->
-                <div v-if="stock.target_price" class="flex items-center justify-between px-2.5 py-1.5 bg-emerald-500/5 rounded-lg border border-emerald-500/10 mt-0.5">
-                  <div class="flex items-center gap-1.5">
-                    <UIcon name="i-heroicons-target" class="w-3 h-3 text-emerald-500" />
-                    <span class="text-[8px] font-black text-emerald-500/70 uppercase tracking-widest">Target</span>
-                  </div>
-                  <span class="text-[10px] font-black text-emerald-400 font-mono">{{ stock.target_price.toLocaleString() }}원</span>
-                </div>
+
               </div>
             </div>
           </div>
