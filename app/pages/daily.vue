@@ -23,13 +23,15 @@
               <span class="text-[10px] font-black uppercase tracking-widest">목표가 모아보기</span>
             </NuxtLink>
             <NuxtLink to="/daily-history" class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95 shadow-sm">
-            <UIcon name="i-heroicons-clock" class="w-5 h-5" />
-          </NuxtLink>
+              <UIcon name="i-heroicons-clock" class="w-5 h-5" />
+            </NuxtLink>
+          </div>
         </div>
         <p class="text-sm font-medium mt-3" :class="isLeagueOpen ? 'text-brand-primary/90' : (statusMessage.includes('준비 중') ? 'text-orange-400' : 'text-slate-500')">
           {{ statusMessage }}
         </p>
       </header>
+
 
       <!-- Loading State -->
       <section v-if="pending && dailyStocks.length === 0" class="space-y-4">
