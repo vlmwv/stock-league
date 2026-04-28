@@ -45,7 +45,7 @@ watch(aiSubTab, (newSub) => {
           @click="aiSubTab = 'history'"
           class="flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border flex items-center justify-center gap-2"
           :class="aiSubTab === 'history' 
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-lg shadow-emerald-500/5' 
+            ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-lg shadow-brand-primary/5' 
             : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300'"
         >
           <UIcon name="i-heroicons-clock-20-solid" class="w-4 h-4" />
@@ -55,7 +55,7 @@ watch(aiSubTab, (newSub) => {
           @click="aiSubTab = 'target'"
           class="flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border flex items-center justify-center gap-2"
           :class="aiSubTab === 'target' 
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-lg shadow-emerald-500/5' 
+            ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-lg shadow-brand-primary/5' 
             : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300'"
         >
           <UIcon name="i-heroicons-target" class="w-4 h-4" />
