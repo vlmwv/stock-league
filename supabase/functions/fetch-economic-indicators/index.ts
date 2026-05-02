@@ -1,113 +1,113 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
+import * as cheerio from 'cheerio'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-const SEED_DATA = [
-  {
-    event_name: "미국 신규 실업수당 청구건수",
-    event_at: "2026-04-23T12:30:00Z",
-    country: "US",
-    importance: 3,
-    forecast: "212K",
-    actual: "210K",
-    previous: "215K",
-    unit: "K",
-    impact: "positive"
-  },
-  {
-    event_name: "미국 1분기 GDP (속보치)",
-    event_at: "2026-04-30T12:30:00Z",
-    country: "US",
-    importance: 3,
-    forecast: "2.5%",
-    actual: null,
-    previous: "3.4%",
-    unit: "%"
-  },
-  {
-    event_name: "미국 근원 소비지출 물가지수 (PCE)",
-    event_at: "2026-04-24T12:30:00Z",
-    country: "US",
-    importance: 3,
-    forecast: "2.7%",
-    actual: null,
-    previous: "2.8%",
-    unit: "%"
-  },
-  {
-    event_name: "한국 4월 소비자물가지수 (CPI)",
-    event_at: "2026-05-02T01:00:00Z",
-    country: "KR",
-    importance: 3,
-    forecast: "3.0%",
-    actual: null,
-    previous: "3.1%",
-    unit: "%"
+async function fetchInvestingData(timeFilter: string, currentTab: string) {
+  const url = 'https://www.investing.com/economic-calendar/Service/getCalendarFilteredData'
+  
+  const bodyParams = new URLSearchParams()
+  bodyParams.append('country[]', '5') // US
+  bodyParams.append('country[]', '11') // KR
+  bodyParams.append('importance[]', '3') // High
+  bodyParams.append('timeZone', '88') // Seoul KST
+  bodyParams.append('timeFilter', timeFilter)
+  bodyParams.append('currentTab', currentTab)
+  bodyParams.append('submitFilters', '1')
+  bodyParams.append('limit_from', '0')
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Referer': 'https://www.investing.com/economic-calendar/'
+    },
+    body: bodyParams.toString()
+  })
+
+  if (!response.ok) {
+    throw new Error(`Investing.com returned status ${response.status}`)
   }
-]
+
+  const json = await response.json()
+  return json.data
+}
+
+function parseHtml(htmlStr: string) {
+  const html = `<table><tbody>${htmlStr}</tbody></table>`
+  const $ = cheerio.load(html)
+  const events: any[] = []
+
+  $('tr.js-event-item').each((i, el) => {
+    const currency = $(el).find('td.flagCur').text().trim()
+    const country = currency.includes('USD') ? 'US' : currency.includes('KRW') ? 'KR' : 'US'
+    
+    const actTd = $(el).find('td.act')
+    const actual = actTd.text().trim()
+    let impact = 'neutral'
+    if (actTd.hasClass('greenFont')) impact = 'positive'
+    else if (actTd.hasClass('redFont')) impact = 'negative'
+
+    const eventName = $(el).find('td.event').text().trim()
+    const forecast = $(el).find('td.fore').text().trim()
+    const previous = $(el).find('td.prev').text().trim()
+
+    const timestamp = $(el).attr('data-event-datetime')
+    
+    if (eventName && timestamp) {
+      events.push({
+        event_name: eventName,
+        event_at: new Date(timestamp.replace(/\//g, '-').replace(' ', 'T') + '+09:00').toISOString(),
+        country,
+        importance: 3,
+        actual: actual === '' ? null : actual,
+        forecast: forecast === '' ? null : forecast,
+        previous: previous === '' ? null : previous,
+        impact: impact
+      })
+    }
+  })
+
+  return events
+}
 
 Deno.serve(async (req) => {
   try {
-    const { mode } = await req.json().catch(() => ({ mode: 'fetch' }))
-
-    if (mode === 'seed') {
-      console.log('Seeding economic indicators...')
-      const { error } = await supabase
-        .from('economic_indicators')
-        .upsert(SEED_DATA, { onConflict: 'event_name, event_at' })
-
-      if (error) throw error
-      return new Response(JSON.stringify({ message: "Seeding successful" }), { status: 200 })
+    let mode = 'fetch'
+    try {
+      const body = await req.json()
+      if (body.mode) mode = body.mode
+    } catch (e) {
+      // ignore
     }
 
     if (mode === 'auto-update') {
-      console.log('Running auto-update for economic indicators...')
+      console.log('Running auto-update for economic indicators (Investing.com)...')
       
-      // 1. 발표 시간이 지났는데 실제치가 없는 지표 조회
-      const now = new Date().toISOString()
-      const { data: pending, error: fetchError } = await supabase
+      // 이번 주 일정 가져오기
+      const htmlStr = await fetchInvestingData('timeRemain', 'thisWeek')
+      const events = parseHtml(htmlStr)
+      
+      if (events.length === 0) {
+        return new Response(JSON.stringify({ message: "No data parsed from Investing.com" }), { status: 200 })
+      }
+
+      // Upsert into DB
+      const { error: updateError } = await supabase
         .from('economic_indicators')
-        .select('*')
-        .lte('event_at', now)
-        .is('actual', null)
+        .upsert(events, { onConflict: 'event_name, event_at' })
 
-      if (fetchError) throw fetchError
-
-      if (!pending || pending.length === 0) {
-        return new Response(JSON.stringify({ message: "No pending indicators to update" }), { status: 200 })
-      }
-
-      // 2. 각 지표에 대해 외부 데이터(또는 AI)를 통한 업데이트 시도
-      // (현 버전에서는 간단한 업데이트 로직 예시만 포함)
-      const updates = []
-      for (const item of pending) {
-        // 실제 운영 시에는 여기서 금융 API(예: FMP, InvestPy 등)를 호출합니다.
-        // 여기서는 예시로 '미국 신규 실업수당 청구건수' 등에 대한 자동 매칭 로직을 시뮬레이션합니다.
-        if (item.event_name.includes('실업수당')) {
-          updates.push({
-            ...item,
-            actual: "210K", // 실제 데이터 소스에서 가져온 값 가정
-            impact: "positive",
-            updated_at: new Date().toISOString()
-          })
-        }
-        // 다른 지표들도 동일한 방식으로 처리 가능
-      }
-
-      if (updates.length > 0) {
-        const { error: updateError } = await supabase
-          .from('economic_indicators')
-          .upsert(updates)
-        if (updateError) throw updateError
-      }
+      if (updateError) throw updateError
 
       return new Response(JSON.stringify({ 
-        message: `Auto-update completed. Updated ${updates.length} items.`,
-        updated_count: updates.length 
-      }), { status: 200 })
+        message: `Auto-update completed. Upserted ${events.length} items.`,
+        updated_count: events.length 
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } })
     }
 
     // Default: Return the list of indicators from the DB
@@ -123,7 +123,8 @@ Deno.serve(async (req) => {
       status: 200
     })
 
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+  } catch (err: any) {
+    console.error('Error:', err.message)
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
 })

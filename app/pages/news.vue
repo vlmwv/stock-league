@@ -74,15 +74,36 @@
           <p class="text-sm text-slate-500 font-medium">발표 예정인 지표가 없습니다.</p>
         </div>
         <template v-else>
-          <div class="flex items-center justify-between mb-2 px-1">
-            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">주요 경제 일정</span>
-            <span class="text-[10px] font-bold text-brand-primary">{{ indicators.length }}건</span>
+          <!-- 1. 최근 발표된 지표 -->
+          <div v-if="announcedIndicators.length > 0" class="space-y-3">
+             <div class="flex items-center justify-between mb-2 px-1">
+               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest flex items-center gap-1">
+                 <UIcon name="i-heroicons-check-circle" class="w-3 h-3" /> 최근 발표 완료
+               </span>
+               <span class="text-[10px] font-bold text-slate-500">{{ announcedIndicators.length }}건</span>
+             </div>
+             <EconomicIndicatorCard 
+               v-for="indicator in announcedIndicators" 
+               :key="indicator.id" 
+               :item="indicator" 
+             />
           </div>
-          <EconomicIndicatorCard 
-            v-for="indicator in indicators" 
-            :key="indicator.id" 
-            :item="indicator" 
-          />
+
+          <!-- 2. 발표 예정 일정 -->
+          <div v-if="upcomingIndicators.length > 0" class="space-y-3 pt-4 border-t border-slate-800/50 mt-4">
+             <div class="flex items-center justify-between mb-2 px-1">
+               <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 이번 주 예정 일정
+               </span>
+               <span class="text-[10px] font-bold text-slate-500">{{ upcomingIndicators.length }}건</span>
+             </div>
+             <EconomicIndicatorCard 
+               v-for="indicator in upcomingIndicators" 
+               :key="indicator.id" 
+               :item="indicator" 
+               class="opacity-70 hover:opacity-100 transition-opacity duration-300" 
+             />
+          </div>
         </template>
       </section>
     </main>
@@ -100,8 +121,17 @@ const indicators = ref<any[]>([])
 const isLoading = ref(true)
 const isLoadingIndicators = ref(false)
 const selectedType = ref('all')
-const activeTab = ref<'news' | 'indicators'>('news')
+const route = useRoute()
+const activeTab = ref<'news' | 'indicators'>((route.query.tab as any) === 'indicators' ? 'indicators' : 'news')
 const totalCount = ref(0)
+
+const announcedIndicators = computed(() => {
+  return indicators.value.filter(item => item.actual !== null)
+})
+
+const upcomingIndicators = computed(() => {
+  return indicators.value.filter(item => item.actual === null)
+})
 
 // 페이징 상태
 const page = ref(1)
@@ -195,7 +225,7 @@ watch(activeTab, (newTab) => {
   if (newTab === 'indicators' && indicators.value.length === 0) {
     loadIndicators()
   }
-})
+}, { immediate: true })
 
 onMounted(async () => {
   await Promise.all([

@@ -42,7 +42,7 @@
       <div class="flex flex-col items-center p-2 rounded-xl bg-slate-800/30 border border-slate-700/30">
         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">실제</span>
         <span class="text-xs font-black" :class="item.actual ? 'text-slate-100' : 'text-slate-600'">
-          {{ item.actual || '발표전' }}
+          {{ item.actual || (!item.forecast && !item.previous ? '-' : '발표전') }}
         </span>
       </div>
       
