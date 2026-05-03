@@ -418,7 +418,7 @@ export const useStock = () => {
       ai_processed_count: s.ai_processed_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
-  })
+  }, { immediate: false })
 
   // 4. Fetch stocks with target prices
   const { data: targetedStocks, refresh: refreshTargetedStocks, pending: pendingTargeted } = useAsyncData('targetedStocks', async () => {
@@ -465,7 +465,7 @@ export const useStock = () => {
       target_date: ds.target_date,
       summary: decodeHtmlEntities(ds.llm_summary || '')
     }))
-  })
+  }, { immediate: false })
 
   const dailyStocks = computed(() => {
     return stocks.value || []
@@ -566,7 +566,7 @@ export const useStock = () => {
   }
 
   const refreshAll = async () => {
-    await refresh()
+    await Promise.all([refresh(), refreshRecommended()])
     const targetDate = dailyStocks.value?.[0]?.game_date
     await Promise.all([
       fetchPredictions(targetDate),
@@ -1540,7 +1540,7 @@ export const useStock = () => {
   const fetchStockByCode = async (code: string) => {
     const { data, error } = await client
       .from('stocks')
-      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, sector, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count')
+      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, sector, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, last_recommendation_date')
       .eq('code', code)
       .maybeSingle()
     

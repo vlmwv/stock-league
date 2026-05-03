@@ -1,5 +1,6 @@
-- [x] `useStock.ts`: `fetchPredictions` 날짜 파라미터 추가 및 내부 로직 개선
-- [x] `useStock.ts`: `predict` 함수 로컬 상태 업데이트 반응성 보장 (배열 재할당 및 Number 변환)
+- [x] Create migration for `last_recommendation_date` and improved trigger
+- [x] Update `useStock.ts` to use the new column
+- [x] Verify count and date synchronization
 - [x] `daily.vue`: 종목 로드 후 해당 리그 날짜로 예측 데이터 재조회 로직 추가
 - [x] `index.vue`: 메인 페이지 예측 데이터 조회 날짜 보정
 - [x] 전체적인 여백 및 조화 조정
