@@ -353,12 +353,22 @@ export const useStock = () => {
         }))
     }
 
-    // 2) Fallback: 당일 데이터가 없을 경우 최신 뉴스 기반 요약 노출
-    const { data, error } = await client
-      .from('news')
+    // 2) Fallback: 당일 데이터가 없을 경우 가장 최근 game_date의 daily_stocks 노출
+    const { data: latestDateData } = await client
+      .from('daily_stocks')
+      .select('game_date')
+      .order('game_date', { ascending: false })
+      .limit(1)
+
+    const latestDate = (latestDateData as any)?.[0]?.game_date
+    if (!latestDate) return []
+
+    const { data: fallbackData, error: fallbackError } = await client
+      .from('daily_stocks')
       .select(`
         ai_score,
         llm_summary,
+        status,
         target_price,
         target_date,
         stocks (
@@ -373,26 +383,28 @@ export const useStock = () => {
           ai_processed_count
         )
       `)
-      .order('published_at', { ascending: false })
-      .limit(10)
-    
-    if (error) return []
-    return (data || [])
-      .filter((n: any) => n.stocks && !isEtf(n.stocks.name))
-      .map((n: any) => ({
-        id: Number(n.stocks.id),
-        name: n.stocks.name,
-        code: n.stocks.code,
-        last_price: n.stocks.last_price || 0,
-        change_amount: n.stocks.change_amount || 0,
-        change_rate: n.stocks.change_rate || 0,
-        ai_recommendation_count: n.stocks.ai_recommendation_count || 0,
-        ai_win_count: n.stocks.ai_win_count || 0,
-        ai_processed_count: n.stocks.ai_processed_count || 0,
-        ai_score: n.ai_score || 0,
-        target_price: (n as any).target_price,
-        target_date: (n as any).target_date,
-        summary: decodeHtmlEntities(n.llm_summary)
+      .eq('game_date', latestDate as any)
+      .neq('status', 'withdrawn')
+      .order('ai_score', { ascending: false })
+      .limit(5)
+
+    if (fallbackError) return []
+    return (fallbackData || [])
+      .filter((d: any) => d.stocks && !isEtf(d.stocks.name))
+      .map((d: any) => ({
+        id: Number(d.stocks.id),
+        name: d.stocks.name,
+        code: d.stocks.code,
+        last_price: d.stocks.last_price || 0,
+        change_amount: d.stocks.change_amount || 0,
+        change_rate: d.stocks.change_rate || 0,
+        ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
+        ai_win_count: d.stocks.ai_win_count || 0,
+        ai_processed_count: d.stocks.ai_processed_count || 0,
+        ai_score: d.ai_score || 0,
+        target_price: d.target_price,
+        target_date: d.target_date,
+        summary: decodeHtmlEntities(d.llm_summary || '최근 AI 추천 종목입니다.')
       }))
   })
 

@@ -7,6 +7,14 @@ const calculateUpside = (current: number, target: number) => {
   return upside.toFixed(1)
 }
 
+const router = useRouter()
+
+const goToStock = (code: string) => {
+  if (code) {
+    router.push('/stocks/' + code)
+  }
+}
+
 onMounted(() => {
   refreshTargetedStocks()
 })
@@ -49,7 +57,7 @@ onMounted(() => {
       <div 
         v-for="stock in targetedStocks" 
         :key="stock.daily_id"
-        @click="navigateTo('/stocks/' + stock.code)"
+        @click="goToStock(stock.code)"
         class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5 hover:border-emerald-500/30"
       >
         <!-- Header: Stock Info -->

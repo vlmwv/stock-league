@@ -117,7 +117,7 @@
             <div 
               v-for="(stock, idx) in recommendedStocks" 
               :key="stock.id"
-              @click="navigateTo('/stocks/' + stock.code)"
+              @click="navigateToStock(stock.code)"
               class="w-[240px] flex-shrink-0 bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-3 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 snap-center cursor-pointer"
             >
               <!-- Subtle Background Glow -->
@@ -283,6 +283,12 @@ const {
 
 const isGroupModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
+const router = useRouter()
+const navigateToStock = (code: string) => {
+  if (code) {
+    router.push('/stocks/' + code)
+  }
+}
 const currentStockGroupIds = computed(() => {
   if (!selectedStockId.value) return []
   return wishlistsWithGroups.value

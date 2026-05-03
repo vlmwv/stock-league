@@ -122,7 +122,7 @@ onMounted(async () => {
         <div 
           v-for="item in group.items" 
           :key="item.daily_id" 
-          @click="navigateTo('/stocks/' + item.code)"
+          @click="router.push('/stocks/' + item.code)"
           class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group hover:bg-white/5 transition-all cursor-pointer"
         >
           <!-- 카드 배경 글로우 -->
