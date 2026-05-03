@@ -3,37 +3,46 @@
     <!-- 데코레이션 배경 -->
     <div class="absolute -right-4 -top-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl group-hover:bg-brand-primary/10 transition-all duration-500"></div>
     
-    <div class="flex items-start justify-between mb-4 relative z-10">
+    <div class="flex items-center justify-between mb-4 relative z-10">
       <div class="flex items-center gap-3">
         <!-- 국가 아이콘/플래그 -->
-        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xl shadow-inner">
+        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-lg shadow-inner">
           <span v-if="item.country === 'US'">🇺🇸</span>
           <span v-else-if="item.country === 'KR'">🇰🇷</span>
           <span v-else>🌐</span>
         </div>
         
-        <div>
-          <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-primary transition-colors line-clamp-1">
-            {{ item.event_name }}
-          </h3>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-              {{ formatDateTime(item.event_at) }}
-            </span>
-            <div class="flex gap-0.5">
-              <div 
-                v-for="i in 3" 
-                :key="i"
-                class="w-1 h-3 rounded-full"
-                :class="i <= (item.importance || 1) ? getImportanceColor(item.importance) : 'bg-slate-800'"
-              ></div>
-            </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
+            {{ formatDateTime(item.event_at) }}
+          </span>
+          <div class="flex gap-0.5">
+            <div 
+              v-for="i in 3" 
+              :key="i"
+              class="w-1 h-2 rounded-full"
+              :class="i <= (item.importance || 1) ? getImportanceColor(item.importance) : 'bg-slate-800'"
+            ></div>
           </div>
         </div>
       </div>
 
       <div v-if="item.impact" class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight" :class="getImpactStyle(item.impact)">
         {{ item.impact === 'positive' ? '호재' : item.impact === 'negative' ? '악재' : '중립' }}
+      </div>
+    </div>
+
+    <!-- 지표 제목 (파도타기 효과 패널) -->
+    <div class="relative overflow-hidden bg-slate-900/50 rounded-xl h-10 flex items-center border border-white/5 group/marquee px-4 shadow-inner mb-4">
+      <div class="flex items-center gap-2 mr-3 shrink-0 opacity-40">
+        <UIcon name="i-heroicons-chart-bar" class="w-3.5 h-3.5 text-slate-400" />
+      </div>
+      <div class="flex-1 overflow-hidden relative">
+        <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
+          <h3 class="font-bold text-slate-100 text-[13px] tracking-tight flex items-center h-full">
+            {{ item.event_name }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ item.event_name }}
+          </h3>
+        </div>
       </div>
     </div>
 

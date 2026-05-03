@@ -78,14 +78,4 @@ defineEmits<{
 </script>
 
 <style scoped>
-@keyframes marquee-slow {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.animate-marquee-slow {
-  animation: marquee-slow 15s linear infinite;
-}
-.animate-marquee-paused {
-  animation-play-state: paused;
-}
 </style>
