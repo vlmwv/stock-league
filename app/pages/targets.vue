@@ -1,6 +1,7 @@
 <script setup lang="ts">
+const router = useRouter()
 onMounted(() => {
-  navigateTo('/ai?sub=target')
+  router.replace('/ai?sub=target')
 })
 </script>
 

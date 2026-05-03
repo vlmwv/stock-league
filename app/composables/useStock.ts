@@ -316,6 +316,7 @@ export const useStock = () => {
         status,
         target_price,
         target_date,
+        created_at,
         stocks (
           id,
           code,
@@ -349,6 +350,7 @@ export const useStock = () => {
           ai_score: d.ai_score || 0,
           target_price: d.target_price,
           target_date: d.target_date,
+          created_at: d.created_at,
           summary: decodeHtmlEntities(d.llm_summary)
         }))
     }
@@ -371,6 +373,7 @@ export const useStock = () => {
         status,
         target_price,
         target_date,
+        created_at,
         stocks (
           id,
           code,
@@ -404,6 +407,7 @@ export const useStock = () => {
         ai_score: d.ai_score || 0,
         target_price: d.target_price,
         target_date: d.target_date,
+        created_at: d.created_at,
         summary: decodeHtmlEntities(d.llm_summary || '최근 AI 추천 종목입니다.')
       }))
   })
@@ -1371,7 +1375,10 @@ export const useStock = () => {
         query = query.eq('sector', market)
       }
 
-      let finalQuery = query.order(orderBy, { ascending: orderBy === 'market_cap_rank' })
+      let finalQuery = query.order(orderBy, { 
+        ascending: orderBy === 'market_cap_rank',
+        nullsFirst: false
+      })
       
       // AI 추천 횟수 정렬 시 최근 추천일을 2차 정렬로 추가
       if (orderBy === 'ai_recommendation_count') {
@@ -1380,7 +1387,7 @@ export const useStock = () => {
       
       // 최근 추천일 정렬 시 추천 횟수를 2차 정렬로 추가
       if (orderBy === 'last_recommendation_date') {
-        finalQuery = finalQuery.order('ai_recommendation_count', { ascending: false })
+        finalQuery = finalQuery.order('ai_recommendation_count', { ascending: false, nullsFirst: false })
       }
 
       // 중복 시 시가총액 순(market_cap_rank asc)으로 최종 정렬
@@ -1773,27 +1780,38 @@ export const useStock = () => {
     },
     notifications: computed(() => {
       const items: any[] = []
+      const todayKst = getKstDate() // "YYYY-MM-DD"
       
-      // 1. 추천 종목 추가
+      // 1. 추천 종목 추가 (오늘 게임 날짜 종목만)
       if (recommended.value) {
         recommended.value.forEach((s: any) => {
+          // created_at이 있으면 그 시간을, 없으면 오늘 날짜 00:00으로 fallback
+          const notifDate = s.created_at || `${todayKst}T00:00:00.000Z`
           items.push({
             id: `rec-${s.id}`,
             type: 'recommendation',
             title: s.name,
             summary: s.summary,
-            date: new Date().toISOString(),
+            date: notifDate,
             code: s.code,
             importance: 3
           })
         })
       }
       
-      // 2. 경제 지표 추가 (중요도 3점 & 실제치 발표 완료)
+      // 2. 경제 지표 추가 (중요도 3점 & 실제치 발표 완료 & 오늘 KST 날짜 발표)
       const indicators = useState<any[]>('recent_indicators', () => [])
       if (indicators.value) {
         indicators.value
-          .filter(idx => idx.importance >= 3 && idx.actual && idx.actual !== '발표전')
+          .filter(idx => {
+            if (!(idx.importance >= 3 && idx.actual && idx.actual !== '발표전')) return false
+            // event_at 기준으로 오늘 KST 날짜에 발표된 것만 포함
+            const eventDateKst = new Intl.DateTimeFormat('sv-SE', {
+              timeZone: 'Asia/Seoul',
+              year: 'numeric', month: '2-digit', day: '2-digit'
+            } as const).format(new Date(idx.event_at))
+            return eventDateKst === todayKst
+          })
           .forEach((idx: any) => {
             items.push({
               id: `ind-${idx.id}`,

@@ -233,7 +233,7 @@
             :formatted-date="formatDate(item.published_at)"
             @navigate-news="navigateToNews(item)"
             @open-wishlist-modal="handleOpenModal"
-            @navigate-stock="(stockCode) => navigateTo('/stocks/' + stockCode)"
+            @navigate-stock="(stockCode) => navigateToStock(stockCode)"
           />
           
           <div v-if="!recentNews.length" class="w-full text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 mx-4">

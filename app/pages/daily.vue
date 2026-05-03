@@ -74,7 +74,7 @@
         <div 
           v-for="stock in dailyStocks" 
           :key="stock.id"
-          @click="navigateTo('/stocks/' + stock.code)"
+          @click="navigateToStock(stock.code)"
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5"
           :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
         >
@@ -263,6 +263,10 @@ const {
 
 const isGroupModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
+const router = useRouter()
+const navigateToStock = (code: string) => {
+  if (code) router.push('/stocks/' + code)
+}
 const currentStockGroupIds = computed(() => {
   if (!selectedStockId.value) return []
   return wishlistsWithGroups.value

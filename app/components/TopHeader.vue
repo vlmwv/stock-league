@@ -71,7 +71,7 @@
                             {{ item.type === 'recommendation' ? item.title : '경제 지표' }}
                           </span>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-medium">실시간</span>
+                        <span class="text-[10px] text-slate-500 font-medium">{{ formatNotifDate(item.date) }}</span>
                       </div>
                       <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
                         {{ item.type === 'recommendation' ? item.summary : item.title }}
@@ -168,6 +168,19 @@ const {
 
 const hasNewNotifications = computed(() => notifications.value && notifications.value.length > 0)
 const role = ref('user')
+
+const formatNotifDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return ''
+  const diff = Date.now() - date.getTime()
+  const minutes = Math.floor(diff / (1000 * 60))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  if (minutes < 1) return '방금 전'
+  if (minutes < 60) return `${minutes}분 전`
+  if (hours < 24) return `${hours}시간 전`
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+}
 
 const handleLogout = async () => {
   try {

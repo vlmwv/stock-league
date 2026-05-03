@@ -119,7 +119,7 @@
           <div
             v-for="(stock, index) in allStocks"
             :key="stock.id"
-            @click="navigateTo('/stocks/' + stock.code)"
+            @click="navigateToStock(stock.code)"
             class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
           >
             <!-- 아이콘 -->
@@ -213,6 +213,10 @@ const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats, wishlistsWithG
 const isGroupModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
 const currentGroupId = ref<number | null>(null)
+const router = useRouter()
+const navigateToStock = (code: string) => {
+  if (code) router.push('/stocks/' + code)
+}
 const currentStockGroupIds = computed(() => {
   if (!selectedStockId.value) return []
   return wishlistsWithGroups.value
