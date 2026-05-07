@@ -64,36 +64,46 @@
       </section>
 
       <!-- 경제 지표 목록 -->
-      <section v-else class="px-6 space-y-4 animate-fade-in">
+      <section v-else class="px-6 space-y-6 animate-fade-in">
+        <!-- 경제지표 전용 서브 탭 -->
+        <div class="flex items-center gap-4 mb-2">
+          <button 
+            @click="indicatorTab = 'upcoming'"
+            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
+            :class="indicatorTab === 'upcoming' ? 'text-brand-primary' : 'text-slate-500'"
+          >
+            발표 예정
+            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
+          </button>
+          <button 
+            @click="indicatorTab = 'announced'"
+            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
+            :class="indicatorTab === 'announced' ? 'text-brand-primary' : 'text-slate-500'"
+          >
+            발표 완료
+            <div v-if="indicatorTab === 'announced'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
+          </button>
+        </div>
         <div v-if="isLoadingIndicators" class="flex flex-col items-center justify-center py-20 gap-4">
           <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">지표 로드 중...</p>
         </div>
-        <div v-else-if="indicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+        <div v-else-if="indicatorTab === 'upcoming' && upcomingIndicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
           <UIcon name="i-heroicons-calendar-days" class="w-12 h-12 text-slate-700 mb-4" />
           <p class="text-sm text-slate-500 font-medium">발표 예정인 지표가 없습니다.</p>
         </div>
-        <template v-else>
-          <!-- 1. 최근 발표된 지표 -->
-          <div v-if="announcedIndicators.length > 0" class="space-y-3">
-             <div class="flex items-center justify-between mb-2 px-1">
-               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest flex items-center gap-1">
-                 <UIcon name="i-heroicons-check-circle" class="w-3 h-3" /> 최근 발표 완료
-               </span>
-               <span class="text-[10px] font-bold text-slate-500">{{ announcedIndicators.length }}건</span>
-             </div>
-             <EconomicIndicatorCard 
-               v-for="indicator in announcedIndicators" 
-               :key="indicator.id" 
-               :item="indicator" 
-             />
-          </div>
 
-          <!-- 2. 발표 예정 일정 -->
-          <div v-if="upcomingIndicators.length > 0" class="space-y-3 pt-4 border-t border-slate-800/50 mt-4">
-             <div class="flex items-center justify-between mb-2 px-1">
+        <div v-else-if="indicatorTab === 'announced' && announcedIndicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+          <UIcon name="i-heroicons-check-circle" class="w-12 h-12 text-slate-700 mb-4" />
+          <p class="text-sm text-slate-500 font-medium">최근 발표된 지표가 없습니다.</p>
+        </div>
+
+        <template v-else>
+          <!-- 1. 발표 예정 일정 (Upcoming) -->
+          <div v-if="indicatorTab === 'upcoming'" class="space-y-4">
+             <div class="flex items-center justify-between mb-1 px-1">
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 발표 예정 지표
+                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 발표 대기 중
                </span>
                <span class="text-[10px] font-bold text-slate-500">{{ upcomingIndicators.length }}건</span>
              </div>
@@ -102,6 +112,21 @@
                :key="indicator.id" 
                :item="indicator" 
                class="opacity-70 hover:opacity-100 transition-opacity duration-300" 
+             />
+          </div>
+
+          <!-- 2. 발표 완료 지표 (Announced) -->
+          <div v-if="indicatorTab === 'announced'" class="space-y-4">
+             <div class="flex items-center justify-between mb-1 px-1">
+               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest flex items-center gap-1">
+                 <UIcon name="i-heroicons-check-circle" class="w-3 h-3" /> 발표 완료
+               </span>
+               <span class="text-[10px] font-bold text-slate-500">{{ announcedIndicators.length }}건</span>
+             </div>
+             <EconomicIndicatorCard 
+               v-for="indicator in announcedIndicators" 
+               :key="indicator.id" 
+               :item="indicator" 
              />
           </div>
         </template>
@@ -123,10 +148,13 @@ const isLoadingIndicators = ref(false)
 const selectedType = ref('all')
 const route = useRoute()
 const activeTab = ref<'news' | 'indicators'>((route.query.tab as any) === 'indicators' ? 'indicators' : 'news')
+const indicatorTab = ref<'upcoming' | 'announced'>('upcoming')
 const totalCount = ref(0)
 
 const announcedIndicators = computed(() => {
-  return indicators.value.filter(item => item.actual !== null)
+  return indicators.value
+    .filter(item => item.actual !== null)
+    .sort((a, b) => new Date(b.event_at).getTime() - new Date(a.event_at).getTime())
 })
 
 const upcomingIndicators = computed(() => {
@@ -259,6 +287,15 @@ onUnmounted(() => {
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.animate-scale-x {
+  animation: scale-x 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: left;
 }
 
 .line-clamp-2 {
