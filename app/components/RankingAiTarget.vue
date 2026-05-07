@@ -61,53 +61,70 @@ onMounted(() => {
         class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5 hover:border-emerald-500/30"
       >
         <!-- Header: Stock Info -->
-        <div class="flex justify-between items-start mb-6 relative z-10">
+        <div class="flex justify-between items-center mb-6 relative z-10">
           <div class="flex gap-4">
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-[9px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
-                <span class="text-[8px] font-black text-slate-600 bg-slate-800/50 px-1.5 py-0.5 rounded border border-white/5 uppercase tracking-widest">{{ stock.game_date }} 추천</span>
-              </div>
-              <h4 class="text-lg font-black text-slate-100 group-hover:text-emerald-400 transition-colors">{{ stock.name }}</h4>
+            <div class="flex flex-col justify-center">
+              <h4 class="text-xl font-black text-slate-100 group-hover:text-emerald-400 transition-colors tracking-tight">{{ stock.name }}</h4>
+              <span class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{{ stock.code }}</span>
             </div>
           </div>
-          <div class="text-right space-y-1">
-            <div class="flex flex-col items-end">
-              <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">현재가</span>
-              <div class="text-xs font-black text-slate-200">{{ stock.last_price.toLocaleString() }}원</div>
-            </div>
-            <div class="flex flex-col items-end opacity-60">
-              <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">추천시점</span>
-              <div class="text-[10px] font-bold text-slate-500">{{ stock.rec_price?.toLocaleString() }}원</div>
-            </div>
+          <div class="px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">AI TARGET</span>
           </div>
         </div>
 
-        <!-- Target Price Highlight Box -->
-        <div class="relative bg-emerald-500/5 rounded-2xl border border-emerald-500/10 p-5 mb-6 overflow-hidden">
-          <div class="absolute top-0 right-0 p-4 opacity-10">
-            <UIcon name="i-heroicons-arrow-trending-up" class="w-16 h-16 text-emerald-400" />
+        <!-- Price Comparison: 추천시점 vs 현재 -->
+        <div class="grid grid-cols-2 gap-3 mb-4 relative z-10">
+          <div class="bg-slate-800/40 rounded-2xl p-4 border border-white/5 relative group/item">
+            <div class="flex items-center gap-2 mb-2 opacity-60">
+              <UIcon name="i-heroicons-calendar" class="w-3 h-3 text-slate-500" />
+              <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">추천 시점</p>
+            </div>
+            <p class="text-sm font-black text-slate-100">{{ stock.rec_price?.toLocaleString() }}<span class="text-[10px] ml-0.5 opacity-50">원</span></p>
+            <p class="text-[8px] font-bold text-slate-500 mt-1">{{ stock.game_date }}</p>
+          </div>
+
+          <div class="bg-slate-800/40 rounded-2xl p-4 border border-white/5 relative">
+            <div class="flex items-center gap-2 mb-2 opacity-60">
+              <UIcon name="i-heroicons-clock" class="w-3 h-3 text-slate-500" />
+              <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재 시점</p>
+            </div>
+            <p class="text-sm font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}<span class="text-[10px] ml-0.5 opacity-50">원</span></p>
+            <p class="text-[8px] font-bold text-emerald-500 mt-1">LIVE</p>
+          </div>
+        </div>
+
+        <!-- Target Info Box -->
+        <div class="relative bg-emerald-500/10 rounded-2xl border border-emerald-500/20 p-5 mb-6 overflow-hidden">
+          <div class="absolute -right-4 -top-4 p-4 opacity-5 rotate-12">
+            <UIcon name="i-heroicons-sparkles" class="w-24 h-24 text-emerald-400" />
           </div>
           
-          <div class="grid grid-cols-2 gap-4 relative z-10">
-            <div>
-              <p class="text-[9px] font-black text-emerald-500/70 uppercase tracking-widest mb-1">AI 목표가</p>
+          <div class="grid grid-cols-2 gap-6 relative z-10">
+            <div class="space-y-1">
+              <p class="text-[9px] font-black text-emerald-500/70 uppercase tracking-widest">AI 목표가</p>
               <div class="flex items-baseline gap-1">
-                <span class="text-2xl font-black text-emerald-400">{{ stock.target_price.toLocaleString() }}</span>
+                <span class="text-2xl font-black text-emerald-400 tracking-tighter">{{ stock.target_price.toLocaleString() }}</span>
                 <span class="text-xs font-bold text-emerald-500/70">원</span>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">목표기준일</p>
-              <p class="text-sm font-black text-slate-200">{{ stock.target_date }}</p>
+            <div class="text-right space-y-1">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">목표기준일</p>
+              <p class="text-sm font-black text-slate-200 tracking-tight">{{ stock.target_date }}</p>
             </div>
           </div>
 
           <!-- Potential Upside -->
-          <div class="mt-4 pt-4 border-t border-emerald-500/10 flex items-center justify-between">
-            <span class="text-[9px] font-bold text-slate-500">예상 수익률</span>
-            <span class="text-xs font-black text-emerald-400">+{{ calculateUpside(stock.last_price, stock.target_price) }}%</span>
+          <div class="mt-4 pt-4 border-t border-emerald-500/10 flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span class="text-[9px] font-bold text-slate-400">목표까지 기대 수익률</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <UIcon name="i-heroicons-arrow-trending-up" class="w-4 h-4 text-emerald-400" />
+              <span class="text-lg font-black text-emerald-400 tracking-tighter">+{{ calculateUpside(stock.last_price, stock.target_price) }}%</span>
+            </div>
           </div>
         </div>
 
