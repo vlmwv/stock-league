@@ -68,20 +68,20 @@
         <!-- 경제지표 전용 서브 탭 -->
         <div class="flex items-center gap-4 mb-2">
           <button 
-            @click="indicatorTab = 'upcoming'"
-            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
-            :class="indicatorTab === 'upcoming' ? 'text-brand-primary' : 'text-slate-500'"
-          >
-            발표 예정
-            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
-          </button>
-          <button 
             @click="indicatorTab = 'announced'"
             class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
             :class="indicatorTab === 'announced' ? 'text-brand-primary' : 'text-slate-500'"
           >
             발표 완료
             <div v-if="indicatorTab === 'announced'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
+          </button>
+          <button 
+            @click="indicatorTab = 'upcoming'"
+            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
+            :class="indicatorTab === 'upcoming' ? 'text-brand-primary' : 'text-slate-500'"
+          >
+            발표 예정
+            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
           </button>
         </div>
         <div v-if="isLoadingIndicators" class="flex flex-col items-center justify-center py-20 gap-4">
@@ -148,18 +148,20 @@ const isLoadingIndicators = ref(false)
 const selectedType = ref('all')
 const route = useRoute()
 const activeTab = ref<'news' | 'indicators'>((route.query.tab as any) === 'indicators' ? 'indicators' : 'news')
-const indicatorTab = ref<'upcoming' | 'announced'>('upcoming')
+const indicatorTab = ref<'upcoming' | 'announced'>('announced')
 const totalCount = ref(0)
 
 const announcedIndicators = computed(() => {
+  const now = new Date()
   return indicators.value
-    .filter(item => item.actual !== null)
+    .filter(item => new Date(item.event_at) <= now || item.actual !== null)
     .sort((a, b) => new Date(b.event_at).getTime() - new Date(a.event_at).getTime())
 })
 
 const upcomingIndicators = computed(() => {
+  const now = new Date()
   return indicators.value
-    .filter(item => item.actual === null)
+    .filter(item => new Date(item.event_at) > now && item.actual === null)
     .sort((a, b) => new Date(a.event_at).getTime() - new Date(b.event_at).getTime())
 })
 
