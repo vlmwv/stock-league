@@ -148,21 +148,24 @@ onMounted(async () => {
                 <div class="px-2.5 py-0.5 bg-white/5 rounded-full border border-white/10">
                   <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">AI 점수: {{ item.ai_score }}P</span>
                 </div>
-                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">
-                  {{ item.days_passed === 0 ? '오늘 추천' : `${item.days_passed}일 경과` }}
-                </span>
               </div>
             </div>
 
             <!-- 가격 정보 비교 -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-3 gap-2 mb-6">
               <div class="space-y-1">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">추천 시점 가격</p>
-                <p class="text-base font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">추천가</p>
+                <p class="text-xs font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
+              </div>
+              <div class="flex flex-col items-center justify-center pt-2">
+                <div class="h-px bg-white/10 w-full mb-2"></div>
+                <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] whitespace-nowrap bg-bg-deep px-2">
+                   {{ item.days_passed === 0 ? '오늘' : `${item.days_passed}일 경과` }}
+                </span>
               </div>
               <div class="space-y-1 text-right">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재 가격</p>
-                <p class="text-base font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재가</p>
+                <p class="text-xs font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
               </div>
             </div>
 
