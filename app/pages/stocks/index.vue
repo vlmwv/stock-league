@@ -365,19 +365,24 @@ const formatMarketValue = (val: number | undefined) => {
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  
+  // KST 기준으로 오늘과 어제 계산
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   
-  const d = new Date(date)
-  d.setHours(0, 0, 0, 0)
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   
   if (d.getTime() === today.getTime()) return '오늘'
   if (d.getTime() === yesterday.getTime()) return '어제'
   
-  return dateStr.substring(5).replace('-', '/') // 04/27 형태
+  // 그 외에는 MM/DD 형식으로 반환 (Intl 사용으로 안전하게)
+  return new Intl.DateTimeFormat('ko-KR', { 
+    month: '2-digit', 
+    day: '2-digit' 
+  }).format(date).replace('. ', '/').replace('.', '')
 }
 
 const loadMore = () => {

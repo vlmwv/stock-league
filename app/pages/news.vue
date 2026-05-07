@@ -93,7 +93,7 @@
           <div v-if="upcomingIndicators.length > 0" class="space-y-3 pt-4 border-t border-slate-800/50 mt-4">
              <div class="flex items-center justify-between mb-2 px-1">
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 이번 주 예정 일정
+                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 발표 예정 지표
                </span>
                <span class="text-[10px] font-bold text-slate-500">{{ upcomingIndicators.length }}건</span>
              </div>
@@ -130,7 +130,9 @@ const announcedIndicators = computed(() => {
 })
 
 const upcomingIndicators = computed(() => {
-  return indicators.value.filter(item => item.actual === null)
+  return indicators.value
+    .filter(item => item.actual === null)
+    .sort((a, b) => new Date(a.event_at).getTime() - new Date(b.event_at).getTime())
 })
 
 // 페이징 상태

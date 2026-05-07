@@ -169,7 +169,7 @@ onMounted(async () => {
             <!-- 수익률 하이라이트 -->
             <div 
               class="rounded-2xl p-4 border transition-all duration-500 flex flex-col items-center justify-center gap-1 shadow-2xl"
-              :class="item.days_passed <= 0 
+              :class="(item.days_passed <= 0 && item.ai_result === 'pending')
                 ? 'bg-slate-500/10 border-slate-500/20 text-slate-400 shadow-slate-500/5'
                 : (item.cumulative_change_rate >= 0 
                   ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5' 
@@ -187,12 +187,12 @@ onMounted(async () => {
                   class="w-4 h-4 opacity-50" 
                 />
                 <span class="text-2xl font-black tracking-tighter">
-                  {{ item.days_passed <= 0 ? '-' : (item.cumulative_change_rate > 0 ? '+' : '') + item.cumulative_change_rate + '%' }}
+                  {{ (item.days_passed <= 0 && item.ai_result === 'pending') ? '-' : (item.cumulative_change_rate > 0 ? '+' : '') + item.cumulative_change_rate + '%' }}
                 </span>
               </div>
 
               <p class="text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
-                {{ item.days_passed <= 0 ? '결과 대기 중' : '예상 수익률' }}
+                {{ (item.days_passed <= 0 && item.ai_result === 'pending') ? '결과 대기 중' : '수익률' }}
               </p>
             </div>
 

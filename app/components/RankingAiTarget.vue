@@ -72,13 +72,14 @@ onMounted(() => {
               <h4 class="text-lg font-black text-slate-100 group-hover:text-emerald-400 transition-colors">{{ stock.name }}</h4>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-xs font-black text-slate-400">{{ stock.last_price.toLocaleString() }}원</div>
-            <div 
-              class="text-[9px] font-bold"
-              :class="stock.change_rate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-            >
-              {{ stock.change_rate >= 0 ? '+' : '' }}{{ stock.change_rate }}%
+          <div class="text-right space-y-1">
+            <div class="flex flex-col items-end">
+              <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">현재가</span>
+              <div class="text-xs font-black text-slate-200">{{ stock.last_price.toLocaleString() }}원</div>
+            </div>
+            <div class="flex flex-col items-end opacity-60">
+              <span class="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">추천시점</span>
+              <div class="text-[10px] font-bold text-slate-500">{{ stock.rec_price?.toLocaleString() }}원</div>
             </div>
           </div>
         </div>

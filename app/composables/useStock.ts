@@ -22,6 +22,7 @@ interface Stock {
   target_date?: string
   last_recommendation_date?: string
   market_cap?: number
+  rec_price?: number
 }
 
 interface WishlistGroup {
@@ -468,20 +469,53 @@ export const useStock = () => {
       return []
     }
 
-    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => ({
-      id: Number(ds.stocks.id),
-      daily_id: ds.id,
-      game_date: ds.game_date,
-      name: ds.stocks.name,
-      code: ds.stocks.code,
-      last_price: ds.stocks.last_price || 0,
-      change_amount: ds.stocks.change_amount || 0,
-      change_rate: ds.stocks.change_rate || 0,
-      ai_score: ds.ai_score || 0,
-      target_price: ds.target_price,
-      target_date: ds.target_date,
-      summary: decodeHtmlEntities(ds.llm_summary || '')
-    }))
+    // 추천 당시의 기준 가격(추천 전일 종가)을 가져오기 위해 stock_price_history 조회
+    const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
+    const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
+    
+    let historyPrices: any[] = []
+    if (stockIds.length > 0 && gameDates.length > 0) {
+      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
+      const searchStartDate = new Date(minDate)
+      searchStartDate.setDate(searchStartDate.getDate() - 10) 
+      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
+
+      const { data: hpData } = await client
+        .from('stock_price_history')
+        .select('stock_id, price_date, close_price')
+        .in('stock_id', stockIds)
+        .gte('price_date', searchStartDateStr)
+        .order('price_date', { ascending: false })
+      historyPrices = hpData || []
+    }
+
+    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
+      // 추천 기준가(rec_price) 결정 로직 (fetchAiHistory와 동일)
+      const recPriceRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+      )
+      const sameDayRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+      )
+      
+      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
+
+      return {
+        id: Number(ds.stocks.id),
+        daily_id: ds.id,
+        game_date: ds.game_date,
+        name: ds.stocks.name,
+        code: ds.stocks.code,
+        last_price: ds.stocks.last_price || 0,
+        change_amount: ds.stocks.change_amount || 0,
+        change_rate: ds.stocks.change_rate || 0,
+        ai_score: ds.ai_score || 0,
+        target_price: ds.target_price,
+        target_date: ds.target_date,
+        summary: decodeHtmlEntities(ds.llm_summary || ''),
+        rec_price: recPrice
+      }
+    })
   }, { immediate: false })
 
   const dailyStocks = computed(() => {

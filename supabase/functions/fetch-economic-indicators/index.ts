@@ -12,6 +12,7 @@ async function fetchInvestingData(timeFilter: string, currentTab: string) {
   const bodyParams = new URLSearchParams()
   bodyParams.append('country[]', '5') // US
   bodyParams.append('country[]', '11') // KR
+  bodyParams.append('importance[]', '2') // Medium
   bodyParams.append('importance[]', '3') // High
   bodyParams.append('timeZone', '88') // Seoul KST
   bodyParams.append('timeFilter', timeFilter)
@@ -89,9 +90,23 @@ Deno.serve(async (req) => {
     if (mode === 'auto-update') {
       console.log('Running auto-update for economic indicators (Investing.com)...')
       
-      // 이번 주 일정 가져오기
-      const htmlStr = await fetchInvestingData('timeRemain', 'thisWeek')
-      const events = parseHtml(htmlStr)
+      // 이번 주 및 다음 주 일정 가져오기
+      const [thisWeekHtml, nextWeekHtml] = await Promise.all([
+        fetchInvestingData('timeOnly', 'thisWeek'),
+        fetchInvestingData('timeOnly', 'nextWeek')
+      ])
+      
+      const thisWeekEvents = parseHtml(thisWeekHtml)
+      const nextWeekEvents = parseHtml(nextWeekHtml)
+      
+      // 중복 제거 (event_name + event_at 기준)
+      const eventMap = new Map()
+      const allEvents = [...thisWeekEvents, ...nextWeekEvents]
+      allEvents.forEach(e => {
+        const key = `${e.event_name}_${e.event_at}`
+        eventMap.set(key, e)
+      })
+      const events = Array.from(eventMap.values())
       
       if (events.length === 0) {
         return new Response(JSON.stringify({ message: "No data parsed from Investing.com" }), { status: 200 })
