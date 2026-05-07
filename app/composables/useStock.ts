@@ -21,6 +21,7 @@ interface Stock {
   target_price?: number
   target_date?: string
   last_recommendation_date?: string
+  market_cap?: number
 }
 
 interface WishlistGroup {
@@ -1339,7 +1340,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -1472,7 +1473,8 @@ export const useStock = () => {
           ai_win_count: s.ai_win_count || 0,
           ai_processed_count: s.ai_processed_count || 0,
           volume: s.volume || 0,
-          last_recommendation_date: s.last_recommendation_date
+          last_recommendation_date: s.last_recommendation_date,
+          market_cap: s.market_cap || 0
         })),
         count: count || 0
       }

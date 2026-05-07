@@ -171,6 +171,10 @@
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
                     {{ formatVolume(stock.volume) }}
                   </span>
+                  <span v-else-if="currentSort === 'marketCap'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
+                    <UIcon name="i-heroicons-banknotes" class="w-3 h-3 text-slate-500/60" />
+                    {{ formatMarketValue(stock.market_cap) }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -347,6 +351,15 @@ const formatVolume = (vol: number | undefined) => {
     return `${(vol / 10000).toFixed(1)}만`
   }
   return vol.toLocaleString()
+}
+
+const formatMarketValue = (val: number | undefined) => {
+  if (!val) return '0'
+  // Naver API에서 가져온 값은 '억' 단위임
+  if (val >= 10000) { // 1조 이상 (10,000억)
+    return `${(val / 10000).toFixed(1)}조`
+  }
+  return `${val.toLocaleString()}억`
 }
 
 const formatDate = (dateStr: string) => {

@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
         change_rate: parseFloat(item.fluctuationsRatio),
         // 거래총액(거래대금)을 volume 컬럼에 저장 (사용자 혼동 방지)
         volume: parseInt(item.accumulatedTradingValueRaw, 10),
+        market_cap: parseInt(item.marketValue.replace(/,/g, ''), 10) || 0,
         market_cap_rank: index + 1,
         updated_at: new Date().toISOString(),
       }

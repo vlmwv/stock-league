@@ -14,24 +14,38 @@
             </div>
             
             <div class="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-              <button 
+              <div 
                 v-for="group in wishlistGroups" 
                 :key="group.id"
-                @click="toggleSelection(group.id)"
-                class="w-full h-16 rounded-2xl border transition-all flex items-center justify-between px-5"
-                :class="selectedGroupIds.includes(group.id) 
-                  ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
-                  : 'bg-slate-800/50 border-white/10 text-slate-400 hover:border-white/20'"
+                class="relative group/folder"
               >
-                <div class="flex items-center gap-3">
-                  <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-5 h-5" />
-                  <span class="text-sm font-bold">{{ group.name }}</span>
-                </div>
-                <UIcon 
-                  :name="selectedGroupIds.includes(group.id) ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-circle'" 
-                  class="w-5 h-5" 
-                />
-              </button>
+                <button 
+                  @click="toggleSelection(group.id)"
+                  class="w-full h-16 rounded-2xl border transition-all flex items-center justify-between px-5"
+                  :class="selectedGroupIds.includes(group.id) 
+                    ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
+                    : 'bg-slate-800/50 border-white/10 text-slate-400 hover:border-white/20'"
+                >
+                  <div class="flex items-center gap-3">
+                    <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-5 h-5" />
+                    <span class="text-sm font-bold">{{ group.name }}</span>
+                  </div>
+                  <UIcon 
+                    :name="selectedGroupIds.includes(group.id) ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-circle'" 
+                    class="w-5 h-5" 
+                    :class="group.name !== '기본 폴더' ? 'mr-8' : ''"
+                  />
+                </button>
+
+                <!-- 삭제 버튼 (기본 폴더 제외) -->
+                <button 
+                  v-if="group.name !== '기본 폴더'"
+                  @click.stop="handleDeleteGroup(group)"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                >
+                  <UIcon name="i-heroicons-trash-20-solid" class="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div class="mt-6">
@@ -94,7 +108,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'success'])
 
-const { wishlistGroups, createWishlistGroup, isCreatingGroup, toggleHeart, fetchWishlist, wishlistsWithGroups } = useStock()
+const { wishlistGroups, createWishlistGroup, isCreatingGroup, toggleHeart, fetchWishlist, wishlistsWithGroups, deleteWishlistGroup } = useStock()
 const toast = useToast()
 
 const selectedGroupIds = ref<number[]>([])
@@ -130,6 +144,16 @@ const handleCreateGroup = async () => {
     // 자동으로 새로 만든 폴더 선택
     if (result.data) {
       selectedGroupIds.value.push(result.data.id)
+    }
+  }
+}
+
+const handleDeleteGroup = async (group: any) => {
+  if (confirm(`'${group.name}' 폴더를 삭제하시겠습니까?\n안에 담긴 종목은 사라지지 않습니다.`)) {
+    const result = await deleteWishlistGroup(group.id)
+    if (result.success) {
+      // 선택된 그룹 목록에서도 제거
+      selectedGroupIds.value = selectedGroupIds.value.filter(id => id !== group.id)
     }
   }
 }
