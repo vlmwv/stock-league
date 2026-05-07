@@ -169,20 +169,13 @@
                     <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
                     {{ stock.wishlist_count ?? 0 }}
                   </span>
-                  <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 flex items-center gap-1.5">
-                    <div class="flex items-center gap-0.5">
-                      <span class="text-[8px] font-black opacity-50 uppercase tracking-tighter">성공</span>
-                      <span class="font-black text-brand-primary">{{ stock.win_count ?? 0 }}</span>
-                    </div>
-                    <div class="w-px h-2 bg-white/10"></div>
-                    <div class="flex items-center gap-0.5">
-                      <span class="text-[8px] font-black opacity-50 uppercase tracking-tighter">실패</span>
-                      <span class="font-black text-slate-400">{{ stock.lose_count ?? 0 }}</span>
-                    </div>
-                    <div class="w-px h-2 bg-white/10"></div>
-                    <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20">
-                      <span class="text-[9px] font-black text-brand-primary">{{ stock.win_rate ?? 0 }}%</span>
-                    </div>
+                  <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 font-black flex items-center gap-1">
+                    <span class="text-brand-primary">{{ stock.win_count ?? 0 }}</span>
+                    <span class="opacity-30">/</span>
+                    <span class="text-slate-400">{{ stock.prediction_count ?? 0 }}</span>
+                    <span class="ml-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[9px]">
+                      {{ stock.win_rate ?? 0 }}%
+                    </span>
                   </span>
                   <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex flex-col items-end gap-0.5">
                     <div class="flex items-center gap-0.5">
