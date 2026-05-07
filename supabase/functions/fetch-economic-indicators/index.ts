@@ -7,7 +7,7 @@ const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 async function fetchInvestingData(timeFilter: string, currentTab: string) {
-  const url = 'https://www.investing.com/economic-calendar/Service/getCalendarFilteredData'
+  const url = 'https://kr.investing.com/economic-calendar/Service/getCalendarFilteredData'
   
   const bodyParams = new URLSearchParams()
   bodyParams.append('country[]', '5') // US
@@ -26,7 +26,7 @@ async function fetchInvestingData(timeFilter: string, currentTab: string) {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'X-Requested-With': 'XMLHttpRequest',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Referer': 'https://www.investing.com/economic-calendar/'
+      'Referer': 'https://kr.investing.com/economic-calendar/'
     },
     body: bodyParams.toString()
   })
@@ -60,12 +60,27 @@ function parseHtml(htmlStr: string) {
 
     const timestamp = $(el).attr('data-event-datetime')
     
+    // 중요도 파싱 (bull1, bull2, bull3)
+    let importance = 1
+    const sentimentTd = $(el).find('td.sentiment')
+    const bullImg = sentimentTd.attr('data-img_key') || ''
+    
+    if (bullImg.includes('bull3')) importance = 3
+    else if (bullImg.includes('bull2')) importance = 2
+    else if (bullImg.includes('bull1')) importance = 1
+    else {
+      // data-img_key가 없는 경우 class 기반 아이콘 확인
+      if (sentimentTd.find('i.grayFullBullishIcon, i.orangeFullBullishIcon').length >= 3) importance = 3
+      else if (sentimentTd.find('i.grayFullBullishIcon, i.orangeFullBullishIcon').length === 2) importance = 2
+      else importance = 1
+    }
+
     if (eventName && timestamp) {
       events.push({
         event_name: eventName,
         event_at: new Date(timestamp.replace(/\//g, '-').replace(' ', 'T') + '+09:00').toISOString(),
         country,
-        importance: 3,
+        importance,
         actual: actual === '' ? null : actual,
         forecast: forecast === '' ? null : forecast,
         previous: previous === '' ? null : previous,
