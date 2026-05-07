@@ -22,7 +22,8 @@ interface Stock {
   target_date?: string
   last_recommendation_date?: string
   market_cap?: number
-  rec_price?: number
+  prediction_count?: number
+  win_rate?: number
 }
 
 interface WishlistGroup {
@@ -1359,7 +1360,7 @@ export const useStock = () => {
   }
 
   const fetchStocksWithStats = async (
-    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume' | 'last_recommendation_date' = 'market_cap_rank',
+    orderBy: 'market_cap_rank' | 'wishlist_count' | 'win_count' | 'ai_recommendation_count' | 'volume' | 'last_recommendation_date' | 'win_rate' = 'market_cap_rank',
     page = 1,
     pageSize = 10,
     searchQuery = '',
@@ -1374,7 +1375,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, prediction_count, win_rate, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -1414,6 +1415,11 @@ export const useStock = () => {
         ascending: orderBy === 'market_cap_rank',
         nullsFirst: false
       })
+
+      // 정답률 정렬 시 참여수가 많은 순서를 2차 정렬로 추가
+      if (orderBy === 'win_rate') {
+        finalQuery = finalQuery.order('win_count', { ascending: false, nullsFirst: false })
+      }
       
       // AI 추천 횟수 정렬 시 최근 추천일을 2차 정렬로 추가
       if (orderBy === 'ai_recommendation_count') {
@@ -1508,7 +1514,9 @@ export const useStock = () => {
           ai_processed_count: s.ai_processed_count || 0,
           volume: s.volume || 0,
           last_recommendation_date: s.last_recommendation_date,
-          market_cap: s.market_cap || 0
+          market_cap: s.market_cap || 0,
+          prediction_count: s.prediction_count || 0,
+          win_rate: s.win_rate || 0
         })),
         count: count || 0
       }
