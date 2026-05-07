@@ -101,12 +101,6 @@
         <template v-else>
           <!-- 1. 발표 예정 일정 (Upcoming) -->
           <div v-if="indicatorTab === 'upcoming'" class="space-y-4">
-             <div class="flex items-center justify-between mb-1 px-1">
-               <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                 <UIcon name="i-heroicons-clock" class="w-3 h-3" /> 발표 대기 중
-               </span>
-               <span class="text-[10px] font-bold text-slate-500">{{ upcomingIndicators.length }}건</span>
-             </div>
              <EconomicIndicatorCard 
                v-for="indicator in upcomingIndicators" 
                :key="indicator.id" 
@@ -117,12 +111,6 @@
 
           <!-- 2. 발표 완료 지표 (Announced) -->
           <div v-if="indicatorTab === 'announced'" class="space-y-4">
-             <div class="flex items-center justify-between mb-1 px-1">
-               <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest flex items-center gap-1">
-                 <UIcon name="i-heroicons-check-circle" class="w-3 h-3" /> 발표 완료
-               </span>
-               <span class="text-[10px] font-bold text-slate-500">{{ announcedIndicators.length }}건</span>
-             </div>
              <EconomicIndicatorCard 
                v-for="indicator in announcedIndicators" 
                :key="indicator.id" 

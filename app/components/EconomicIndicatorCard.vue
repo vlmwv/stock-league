@@ -16,13 +16,14 @@
           <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
             {{ formatDateTime(item.event_at) }}
           </span>
-          <div class="flex gap-0.5">
-            <div 
+          <div class="flex gap-0.5 mt-1">
+            <UIcon 
               v-for="i in 3" 
               :key="i"
-              class="w-1 h-2 rounded-full"
-              :class="i <= (item.importance || 1) ? getImportanceColor(item.importance) : 'bg-slate-800'"
-            ></div>
+              name="i-heroicons-star-20-solid"
+              class="w-2.5 h-2.5"
+              :class="i <= (item.importance || 1) ? getImportanceStarColor(item.importance) : 'text-slate-800'"
+            />
           </div>
         </div>
       </div>
@@ -98,10 +99,10 @@ const formatDateTime = (dateStr: string) => {
   }).format(date)
 }
 
-const getImportanceColor = (importance: number) => {
-  if (importance >= 3) return 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
-  if (importance >= 2) return 'bg-amber-500'
-  return 'bg-slate-500'
+const getImportanceStarColor = (importance: number) => {
+  if (importance >= 3) return 'text-amber-400 drop-shadow-[0_0_3px_rgba(251,191,36,0.6)]'
+  if (importance >= 2) return 'text-amber-400/60'
+  return 'text-slate-500'
 }
 
 const getImpactStyle = (impact: string) => {
