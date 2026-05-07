@@ -7,6 +7,12 @@ const calculateUpside = (current: number, target: number) => {
   return upside.toFixed(1)
 }
 
+const calculateChangeRate = (base: number, current: number) => {
+  if (!base || !current) return '0'
+  const change = ((current - base) / base) * 100
+  return change.toFixed(1)
+}
+
 const router = useRouter()
 
 const goToStock = (code: string) => {
@@ -86,12 +92,24 @@ onMounted(() => {
           </div>
 
           <div class="bg-slate-800/40 rounded-2xl p-4 border border-white/5 relative">
-            <div class="flex items-center gap-2 mb-2 opacity-60">
-              <UIcon name="i-heroicons-clock" class="w-3 h-3 text-slate-500" />
-              <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재 시점</p>
+            <div class="flex items-center justify-between mb-2 opacity-60">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-clock" class="w-3 h-3 text-slate-500" />
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재 시점</p>
+              </div>
+              <span class="text-[7px] font-black text-emerald-400 animate-pulse">LIVE</span>
             </div>
             <p class="text-sm font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}<span class="text-[10px] ml-0.5 opacity-50">원</span></p>
-            <p class="text-[8px] font-bold text-emerald-500 mt-1">LIVE</p>
+            <div class="flex items-center gap-1 mt-1">
+              <span 
+                class="text-[9px] font-black"
+                :class="Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+              >
+                {{ Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? '▲' : '▼' }}
+                {{ Math.abs(Number(calculateChangeRate(stock.rec_price, stock.last_price))) }}%
+              </span>
+              <span class="text-[7px] font-bold text-slate-600 uppercase tracking-widest ml-1">수익률</span>
+            </div>
           </div>
         </div>
 
