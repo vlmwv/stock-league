@@ -22,7 +22,9 @@ interface Stock {
   target_date?: string
   last_recommendation_date?: string
   market_cap?: number
+  rec_price?: number
   prediction_count?: number
+  lose_count?: number
   win_rate?: number
 }
 
@@ -1375,7 +1377,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, prediction_count, win_rate, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, lose_count, prediction_count, win_rate, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -1516,6 +1518,7 @@ export const useStock = () => {
           last_recommendation_date: s.last_recommendation_date,
           market_cap: s.market_cap || 0,
           prediction_count: s.prediction_count || 0,
+          lose_count: s.lose_count || 0,
           win_rate: s.win_rate || 0
         })),
         count: count || 0
