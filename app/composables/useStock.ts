@@ -1846,25 +1846,32 @@ export const useStock = () => {
         })
       }
       
-      // 2. 경제 지표 추가 (중요도 3점 & 실제치 발표 완료 & 오늘 KST 날짜 발표)
+      // 2. 경제 지표 추가 (중요도 3점 & 발표 완료 & 최근 24시간 이내)
       const indicators = useState<any[]>('recent_indicators', () => [])
       if (indicators.value) {
+        const now = new Date()
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+        
         indicators.value
           .filter(idx => {
-            if (!(idx.importance >= 3 && idx.actual && idx.actual !== '발표전')) return false
-            // event_at 기준으로 오늘 KST 날짜에 발표된 것만 포함
-            const eventDateKst = new Intl.DateTimeFormat('sv-SE', {
-              timeZone: 'Asia/Seoul',
-              year: 'numeric', month: '2-digit', day: '2-digit'
-            } as const).format(new Date(idx.event_at))
-            return eventDateKst === todayKst
+            const eventDate = new Date(idx.event_at)
+            // 1. 중요도 3점 이상
+            // 2. 최근 24시간 이내 이벤트
+            // 3. 이미 시간이 지났거나 실제치가 있는 경우 (발표 완료)
+            if (idx.importance < 3) return false
+            if (eventDate < oneDayAgo || eventDate > now) {
+              // 실제치가 있으면 보여줌 (시간이 약간 안 맞더라도)
+              if (!(idx.actual && idx.actual !== '발표전' && eventDate >= oneDayAgo)) return false
+            }
+            return true
           })
           .forEach((idx: any) => {
+            const actualVal = idx.actual && idx.actual !== '발표전' ? idx.actual : '발표됨'
             items.push({
               id: `ind-${idx.id}`,
               type: 'indicator',
               title: idx.event_name,
-              summary: `${idx.country === 'US' ? '🇺🇸' : '🇰🇷'} 지표 발표: ${idx.actual} (예측: ${idx.forecast || '-'})`,
+              summary: `${idx.country === 'US' ? '🇺🇸' : '🇰🇷'} 지표 발표: ${actualVal} (예측: ${idx.forecast || '-'})`,
               date: idx.event_at,
               importance: idx.importance
             })
