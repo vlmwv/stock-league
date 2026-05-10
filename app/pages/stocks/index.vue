@@ -25,12 +25,12 @@
 
       <!-- 정렬 탭 -->
       <section class="px-6 mb-4">
-        <div class="flex p-1 bg-slate-800/50 rounded-2xl border border-white/5 gap-1">
+        <div class="flex p-1 bg-slate-800/50 rounded-2xl border border-white/5 gap-1 overflow-x-auto no-scrollbar">
           <button
             v-for="tab in sortTabs"
             :key="tab.key"
             @click="currentSort = tab.key"
-            class="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 leading-tight px-0.5 whitespace-nowrap"
+            class="shrink-0 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 leading-tight whitespace-nowrap"
             :class="currentSort === tab.key ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
           >
             {{ tab.label }}
@@ -140,11 +140,11 @@
             <!-- 아이콘 -->
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
 
-            <!-- 종목 정보 (한 줄 레이아웃) -->
+            <!-- 종목 정보 (반응형 레이아웃) -->
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-x-3 flex-wrap">
+              <div class="flex flex-col gap-1.5">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="text-[10px] font-black text-slate-500/80 mr-0.5">
+                  <span class="text-[10px] font-black text-slate-500/80 mr-0.5 shrink-0">
                     <template v-if="(page - 1) * pageSize + index + 1 == 1">🥇</template>
                     <template v-else-if="(page - 1) * pageSize + index + 1 == 2">🥈</template>
                     <template v-else-if="(page - 1) * pageSize + index + 1 == 3">🥉</template>
@@ -153,10 +153,10 @@
                   <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
                   <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-bold shrink-0">
-                  <span class="text-slate-300">{{ stock.last_price.toLocaleString() }}</span>
+                <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold flex-wrap">
+                  <span class="text-slate-300 shrink-0">{{ stock.last_price.toLocaleString() }}</span>
                   <span
-                    class="font-black flex items-center gap-0.5"
+                    class="font-black flex items-center gap-0.5 shrink-0"
                     :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                   >
                     <span class="text-[10px]">{{ stock.change_amount >= 0 ? '▲' : '▼' }}</span>
@@ -165,11 +165,11 @@
                   </span>
                   
                   <!-- 정렬 기준별 보조 정보 -->
-                  <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5">
+                  <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5 shrink-0">
                     <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
                     {{ stock.wishlist_count ?? 0 }}
                   </span>
-                  <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 font-black flex items-center gap-1">
+                  <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 font-black flex items-center gap-1 shrink-0">
                     <span class="text-brand-primary">{{ stock.win_count ?? 0 }}</span>
                     <span class="opacity-30">/</span>
                     <span class="text-slate-400">{{ stock.prediction_count ?? 0 }}</span>
@@ -177,7 +177,7 @@
                       {{ stock.win_rate ?? 0 }}%
                     </span>
                   </span>
-                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex flex-col items-end gap-0.5">
+                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex flex-col items-end gap-0.5 shrink-0">
                     <div class="flex items-center gap-0.5">
                       <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
                       {{ stock.ai_recommendation_count ?? 0 }}회
@@ -186,11 +186,11 @@
                       최근 {{ formatDate(stock.last_recommendation_date) }}
                     </div>
                   </span>
-                  <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
+                  <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
                     <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
                     {{ formatVolume(stock.volume) }}
                   </span>
-                  <span v-else-if="currentSort === 'marketCap'" class="text-[10px] text-slate-500 flex items-center gap-0.5">
+                  <span v-else-if="currentSort === 'marketCap'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
                     <UIcon name="i-heroicons-banknotes" class="w-3 h-3 text-slate-500/60" />
                     {{ formatMarketValue(stock.market_cap) }}
                   </span>
