@@ -140,9 +140,10 @@
             <!-- 아이콘 -->
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
 
-            <!-- 종목 정보 (반응형 레이아웃) -->
+            <!-- 종목 정보 (3줄 레이아웃) -->
             <div class="flex-1 min-w-0">
               <div class="flex flex-col gap-1.5">
+                <!-- 1줄: 종목명 및 코드 -->
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="text-[10px] font-black text-slate-500/80 mr-0.5 shrink-0">
                     <template v-if="(page - 1) * pageSize + index + 1 == 1">🥇</template>
@@ -153,7 +154,9 @@
                   <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
                   <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold flex-wrap">
+                
+                <!-- 2줄: 종가 및 변동금액(변동률) -->
+                <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold">
                   <span class="text-slate-300 shrink-0">{{ stock.last_price.toLocaleString() }}</span>
                   <span
                     class="font-black flex items-center gap-0.5 shrink-0"
@@ -163,8 +166,10 @@
                     <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
                     <span class="text-[9px] opacity-70">({{ stock.change_rate }}%)</span>
                   </span>
+                </div>
                   
-                  <!-- 정렬 기준별 보조 정보 -->
+                <!-- 3줄: 정렬 기준별 부가 정보 -->
+                <div class="flex items-center">
                   <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5 shrink-0">
                     <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
                     {{ stock.wishlist_count ?? 0 }}
@@ -177,7 +182,7 @@
                       {{ stock.win_rate ?? 0 }}%
                     </span>
                   </span>
-                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex flex-col items-end gap-0.5 shrink-0">
+                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-2 shrink-0">
                     <div class="flex items-center gap-0.5">
                       <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
                       {{ stock.ai_recommendation_count ?? 0 }}회
