@@ -1856,9 +1856,11 @@ export const useStock = () => {
           .filter(idx => {
             const eventDate = new Date(idx.event_at)
             // 1. 중요도 3점 이상
-            // 2. 최근 24시간 이내 이벤트
-            // 3. 이미 시간이 지났거나 실제치가 있는 경우 (발표 완료)
+            // 2. 연설 제외
+            // 3. 최근 24시간 이내 이벤트
+            // 4. 이미 시간이 지났거나 실제치가 있는 경우 (발표 완료)
             if (idx.importance < 3) return false
+            if (idx.event_name?.includes('연설')) return false
             if (eventDate < oneDayAgo || eventDate > now) {
               // 실제치가 있으면 보여줌 (시간이 약간 안 맞더라도)
               if (!(idx.actual && idx.actual !== '발표전' && eventDate >= oneDayAgo)) return false

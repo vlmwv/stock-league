@@ -142,14 +142,24 @@ const totalCount = ref(0)
 const announcedIndicators = computed(() => {
   const now = new Date()
   return indicators.value
-    .filter(item => new Date(item.event_at) <= now || item.actual !== null)
+    .filter(item => {
+      const isAnnounced = new Date(item.event_at) <= now || item.actual !== null
+      const isHighImportance = item.importance === 3
+      const isNotSpeech = !item.event_name?.includes('연설')
+      return isAnnounced && isHighImportance && isNotSpeech
+    })
     .sort((a, b) => new Date(b.event_at).getTime() - new Date(a.event_at).getTime())
 })
 
 const upcomingIndicators = computed(() => {
   const now = new Date()
   return indicators.value
-    .filter(item => new Date(item.event_at) > now && item.actual === null)
+    .filter(item => {
+      const isUpcoming = new Date(item.event_at) > now && item.actual === null
+      const isHighImportance = item.importance === 3
+      const isNotSpeech = !item.event_name?.includes('연설')
+      return isUpcoming && isHighImportance && isNotSpeech
+    })
     .sort((a, b) => new Date(a.event_at).getTime() - new Date(b.event_at).getTime())
 })
 
