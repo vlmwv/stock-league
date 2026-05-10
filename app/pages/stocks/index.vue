@@ -25,12 +25,12 @@
 
       <!-- 정렬 탭 -->
       <section class="px-6 mb-4">
-        <div class="flex p-1 bg-slate-800/50 rounded-2xl border border-white/5 gap-1 overflow-x-auto no-scrollbar">
+        <div class="flex p-1 bg-slate-800/50 rounded-2xl border border-white/5 gap-1">
           <button
             v-for="tab in sortTabs"
             :key="tab.key"
             @click="currentSort = tab.key"
-            class="shrink-0 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 leading-tight whitespace-nowrap"
+            class="flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 leading-tight px-0.5 whitespace-nowrap"
             :class="currentSort === tab.key ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
           >
             {{ tab.label }}
