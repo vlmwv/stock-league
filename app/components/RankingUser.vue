@@ -276,7 +276,7 @@ onMounted(async () => {
       <div class="px-4 mb-4 flex items-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">
         <div class="w-8 text-center">순위</div>
         <div class="flex-1 ml-4">사용자</div>
-        <div class="w-16 text-center">참여/성공</div>
+        <div class="w-20 text-center">성공 / 참여</div>
         <div class="w-20 text-right">
           {{ sortBy === 'win_rate' ? '정답률' : 
              sortBy === 'prediction_count' ? '참여수' :
@@ -317,10 +317,10 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Stats: Participated / Successful -->
-          <div class="w-16 text-center">
-            <p class="text-[11px] font-black text-slate-400">{{ rankingUser.prediction_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">회</span></p>
-            <p class="text-[10px] font-bold text-rose-500">{{ rankingUser.win_count }}<span class="text-[9px] font-normal text-slate-600 ml-0.5">승</span></p>
+          <div class="w-20 text-center shrink-0">
+            <p class="text-[10px] font-bold text-slate-500">
+              <span class="text-rose-500">{{ rankingUser.win_count }}승</span> / {{ rankingUser.prediction_count }}회
+            </p>
           </div>
 
           <!-- Score (Dynamic Value based on sort) -->
