@@ -86,10 +86,12 @@ async function analyzeStockWithGemini(
   if (!GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY is missing in Edge Function environment!')
     await supabase.from('ai_analysis_logs').insert({
-      stock_id: stockId,
+      stock_code: stockCode,
+      stock_name: stockName,
       game_date: targetDate,
-      status: 'fail',
-      error_message: 'GEMINI_API_KEY is missing'
+      prompt: 'GEMINI_API_KEY is missing',
+      response_raw: { error: 'missing key' },
+      ai_score: 50
     });
     return buildFallbackAnalysis(stockName, newsItems, priceHistory)
   }
@@ -146,20 +148,7 @@ ${newsSummary}
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 200,
-          response_mime_type: "application/json",
-          response_schema: {
-            type: "OBJECT",
-            properties: {
-              reasoning: { type: "STRING" },
-              summary: { type: "STRING" },
-              score: { type: "NUMBER" },
-              target_price: { type: "NUMBER" },
-              target_date: { type: "STRING" }
-            },
-            required: ["reasoning", "summary", "score", "target_price", "target_date"]
-          }
+          temperature: 0.1
         }
       })
     })
@@ -169,11 +158,12 @@ ${newsSummary}
       console.error(`Gemini API Error for ${stockName}:`, response.status, JSON.stringify(errorData));
       
       await supabase.from('ai_analysis_logs').insert({
-        stock_id: stockId,
+        stock_code: stockCode,
+        stock_name: stockName,
         game_date: targetDate,
-        status: 'fail',
-        error_message: `API Status ${response.status}`,
-        response_raw: JSON.stringify(errorData)
+        prompt: `API Status ${response.status}`,
+        response_raw: errorData,
+        ai_score: 50
       });
       return buildFallbackAnalysis(stockName, newsItems, priceHistory)
     }
@@ -199,11 +189,12 @@ ${newsSummary}
     } catch (err: any) {
       console.error(`Failed to parse Gemini response for ${stockName}:`, err)
       await supabase.from('ai_analysis_logs').insert({
-        stock_id: stockId,
+        stock_code: stockCode,
+        stock_name: stockName,
         game_date: targetDate,
-        status: 'fail',
-        error_message: `Parse Error: ${err.message}`,
-        response_raw: resultText
+        prompt: `Parse Error: ${err.message}`,
+        response_raw: { raw: resultText },
+        ai_score: 50
       });
       return buildFallbackAnalysis(stockName, newsItems, priceHistory)
     }
@@ -213,6 +204,14 @@ ${newsSummary}
     const finalScore = Number.isFinite(parsedScore) ? clampScore(parsedScore) : fallback.score
     const finalSummary = parsed.summary || fallback.summary
     const finalReasoning = parsed.reasoning || finalSummary
+    
+    let finalTargetPrice: number | null = null
+    if (parsed.target_price) {
+      const numericStr = String(parsed.target_price).replace(/[^0-9]/g, '')
+      if (numericStr) {
+        finalTargetPrice = Number(numericStr)
+      }
+    }
 
     // 로그 저장 (성공)
     await supabase.from('ai_analysis_logs').insert({
@@ -229,7 +228,7 @@ ${newsSummary}
       summary: finalSummary,
       score: finalScore,
       reasoning: finalReasoning,
-      target_price: parsed.target_price || null,
+      target_price: finalTargetPrice,
       target_date: parsed.target_date || null
     }
   } catch (err: any) {
