@@ -45,7 +45,7 @@
             <div class="w-80 bg-slate-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-[9999]">
               <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
                 <h3 class="text-xs font-black text-slate-200 uppercase tracking-widest">새로운 소식</h3>
-                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/20 px-2 py-0.5 rounded-full border border-brand-primary/30">New</span>
+                <span class="text-xs font-bold text-brand-primary bg-brand-primary/20 px-2 py-0.5 rounded-full border border-brand-primary/30">New</span>
               </div>
               
               <div class="max-h-[320px] overflow-y-auto no-scrollbar">
@@ -65,18 +65,18 @@
                             :class="item.type === 'recommendation' ? 'text-brand-primary' : 'text-amber-500'"
                           />
                           <span 
-                            class="text-[10px] font-black uppercase tracking-tight"
+                            class="text-xs font-black uppercase tracking-tight"
                             :class="item.type === 'recommendation' ? 'text-brand-primary' : 'text-amber-500'"
                           >
                             {{ item.type === 'recommendation' ? item.title : '경제 지표' }}
                           </span>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-medium">{{ formatNotifDate(item.date) }}</span>
+                        <span class="text-xs text-slate-500 font-medium">{{ formatNotifDate(item.date) }}</span>
                       </div>
                       <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
                         {{ item.type === 'recommendation' ? item.summary : item.title }}
                       </h4>
-                      <p v-if="item.type === 'indicator'" class="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                      <p v-if="item.type === 'indicator'" class="text-xs text-slate-500 mt-0.5 line-clamp-1">
                         {{ item.summary }}
                       </p>
                     </div>
@@ -115,12 +115,12 @@
                   @click="isProfileOpen = true"
                   class="px-3 py-2 border-b border-slate-700/50 mb-1 hover:bg-white/5 cursor-pointer rounded-lg transition-all"
                 >
-                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
+                  <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
                 <button 
                   @click.prevent="handleLogout"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
                 >
                   <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
                   로그아웃
@@ -133,7 +133,7 @@
       <template v-else>
         <NuxtLink 
           to="/login"
-          class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white text-xs font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 active:scale-[0.98] transition-all flex-shrink-0"
+          class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 active:scale-[0.98] transition-all flex-shrink-0"
         >
           로그인
         </NuxtLink>

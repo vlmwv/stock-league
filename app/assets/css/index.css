@@ -17,9 +17,22 @@
   --color-bg-deep: var(--color-bg-deep);
 }
 
+html {
+  font-size: 14px; /* Base font size increased for better mobile readability */
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 16px; /* Return to default for larger screens */
+  }
+}
+
 body {
   @apply bg-bg-deep text-slate-100 font-sans selection:bg-brand-primary/30;
   -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
 /* Glassmorphism Utilities */

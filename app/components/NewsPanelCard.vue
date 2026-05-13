@@ -8,9 +8,9 @@
         <div class="flex items-center gap-3">
           <div v-if="item.stockName" class="flex flex-col gap-0.5">
             <span class="text-[13px] font-black text-slate-200 tracking-tight leading-none">{{ item.stockName }}</span>
-            <span class="text-[9px] font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
+            <span class="text-xs font-bold text-slate-500 font-mono tracking-tighter">{{ item.stockCode }}</span>
           </div>
-          <span v-else class="text-[11px] text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
+          <span v-else class="text-xs text-slate-400 font-black uppercase tracking-widest">{{ item.source }}</span>
         </div>
 
         <div class="flex items-center gap-4">
@@ -29,7 +29,7 @@
           >
             <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
           </button>
-          <span class="text-[10px] text-slate-500 font-bold opacity-60">{{ formattedDate }}</span>
+          <span class="text-xs text-slate-500 font-bold opacity-60">{{ formattedDate }}</span>
         </div>
       </div>
 
@@ -51,9 +51,9 @@
       <div v-if="item.llm_summary" class="relative bg-brand-primary/5 rounded-xl p-4 border border-brand-primary/10 group-hover:bg-brand-primary/10 transition-all">
         <div class="flex items-center gap-1.5 mb-2 opacity-60">
           <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
-          <span class="text-[9px] font-black text-brand-primary uppercase tracking-widest">AI SUMMARY</span>
+          <span class="text-xs font-black text-brand-primary uppercase tracking-widest">AI SUMMARY</span>
         </div>
-        <p class="text-[12px] text-slate-300 leading-relaxed font-medium">
+        <p class="text-sm text-slate-300 leading-relaxed font-medium">
           {{ item.llm_summary }}
         </p>
       </div>

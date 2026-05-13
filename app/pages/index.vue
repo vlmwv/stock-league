@@ -13,13 +13,13 @@
             <div class="flex flex-col gap-2 mt-4">
               <div class="flex items-center gap-2">
                 <div v-if="participantCount > 0" class="flex items-center gap-2">
-                  <p class="text-xs text-slate-100 font-bold tracking-tight">
+                  <p class="text-sm text-slate-100 font-bold tracking-tight">
                     오늘 {{ participantCount.toLocaleString() }}명 누적 {{ totalMemberCount.toLocaleString() }}명 참여
                   </p>
                 </div>
                 <div v-else class="flex items-center gap-2">
                   <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
-                  <p class="text-xs text-slate-100 font-bold tracking-tight">
+                  <p class="text-sm text-slate-100 font-bold tracking-tight">
                     가장 먼저 예측에 참여해 보세요!
                     <span v-if="totalMemberCount > 0" class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여)</span>
                   </p>
@@ -33,17 +33,17 @@
                   <div class="flex flex-col gap-1.5">
                     <div class="flex items-center gap-1.5 opacity-60">
                       <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-brand-primary" />
-                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">참여 가능</span>
+                      <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">참여 가능</span>
                     </div>
-                    <span class="text-xs font-bold text-slate-100 tracking-tight">전일 21:20 ~ 당일 08:00</span>
+                    <span class="text-sm font-bold text-slate-100 tracking-tight">전일 21:20 ~ 당일 08:00</span>
                   </div>
                   <div class="h-10 w-px bg-white/5 mx-4"></div>
                   <div class="flex flex-col gap-1.5 items-end text-right">
                     <div class="flex items-center gap-1.5 opacity-60">
-                      <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">결과 발표</span>
+                      <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">결과 발표</span>
                       <UIcon name="i-heroicons-megaphone" class="w-3.5 h-3.5 text-brand-secondary" />
                     </div>
-                    <span class="text-xs font-bold text-brand-secondary tracking-tight">당일 20:30 <span class="text-slate-400">발표</span></span>
+                    <span class="text-sm font-bold text-brand-secondary tracking-tight">당일 20:30 <span class="text-slate-400">발표</span></span>
                   </div>
                 </div>
               </div>
@@ -51,7 +51,7 @@
               
               <button 
                 @click="handleParticipation"
-                class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
+                class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-sm uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
               >
                 {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : '오늘의리그 마감 (결과 대기 중)'))) }}
                 <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -70,7 +70,7 @@
             <div class="flex flex-col">
               <h3 class="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
                 AI 추천 종목
-                <span v-if="globalAiStats.totalProcessed > 0" class="text-[9px] font-black text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full border border-blue-400/10 backdrop-blur-sm animate-fade-in whitespace-nowrap leading-none">
+                <span v-if="globalAiStats.totalProcessed > 0" class="text-xs font-black text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full border border-blue-400/10 backdrop-blur-sm animate-fade-in whitespace-nowrap leading-none">
                   총 {{ globalAiStats.totalProcessed }}개 중 {{ globalAiStats.totalWins }}개 적중 ({{ Math.round((globalAiStats.totalWins / globalAiStats.totalProcessed) * 100) }}%)
                 </span>
               </h3>
@@ -128,9 +128,9 @@
                 <div class="flex items-start justify-between gap-2.5">
                   <div class="flex items-start gap-2.5 min-w-0 flex-1">
                     <div class="flex flex-col min-w-0">
-                      <h4 class="font-black text-slate-100 text-[12px] tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
+                      <h4 class="font-black text-slate-100 text-sm tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
                       <div class="flex items-center gap-1.5 mt-1">
-                        <span class="text-[8px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
+                        <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                       </div>
                     </div>
                   </div>
@@ -138,18 +138,18 @@
                   <div class="flex items-end gap-1.5 flex-shrink-0 mt-0.5">
                     <div class="flex flex-col items-end">
                       <div class="flex items-center gap-1.5 mb-1">
-                        <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[8px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
-                        <span v-if="stock.ai_recommendation_count > 0" class="text-[8px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
+                        <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[10px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
+                        <span v-if="stock.ai_recommendation_count > 0" class="text-[10px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
                       </div>
                       <div class="flex items-center gap-1.5">
-                        <span class="text-[12px] font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
-                        <span v-if="stock.target_price" class="text-[9px] font-bold text-emerald-400 tracking-tighter leading-none flex items-center gap-0.5">
-                          <span class="text-[8px] opacity-60">→</span>
+                        <span class="text-sm font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
+                        <span v-if="stock.target_price" class="text-xs font-bold text-emerald-400 tracking-tighter leading-none flex items-center gap-0.5">
+                          <span class="text-[10px] opacity-60">→</span>
                           {{ stock.target_price.toLocaleString() }}
                         </span>
                       </div>
                       <div 
-                        class="text-[8px] font-black leading-none mt-1"
+                        class="text-[10px] font-black leading-none mt-1"
                         :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                       >
                         {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
@@ -176,7 +176,7 @@
                   <UPopover mode="click" :popper="{ placement: 'top', offsetDistance: 12 }">
                     <div class="flex-1 overflow-hidden relative cursor-help group/summary hover:bg-white/5 transition-colors rounded-md py-0.5">
                       <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
-                        <p class="text-[9px] text-slate-400 font-medium leading-none flex items-center h-full">
+                        <p class="text-xs text-slate-400 font-medium leading-none flex items-center h-full">
                           {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
                         </p>
                       </div>
@@ -186,9 +186,9 @@
                       <div class="px-4 py-3 max-w-[280px] bg-slate-900 border border-white/10 rounded-xl shadow-2xl ring-1 ring-white/5">
                         <div class="flex items-center gap-1.5 mb-2 opacity-60">
                           <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
-                          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI INSIGHT</span>
+                          <span class="text-xs font-black text-slate-400 uppercase tracking-widest">AI INSIGHT</span>
                         </div>
-                        <p class="text-[11px] text-slate-300 leading-relaxed font-medium">
+                        <p class="text-sm text-slate-300 leading-relaxed font-medium">
                           {{ stock.summary }}
                         </p>
                       </div>
@@ -238,7 +238,7 @@
           
           <div v-if="!recentNews.length" class="w-full text-center py-16 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 mx-4">
             <UIcon name="i-heroicons-exclamation-circle" class="w-12 h-12 text-slate-800 mb-4 mx-auto" />
-            <p class="text-xs text-slate-600 font-black uppercase tracking-widest">데이터를 불러오는 중입니다</p>
+            <p class="text-sm text-slate-600 font-black uppercase tracking-widest">데이터를 불러오는 중입니다</p>
           </div>
         </div>
       </section>

@@ -99,7 +99,7 @@ onMounted(async () => {
     <div class="space-y-10">
       <div v-if="loading" class="text-center py-20">
         <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-500 font-bold text-xs">이력을 불러오는 중...</p>
+        <p class="text-slate-500 font-bold text-sm">이력을 불러오는 중...</p>
       </div>
       
       <div v-else-if="groupedHistory.length === 0" class="text-center py-20 px-10">
@@ -107,16 +107,16 @@ onMounted(async () => {
           <UIcon name="i-heroicons-sparkles" class="w-10 h-10 text-slate-700" />
         </div>
         <h3 class="text-lg font-black text-slate-300 mb-2 tracking-tight">기록이 없습니다.</h3>
-        <p class="text-xs text-slate-500 font-medium leading-relaxed">
+        <p class="text-sm text-slate-500 font-medium leading-relaxed">
           {{ emptyMessage }}
         </p>
       </div>
 
       <div v-else v-for="group in groupedHistory" :key="group.date" class="space-y-4">
         <div class="flex items-center gap-4 px-2">
-          <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ group.date }}</h3>
+          <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ group.date }}</h3>
           <div class="h-px bg-white/5 flex-1"></div>
-          <span class="text-[9px] font-bold text-slate-600">{{ group.items.length }} 종목</span>
+          <span class="text-xs font-bold text-slate-600">{{ group.items.length }} 종목</span>
         </div>
 
         <div 
@@ -136,17 +136,17 @@ onMounted(async () => {
             <div class="flex items-center justify-between mb-6">
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ formatDateTime(item.created_at) }} 추천</span>
-                  <UBadge v-if="item.status === 'withdrawn'" color="error" variant="subtle" class="rounded-lg font-bold text-[7px] uppercase">추천 해제됨</UBadge>
+                  <span class="text-xs font-black text-slate-500 uppercase tracking-widest">{{ formatDateTime(item.created_at) }} 추천</span>
+                  <UBadge v-if="item.status === 'withdrawn'" color="error" variant="subtle" class="rounded-lg font-bold text-[10px] uppercase">추천 해제됨</UBadge>
                 </div>
                 <div class="flex items-baseline gap-1.5 mt-0.5">
                   <h4 class="text-lg font-black text-slate-200">{{ item.name }}</h4>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">{{ item.code }}</span>
+                  <span class="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono">{{ item.code }}</span>
                 </div>
               </div>
               <div class="flex flex-col items-end gap-2">
                 <div class="px-2.5 py-0.5 bg-white/5 rounded-full border border-white/10">
-                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">AI 점수: {{ item.ai_score }}P</span>
+                  <span class="text-xs font-black text-slate-400 uppercase tracking-widest">AI 점수: {{ item.ai_score }}P</span>
                 </div>
               </div>
             </div>
@@ -154,18 +154,18 @@ onMounted(async () => {
             <!-- 가격 정보 비교 -->
             <div class="grid grid-cols-3 gap-2 mb-6">
               <div class="space-y-1">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">추천가</p>
-                <p class="text-xs font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">추천가</p>
+                <p class="text-sm font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
               </div>
               <div class="flex flex-col items-center justify-center pt-2">
                 <div class="h-px bg-white/10 w-full mb-2"></div>
-                <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em] whitespace-nowrap bg-bg-deep px-2">
+                <span class="text-xs font-black text-slate-500 uppercase tracking-[0.1em] whitespace-nowrap bg-bg-deep px-2">
                    {{ item.days_passed === 0 ? '오늘' : `${item.days_passed}일 경과` }}
                 </span>
               </div>
               <div class="space-y-1 text-right">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재가</p>
-                <p class="text-xs font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">현재가</p>
+                <p class="text-sm font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
               </div>
             </div>
 
@@ -194,7 +194,7 @@ onMounted(async () => {
                 </span>
               </div>
 
-              <p class="text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
+              <p class="text-xs font-black uppercase tracking-[0.2em] opacity-80">
                 {{ (item.days_passed <= 0 && item.ai_result === 'pending') ? '결과 대기 중' : '수익률' }}
               </p>
             </div>
@@ -202,21 +202,21 @@ onMounted(async () => {
             <!-- 목표가 정보 추가 -->
             <div v-if="item.target_price" class="mt-5 grid grid-cols-2 gap-4 py-3 px-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
               <div class="space-y-0.5">
-                <p class="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest">목표가</p>
-                <p class="text-xs font-black text-emerald-400 font-mono">{{ item.target_price.toLocaleString() }}원</p>
+                <p class="text-xs font-black text-emerald-500/60 uppercase tracking-widest">목표가</p>
+                <p class="text-sm font-black text-emerald-400 font-mono">{{ item.target_price.toLocaleString() }}원</p>
               </div>
               <div class="space-y-0.5 text-right">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">목표기한</p>
-                <p class="text-xs font-black text-slate-300">{{ item.target_date }}</p>
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">목표기한</p>
+                <p class="text-sm font-black text-slate-300">{{ item.target_date }}</p>
               </div>
             </div>
 
             <!-- AI 요약 -->
             <div class="mt-5 pt-5 border-t border-white/5 relative">
-              <p v-if="item.summary" class="text-xs text-slate-400 leading-relaxed font-medium italic opacity-70 line-clamp-2 pr-6">
+              <p v-if="item.summary" class="text-sm text-slate-400 leading-relaxed font-medium italic opacity-70 line-clamp-2 pr-6">
                  "{{ item.summary }}"
               </p>
-              <p v-else class="text-xs text-slate-500 font-medium italic pr-6">요약 정보가 없습니다.</p>
+              <p v-else class="text-sm text-slate-500 font-medium italic pr-6">요약 정보가 없습니다.</p>
               <UIcon name="i-heroicons-arrow-right-20-solid" class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-hover:text-brand-primary transition-all" />
             </div>
           </div>

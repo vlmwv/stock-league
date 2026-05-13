@@ -13,7 +13,7 @@
         </div>
         
         <div class="flex flex-col">
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
+          <span class="text-xs font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
             {{ formatDateTime(item.event_at) }}
           </span>
           <div class="flex gap-0.5 mt-1">
@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <div v-if="item.impact" class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight" :class="getImpactStyle(item.impact)">
+      <div v-if="item.impact" class="px-2 py-1 rounded-md text-xs font-bold uppercase tracking-tight" :class="getImpactStyle(item.impact)">
         {{ item.impact === 'positive' ? '호재' : item.impact === 'negative' ? '악재' : '중립' }}
       </div>
     </div>
@@ -40,7 +40,7 @@
       </div>
       <div class="flex-1 overflow-hidden relative">
         <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
-          <h3 class="font-bold text-slate-100 text-[13px] tracking-tight flex items-center h-full">
+          <h3 class="font-bold text-slate-100 text-sm tracking-tight flex items-center h-full">
             {{ item.event_name }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ item.event_name }}
           </h3>
         </div>
@@ -50,22 +50,22 @@
     <!-- 수치 정보 레이아웃 -->
     <div class="grid grid-cols-3 gap-2 relative z-10">
       <div class="flex flex-col items-center p-2 rounded-xl bg-slate-800/30 border border-slate-700/30">
-        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">실제</span>
-        <span class="text-xs font-black" :class="item.actual ? 'text-slate-100' : 'text-slate-600'">
+        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">실제</span>
+        <span class="text-sm font-black" :class="item.actual ? 'text-slate-100' : 'text-slate-600'">
           {{ item.actual || (!item.forecast && !item.previous ? '-' : '발표전') }}
         </span>
       </div>
       
       <div class="flex flex-col items-center p-2 rounded-xl bg-slate-800/30 border border-slate-700/30">
-        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">예측</span>
-        <span class="text-xs font-bold text-slate-300">
+        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">예측</span>
+        <span class="text-sm font-bold text-slate-300">
           {{ item.forecast || '-' }}
         </span>
       </div>
       
       <div class="flex flex-col items-center p-2 rounded-xl bg-slate-800/30 border border-slate-700/30">
-        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">이전</span>
-        <span class="text-xs font-bold text-slate-400">
+        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">이전</span>
+        <span class="text-sm font-bold text-slate-400">
           {{ item.previous || '-' }}
         </span>
       </div>

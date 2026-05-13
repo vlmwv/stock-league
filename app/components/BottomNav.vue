@@ -16,7 +16,7 @@
           class="absolute -bottom-1 w-1 h-1 bg-brand-primary rounded-full animate-pulse opacity-0 group-[.router-link-active]:opacity-100"
         ></span>
       </div>
-      <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 group-[.router-link-active]:text-brand-primary">{{ item.label }}</span>
+      <span class="text-[11px] font-bold uppercase tracking-widest text-slate-500 group-[.router-link-active]:text-brand-primary">{{ item.label }}</span>
     </NuxtLink>
   </nav>
 </template>

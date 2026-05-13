@@ -14,14 +14,14 @@
 
         <div class="p-10 pt-12 text-center">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-6">
-            <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">참여 방법</span>
+            <span class="text-xs font-black text-brand-primary uppercase tracking-widest">참여 방법</span>
           </div>
           
           <h2 class="text-3xl font-black text-slate-100 mb-2 leading-tight tracking-tighter">
             주식예측게임에 <br/>
             <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">참여하는 방법</span>
           </h2>
-          <p class="text-[10px] text-slate-400 font-bold mb-10 uppercase tracking-[0.2em]">3 EASY STEPS TO WIN</p>
+          <p class="text-xs text-slate-400 font-bold mb-10 uppercase tracking-[0.2em]">3 EASY STEPS TO WIN</p>
 
           <!-- Guide Steps -->
           <div class="space-y-10 text-left">
@@ -31,10 +31,10 @@
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-black text-slate-200 uppercase tracking-tight">1단계. 매일 밤 9시 20분</h4>
-                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-primary/20 text-[8px] font-black text-brand-primary uppercase">Daily Open</span>
+                  <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">1단계. 매일 밤 9시 20분</h4>
+                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-primary/20 text-[10px] font-black text-brand-primary uppercase">Daily Open</span>
                 </div>
-                <p class="text-xs text-slate-400 leading-relaxed">엄선된 <span class="text-slate-200 font-bold">5가지 추천 종목</span>과 <span class="text-slate-200 font-bold">AI 인사이트 리포트</span>를 확인하세요.</p>
+                <p class="text-sm text-slate-400 leading-relaxed">엄선된 <span class="text-slate-200 font-bold">5가지 추천 종목</span>과 <span class="text-slate-200 font-bold">AI 인사이트 리포트</span>를 확인하세요.</p>
               </div>
             </div>
 
@@ -46,8 +46,8 @@
                 </div>
               </div>
               <div class="space-y-1">
-                <h4 class="text-xs font-black text-slate-200 uppercase tracking-tight">2단계. 상승 또는 하락 선택</h4>
-                <p class="text-xs text-slate-400 leading-relaxed">
+                <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">2단계. 상승 또는 하락 선택</h4>
+                <p class="text-sm text-slate-400 leading-relaxed">
                   내일 장의 흐름을 예측하여 <br/>
                   <span class="text-rose-400 font-black">상승</span> 또는 <span class="text-indigo-400 font-black">하락</span> 버튼을 탭하세요!
                 </p>
@@ -60,23 +60,23 @@
               </div>
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-black text-slate-200 uppercase tracking-tight">3단계. 결과 확인 및 랭킹</h4>
-                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-secondary/20 text-[8px] font-black text-brand-secondary uppercase">Result at 20:30</span>
+                  <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">3단계. 결과 확인 및 랭킹</h4>
+                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-secondary/20 text-[10px] font-black text-brand-secondary uppercase">Result at 20:30</span>
                 </div>
-                <p class="text-xs text-slate-400 leading-relaxed">정확한 예측으로 포인트를 획득하고 <span class="text-slate-200 font-bold">주간/월간 랭킹 상위권</span>에 도전하세요!</p>
+                <p class="text-sm text-slate-400 leading-relaxed">정확한 예측으로 포인트를 획득하고 <span class="text-slate-200 font-bold">주간/월간 랭킹 상위권</span>에 도전하세요!</p>
               </div>
             </div>
           </div>
 
           <button 
             @click="$emit('close')"
-            class="w-full mt-12 py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group/btn"
+            class="w-full mt-12 py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group/btn"
           >
             <span class="relative z-10">참여하러 가기</span>
             <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
           </button>
           
-          <p class="mt-4 text-[9px] text-slate-600 font-bold uppercase tracking-widest opacity-60">
+          <p class="mt-4 text-xs text-slate-600 font-bold uppercase tracking-widest opacity-60">
             Participation closes at 08:00 AM daily
           </p>
         </div>

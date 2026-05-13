@@ -22,7 +22,7 @@
           ></div>
           <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
             <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500" />
-            <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
+            <span class="text-xs font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
           </div>
         </div>
         <div 
@@ -34,7 +34,7 @@
             :class="{ 'opacity-100 blur-lg': swipeEffect === 'down' }"
           ></div>
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
-            <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
+            <span class="text-xs font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
             <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400" />
           </div>
         </div>
@@ -46,7 +46,7 @@
             <StockIcon :code="stock.code" :name="stock.name" size="md" />
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
+                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-xs font-mono text-slate-400 border border-slate-700/50 uppercase tracking-tighter group-hover/title:bg-slate-700 transition-colors">
                   {{ stock.code }}
                 </span>
                 <button 
@@ -58,7 +58,7 @@
                 </button>
                 <!-- AI 추천 횟수 (Compact) -->
                 <div v-if="stock.ai_recommendation_count" class="flex items-center px-1.5 py-0.5 rounded bg-brand-primary/5 border border-brand-primary/10 ml-auto">
-                  <span class="text-[9px] font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
+                  <span class="text-xs font-black text-brand-primary uppercase tracking-tighter">{{ stock.ai_recommendation_count }}회</span>
                 </div>
               </div>
               <h4 class="text-xl font-black text-slate-100 tracking-tight leading-none truncate group-hover/title:text-brand-primary transition-colors">{{ stock.name }}</h4>
@@ -69,16 +69,16 @@
         <div class="text-right shrink-0 transition-all duration-300" :class="prediction ? 'mt-16' : ''">
           <div class="flex items-baseline justify-end gap-0.5">
             <span class="text-2xl font-black text-slate-100 tabular-nums tracking-tighter">{{ stock.last_price.toLocaleString() }}</span>
-            <span class="text-[10px] font-bold text-slate-400">원</span>
+            <span class="text-xs font-bold text-slate-400">원</span>
           </div>
           <div 
             class="text-xs font-black flex items-center justify-end gap-1 mt-0.5 transition-colors"
             :class="[isPositive(stock.change_amount) ? 'text-rose-400' : isNegative(stock.change_amount) ? 'text-indigo-400' : 'text-slate-500']"
           >
-            <span v-if="isPositive(stock.change_amount)" class="text-[10px]">▲</span>
-            <span v-else-if="isNegative(stock.change_amount)" class="text-[10px]">▼</span>
+            <span v-if="isPositive(stock.change_amount)" class="text-xs">▲</span>
+            <span v-else-if="isNegative(stock.change_amount)" class="text-xs">▼</span>
             <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
-            <span class="opacity-60 text-[10px]">({{ stock.change_rate }}%)</span>
+            <span class="opacity-60 text-xs">({{ stock.change_rate }}%)</span>
           </div>
         </div>
       </div>
@@ -100,23 +100,23 @@
             <template v-if="isPredictable">
               <div class="flex flex-col items-center gap-1">
                 <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500" />
-                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
               </div>
               <div class="h-px w-8 bg-slate-800"></div>
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
+              <p class="text-xs font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
               <div class="h-px w-8 bg-slate-800"></div>
               <div class="flex flex-col items-center gap-1">
-                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
                 <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500" />
               </div>
             </template>
-            <p v-else class="text-[9px] font-black text-rose-400/80 uppercase tracking-widest italic flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/5 border border-rose-500/10">
+            <p v-else class="text-xs font-black text-rose-400/80 uppercase tracking-widest italic flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/5 border border-rose-500/10">
               <UIcon name="i-heroicons-lock-closed" class="w-3 h-3" />
               오늘의 리그 종목이 아닙니다
             </p>
           </template>
           <template v-else>
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">오늘의 예측이 마감되었습니다</p>
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest italic opacity-60">오늘의 예측이 마감되었습니다</p>
           </template>
         </div>
       </Transition>
@@ -140,7 +140,7 @@
               :class="[prediction === 'up' ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' : 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400']"
             >
               <UIcon :name="prediction === 'up' ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-4 h-4" />
-              <span class="text-[10px] font-black uppercase tracking-widest">
+              <span class="text-xs font-black uppercase tracking-widest">
                 {{ prediction === 'up' ? '상승 예측' : '하락 예측' }}
               </span>
             </div>
@@ -148,11 +148,11 @@
             <button 
               v-if="isLeagueOpen"
               @click.stop="$emit('cancelPrediction', stock.id)"
-              class="px-2 py-1 rounded-lg bg-slate-900/80 border border-white/5 text-[8px] font-black text-slate-500 hover:text-rose-400 hover:border-rose-500/30 transition-all uppercase tracking-widest backdrop-blur-sm"
+              class="px-2 py-1 rounded-lg bg-slate-900/80 border border-white/5 text-[10px] font-black text-slate-500 hover:text-rose-400 hover:border-rose-500/30 transition-all uppercase tracking-widest backdrop-blur-sm"
             >
               취소하기
             </button>
-            <span v-else class="text-[8px] font-bold text-slate-600 uppercase tracking-widest px-2 opacity-60">
+            <span v-else class="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-2 opacity-60">
               마감됨
             </span>
           </div>

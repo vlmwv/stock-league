@@ -15,7 +15,7 @@
             
             <div class="space-y-6">
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이메일 (수정 불가)</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이메일 (수정 불가)</label>
                 <div class="relative">
                    <input 
                     :value="currentEmail" 
@@ -27,7 +27,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이름 (실명)</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">이름 (실명)</label>
                 <div class="relative">
                    <input 
                     v-model="fullName" 
@@ -40,7 +40,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">닉네임</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">닉네임</label>
                 <div class="relative">
                    <input 
                     v-model="username" 
@@ -53,7 +53,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">노출 설정</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">노출 설정</label>
                 <div class="grid grid-cols-2 gap-3">
                   <button 
                     v-for="opt in [
@@ -69,13 +69,13 @@
                       : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
                   >
                     <UIcon :name="displayNameType === opt.value ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-circle'" class="w-5 h-5" />
-                    <span class="text-xs font-bold">{{ opt.label }}</span>
+                    <span class="text-sm font-bold">{{ opt.label }}</span>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 설정</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">프로필 이미지 설정</label>
                 
                 <div class="space-y-4">
                     <!-- Preview -->
@@ -91,8 +91,8 @@
                         </div>
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p class="text-xs font-bold text-slate-200">{{ sourceLabel }}</p>
-                        <p class="text-[10px] text-slate-500 font-medium mt-0.5">{{ sourceDescription }}</p>
+                        <p class="text-sm font-bold text-slate-200">{{ sourceLabel }}</p>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">{{ sourceDescription }}</p>
                       </div>
                     </div>
 
@@ -109,7 +109,7 @@
                           : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
                       >
                         <UIcon :name="s.icon" class="w-5 h-5" />
-                        <span class="text-[10px] font-bold">{{ s.label }}</span>
+                        <span class="text-xs font-bold">{{ s.label }}</span>
                       </button>
                     </div>
                   </div>
@@ -119,7 +119,7 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 설정)</label>
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">성별 (기본 아바타 설정)</label>
                 <div class="grid grid-cols-3 gap-3">
                   <button 
                     v-for="g in [
@@ -136,7 +136,7 @@
                       : 'bg-slate-800/50 border-white/10 text-slate-500 hover:border-white/20'"
                   >
                     <UIcon :name="g.icon" class="w-5 h-5" />
-                    <span class="text-[10px] font-bold">{{ g.label }}</span>
+                    <span class="text-xs font-bold">{{ g.label }}</span>
                   </button>
                 </div>
               </div>
