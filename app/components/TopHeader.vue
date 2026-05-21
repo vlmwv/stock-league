@@ -11,6 +11,22 @@
     </NuxtLink>
 
     <div class="flex items-center gap-1.5 sm:gap-3">
+      <!-- 테마 토글 버튼 -->
+      <button
+        @click="toggleTheme"
+        class="p-1.5 sm:p-2 rounded-xl transition-all border active:scale-95 flex-shrink-0"
+        :class="isDark
+          ? 'bg-slate-800/50 hover:bg-slate-700/50 border-white/5'
+          : 'bg-white/70 hover:bg-slate-100 border-slate-200'"
+        :title="isDark ? '라이트 모드로 전환' : '다크 모드로 전환'"
+      >
+        <UIcon
+          :name="isDark ? 'i-heroicons-sun-20-solid' : 'i-heroicons-moon-20-solid'"
+          class="w-5 h-5 transition-all"
+          :class="isDark ? 'text-amber-400' : 'text-slate-600'"
+        />
+      </button>
+
       <button 
         @click="isGuideOpen = true"
         class="p-1.5 sm:p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95 flex-shrink-0"
@@ -157,6 +173,26 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const isScrolled = ref(false)
 const isProfileOpen = ref(false)
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
+
+const toggleTheme = () => {
+  colorMode.preference = isDark.value ? 'light' : 'dark'
+  if (isDark.value) {
+    document.documentElement.classList.remove('light')
+  } else {
+    document.documentElement.classList.add('light')
+  }
+}
+
+// 초기 로드 시 colorMode에 맞게 클래스 동기화
+watch(() => colorMode.value, (val) => {
+  if (val === 'light') {
+    document.documentElement.classList.add('light')
+  } else {
+    document.documentElement.classList.remove('light')
+  }
+}, { immediate: true })
 const { 
   notifications, 
   fetchEconomicIndicators, 

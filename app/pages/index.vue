@@ -23,6 +23,60 @@
         </div>
       </section>
  
+      <!-- 오늘의 테마 섹션 -->
+      <section v-if="themes && themes.length > 0" class="px-4 mb-10">
+        <div class="glass-dark rounded-[2rem] p-5 sm:p-6 border border-white/5 relative overflow-hidden shadow-2xl">
+          <!-- 헤더 -->
+          <div class="flex items-center justify-between mb-6 px-1">
+            <div class="flex flex-col gap-0.5">
+              <h3 class="text-xl font-black text-slate-100 tracking-tight">오늘의 테마</h3>
+              <span class="text-[10px] font-bold text-slate-500">
+                {{ todayKstDisplay }} 기준 · 평균 등락률
+              </span>
+            </div>
+            <NuxtLink to="/stocks?tab=themes" class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus">
+              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
+            </NuxtLink>
+          </div>
+
+          <!-- 테마 카드 그리드 -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div
+              v-for="(theme, index) in themes"
+              :key="theme.sector"
+              @click="handleOpenThemeModal(theme)"
+              class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-2xl p-3 sm:p-4 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[105px] relative overflow-hidden group shadow-inner"
+            >
+              <!-- 은은한 무늬/그라데이션 효과 -->
+              <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
+
+              <div>
+                <!-- 순위 및 개수 -->
+                <div class="flex items-center justify-between text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <span>#{{ index + 1 }}</span>
+                  <span>{{ theme.stock_count }}개</span>
+                </div>
+                <!-- 테마 이름 -->
+                <h4 class="font-black text-slate-100 text-xs sm:text-sm tracking-tight leading-tight mt-2 line-clamp-2 min-h-[2.2em] sm:min-h-[2.5em] group-hover:text-brand-primary transition-colors">
+                  {{ theme.sector }}
+                </h4>
+              </div>
+
+              <!-- 등락률 배지 -->
+              <div class="mt-3 flex">
+                <span
+                  class="px-2 py-0.5 sm:px-2.5 rounded-lg text-[9px] sm:text-[10px] font-black tracking-tight flex items-center gap-0.5"
+                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'"
+                >
+                  <UIcon :name="theme.avg_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-3 h-3" />
+                  {{ theme.avg_change_rate >= 0 ? '+' : '' }}{{ theme.avg_change_rate }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- AI 추천 종목 (More Compact & Harmonious) -->
       <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-4 mb-10 relative group/ai-section">
         <div class="flex justify-between items-end mb-4 px-2">
@@ -125,60 +179,6 @@
                 </UPopover>
               </div>
 
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 오늘 뜨는 테마 섹션 -->
-      <section v-if="themes && themes.length > 0" class="px-4 mb-10">
-        <div class="glass-dark rounded-[2rem] p-5 sm:p-6 border border-white/5 relative overflow-hidden shadow-2xl">
-          <!-- 헤더 -->
-          <div class="flex items-center justify-between mb-6 px-1">
-            <div class="flex flex-col gap-0.5">
-              <h3 class="text-xl font-black text-slate-100 tracking-tight">오늘 뜨는 테마</h3>
-              <span class="text-[10px] font-bold text-slate-500">
-                {{ todayKstDisplay }} 기준 · 평균 등락률
-              </span>
-            </div>
-            <NuxtLink to="/stocks?tab=themes" class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus">
-              <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
-            </NuxtLink>
-          </div>
-
-          <!-- 테마 카드 그리드 -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div
-              v-for="(theme, index) in themes.slice(0, 4)"
-              :key="theme.sector"
-              @click="handleOpenThemeModal(theme)"
-              class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-2xl p-3 sm:p-4 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[105px] relative overflow-hidden group shadow-inner"
-            >
-              <!-- 은은한 무늬/그라데이션 효과 -->
-              <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
-
-              <div>
-                <!-- 순위 및 개수 -->
-                <div class="flex items-center justify-between text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  <span>#{{ index + 1 }}</span>
-                  <span>{{ theme.stock_count }}개</span>
-                </div>
-                <!-- 테마 이름 -->
-                <h4 class="font-black text-slate-100 text-xs sm:text-sm tracking-tight leading-tight mt-2 line-clamp-2 min-h-[2.2em] sm:min-h-[2.5em] group-hover:text-brand-primary transition-colors">
-                  {{ theme.sector }}
-                </h4>
-              </div>
-
-              <!-- 등락률 배지 -->
-              <div class="mt-3 flex">
-                <span
-                  class="px-2 py-0.5 sm:px-2.5 rounded-lg text-[9px] sm:text-[10px] font-black tracking-tight flex items-center gap-0.5"
-                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'"
-                >
-                  <UIcon :name="theme.avg_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-3 h-3" />
-                  {{ theme.avg_change_rate >= 0 ? '+' : '' }}{{ theme.avg_change_rate }}%
-                </span>
-              </div>
             </div>
           </div>
         </div>

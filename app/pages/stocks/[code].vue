@@ -33,11 +33,12 @@
               <div class="text-xl font-black text-slate-100 whitespace-nowrap">{{ stock.last_price?.toLocaleString() }}</div>
             </div>
             
-            <!-- 2행: 종목코드, 코스피/코스닥, 금일변동금액(비율) -->
+            <!-- 2행: 종목코드, 코스피/코스닥, 업종, 금일변동금액(비율) -->
             <div class="flex items-center justify-between text-[11px] font-bold mt-1">
               <div class="flex items-center gap-2">
                 <span class="text-slate-500">{{ stock.code }}</span>
-                <span class="text-slate-500">{{ stock.sector || 'KOSPI' }}</span>
+                <span v-if="stock.market" class="text-slate-500 bg-white/5 px-1.5 py-0.5 rounded-md text-[10px]">{{ stock.market }}</span>
+                <span v-if="stock.sector" class="text-slate-400">{{ stock.sector }}</span>
                 <button @click="clearAiHistoryAndGoToTab" class="text-slate-500 hover:text-slate-300 transition-colors flex items-center">
                   <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
                 </button>

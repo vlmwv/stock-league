@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 import dotenv from 'dotenv'
 
@@ -27,26 +26,47 @@ async function fixData() {
   
   const allNaverStocks: any[] = []
   
-  // 1. 코스피/코스닥 상위 200개씩 가져오기 (충분한 범위를 커버하기 위해)
+  // 1. 코스피/코스닥 상위 200개씩 가져오기
   for (const market of ['KOSPI', 'KOSDAQ'] as const) {
     for (let page = 1; page <= 2; page++) {
       console.log(`Fetching ${market} page ${page}...`)
       const stocks = await fetchNaverStocks(market, page)
-      stocks.forEach((s: any) => {
+      
+      for (const s of stocks) {
+        // 실제 업종(테마) 정보 크롤링
+        let realSector = '-'
+        try {
+          const detailUrl = `https://finance.naver.com/item/main.naver?code=${s.itemCode}`
+          const detailRes = await fetch(detailUrl)
+          const buffer = await detailRes.arrayBuffer()
+          const html = new TextDecoder('utf-8').decode(buffer)
+          const regex = /type=upjong&no=[0-9]+">([^<]+)<\/a>/
+          const match = html.match(regex)
+          if (match && match[1]) {
+            realSector = match[1].trim()
+          }
+        } catch (err: any) {
+          console.warn(`Failed to crawl sector for ${s.stockName} (${s.itemCode}):`, err.message)
+        }
+
         allNaverStocks.push({
           code: s.itemCode,
           name: s.stockName,
-          sector: market,
+          sector: realSector,
+          market: market,
           volume: parseInt(s.accumulatedTradingValueRaw, 10),
           last_price: parseInt(s.closePrice.replace(/,/g, ''), 10),
           change_amount: parseInt(s.compareToPreviousClosePrice.replace(/,/g, ''), 10),
           change_rate: parseFloat(s.fluctuationsRatio)
         })
-      })
+
+        // IP 차단 방지를 위한 미세한 딜레이 (100ms)
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
     }
   }
 
-  console.log(`Fetched ${allNaverStocks.length} stocks from Naver. Updating database...`)
+  console.log(`Fetched and parsed ${allNaverStocks.length} stocks from Naver. Updating database...`)
 
   // 2. DB 업데이트 (10개씩 묶어서 처리)
   const chunkSize = 10
@@ -57,6 +77,7 @@ async function fixData() {
         .from('stocks')
         .update({
           sector: s.sector,
+          market: s.market,
           volume: s.volume,
           last_price: s.last_price,
           change_amount: s.change_amount,

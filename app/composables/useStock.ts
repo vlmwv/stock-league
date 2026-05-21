@@ -1394,7 +1394,7 @@ export const useStock = () => {
       // 1. 모든 종목 정보 (페이징 및 검색 적용)
       let query = client
         .from('stocks')
-        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, lose_count, prediction_count, win_rate, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap', { count: 'exact' })
+        .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, wishlist_count, win_count, lose_count, prediction_count, win_rate, ai_recommendation_count, ai_win_count, ai_processed_count, volume, last_recommendation_date, market_cap, market, sector', { count: 'exact' })
 
       if (searchQuery.trim()) {
         const q = searchQuery.trim()
@@ -1427,7 +1427,7 @@ export const useStock = () => {
       }
 
       if (market && market !== 'ALL') {
-        query = query.eq('sector', market)
+        query = query.eq('market', market)
       }
 
       let finalQuery = query.order(orderBy, { 
@@ -1465,7 +1465,7 @@ export const useStock = () => {
         console.log('[useStock] Attempting fallback fetch without stats columns...')
         let fallbackQuery = client
           .from('stocks')
-          .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary', { count: 'exact' })
+          .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, market, sector', { count: 'exact' })
 
         if (searchQuery.trim()) {
           const q = searchQuery.trim()
@@ -1481,7 +1481,7 @@ export const useStock = () => {
         }
 
         if (market && market !== 'ALL') {
-          fallbackQuery = fallbackQuery.eq('sector', market)
+          fallbackQuery = fallbackQuery.eq('market', market)
         }
 
         const fallbackOrderBy = orderBy === 'market_cap_rank' ? 'market_cap_rank' : 'market_cap_rank'
@@ -1504,6 +1504,8 @@ export const useStock = () => {
             change_rate: s.change_rate || 0,
             market_cap_rank: s.market_cap_rank,
             summary: decodeHtmlEntities(s.summary || ''),
+            market: s.market || '',
+            sector: s.sector || '',
             wishlist_count: 0,
             win_count: 0,
             ai_recommendation_count: 0,
@@ -1526,6 +1528,8 @@ export const useStock = () => {
           change_rate: s.change_rate || 0,
           market_cap_rank: s.market_cap_rank,
           summary: decodeHtmlEntities(s.summary || ''),
+          market: s.market || '',
+          sector: s.sector || '',
           wishlist_count: s.wishlist_count || 0,
           win_count: s.win_count || 0,
           ai_recommendation_count: s.ai_recommendation_count || 0,
@@ -1623,7 +1627,7 @@ export const useStock = () => {
   const fetchStockByCode = async (code: string) => {
     const { data, error } = await client
       .from('stocks')
-      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, sector, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, last_recommendation_date')
+      .select('id, name, code, last_price, change_amount, change_rate, market_cap_rank, summary, sector, market, wishlist_count, win_count, ai_recommendation_count, ai_win_count, ai_processed_count, last_recommendation_date')
       .eq('code', code)
       .maybeSingle()
     
