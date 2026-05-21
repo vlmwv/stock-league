@@ -9,6 +9,7 @@ const user = useSupabaseUser()
 
 const scenarioId = Number(route.params.id)
 const scenario = computed(() => scenarios.value.find(s => s.id === scenarioId))
+const totalDays = computed(() => scenario.value?.candles.length || 30)
 
 // 게임 핵심 상태 변수
 const currentDay = ref(7) // 초기 7일치의 캔들을 보여주고 예측을 유도
@@ -25,7 +26,7 @@ const activeTab = ref<'game' | 'ranking'>('game')
 // 1. 이미 완료한 도전 이력이 있는지 검증
 const checkAttemptStatus = async () => {
   if (!user.value) return
-  const attempts = await fetchUserAttempts()
+  const attempts = await fetchUserAttempts() as any[]
   const found = attempts.find(a => a.scenario_id === scenarioId)
   if (found) {
     hasAlreadyAttempted.value = true
@@ -86,8 +87,9 @@ const handlePredict = async (prediction: 'up' | 'down') => {
   
   selectedPredict.value = prediction
   
-  const todayCandle = scenario.value!.candles[currentDay.value - 1]
-  const tomorrowCandle = scenario.value!.candles[currentDay.value]
+  const todayCandle = scenario.value?.candles[currentDay.value - 1]
+  const tomorrowCandle = scenario.value?.candles[currentDay.value]
+  if (!todayCandle || !tomorrowCandle) return
   
   // 실제 등락 확인
   const isUp = tomorrowCandle.close >= todayCandle.close
@@ -106,10 +108,10 @@ const handlePredict = async (prediction: 'up' | 'down') => {
     isFeedbackMode.value = false
     selectedPredict.value = null
     
-    if (currentDay.value < 30) {
+    if (currentDay.value < totalDays.value) {
       currentDay.value++
     } else {
-      // 30일차 완료 시 최종 기록 Supabase 전송
+      // 최종 거래일 완료 시 최종 기록 Supabase 전송
       gameEnded.value = true
       await submitScore()
       activeTab.value = 'ranking'
@@ -121,7 +123,7 @@ const handlePredict = async (prediction: 'up' | 'down') => {
 const submitScore = async () => {
   if (isSubmitting.value) return
   isSubmitting.value = true
-  const res = await submitScenarioAttempt(scenarioId, correctCount.value)
+  const res = await submitScenarioAttempt(scenarioId, correctCount.value, totalDays.value)
   isSubmitting.value = false
   if (res.success) {
     hasAlreadyAttempted.value = true
@@ -161,7 +163,7 @@ onMounted(async () => {
           >
             {{ scenario.difficulty }}
           </span>
-          <span class="text-[10px] font-bold text-slate-500">30일 스페셜</span>
+          <span class="text-[10px] font-bold text-slate-500">{{ totalDays }}일 스페셜</span>
         </div>
         <h2 class="text-2xl font-black text-slate-100">{{ scenario.title }}</h2>
         <p class="text-xs text-slate-400 mt-2 leading-relaxed">{{ scenario.description }}</p>
@@ -195,7 +197,7 @@ onMounted(async () => {
         <div class="flex justify-between items-center bg-slate-800/40 border border-white/5 rounded-2xl p-4">
           <div>
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">게임 진행도</p>
-            <p class="text-sm font-black text-slate-200">Day {{ currentDay }} / 30</p>
+            <p class="text-sm font-black text-slate-200">Day {{ currentDay }} / {{ totalDays }}</p>
           </div>
           <div class="text-right">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
@@ -234,7 +236,7 @@ onMounted(async () => {
                 <!-- Event marker node -->
                 <circle 
                   :cx="getX(event.day - 1)" 
-                  :cy="getY(scenario.candles[event.day - 1].high) - 10" 
+                  :cy="getY(scenario!.candles[event.day - 1]?.high || 0) - 10" 
                   r="5" 
                   fill="#38bdf8" 
                   class="animate-pulse"
@@ -313,7 +315,7 @@ onMounted(async () => {
         </div>
 
         <!-- 예측 입력 영역 -->
-        <div v-if="currentDay < 30" class="space-y-4">
+        <div v-if="currentDay < totalDays" class="space-y-4">
           <p class="text-center text-xs font-black text-slate-400 tracking-wider">내일 이 주가의 방향은 어떻게 될까요?</p>
           <div class="flex gap-4">
             <button 
@@ -340,9 +342,9 @@ onMounted(async () => {
         <!-- 이미 도전한 사람 진입 차단 및 완료 메시지 -->
         <div v-else class="text-center py-6 glass-dark rounded-3xl border border-white/5 space-y-4">
           <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-400" />
-          <h3 class="text-lg font-black text-slate-100">30일 도전 시뮬레이션 종료!</h3>
+          <h3 class="text-lg font-black text-slate-100">{{ totalDays }}일 도전 시뮬레이션 종료!</h3>
           <p class="text-xs text-slate-400 px-8 leading-relaxed">
-            축하합니다! 최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / 30) * 100) }}%)</span> 입니다.<br>
+            축하합니다! 최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / totalDays) * 100) }}%)</span> 입니다.<br>
             귀하의 점수가 글로벌 랭킹 보드에 안전하게 보관되었습니다.
           </p>
         </div>

@@ -36,7 +36,7 @@ onMounted(async () => {
     <main class="max-w-md mx-auto px-6 py-8">
       <header class="mb-8">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-4">
-          <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">30-Day Simulation</span>
+          <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Scenario Simulation</span>
         </div>
         <h2 class="text-3xl font-black text-slate-100 tracking-tight leading-tight">
           시나리오 <span class="text-brand-primary">선택</span>
@@ -84,7 +84,7 @@ onMounted(async () => {
             {{ item.title }}
           </h3>
           <p class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter mb-4">
-            {{ item.subtitle }}
+            {{ item.subtitle }} | {{ item.candles.length }}일
           </p>
 
           <!-- Description -->

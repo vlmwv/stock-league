@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const client = await serverSupabaseClient(event)
   const body = await readBody(event)
-  const { scenarioId, correctCount } = body
+  const { scenarioId, correctCount, totalDays: rawTotalDays } = body
 
   if (scenarioId === undefined || correctCount === undefined) {
     throw createError({
@@ -20,8 +20,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 30일 기준 최종 정답률 계산 (소수점 둘째 자리 반올림)
-  const totalDays = 30
+  // 동적 최종 정답률 계산 (소수점 둘째 자리 반올림)
+  const totalDays = Number(rawTotalDays || 30)
   const score = Math.round((correctCount / totalDays) * 10000) / 100
 
   const { data, error } = await (client as any)
