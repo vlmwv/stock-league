@@ -42,7 +42,7 @@
           <!-- 테마 카드 그리드 -->
           <div class="grid grid-cols-2 gap-2 sm:gap-3">
             <div
-              v-for="(theme, index) in themes"
+              v-for="(theme, index) in themes.slice(0, 4)"
               :key="theme.sector"
               @click="handleOpenThemeModal(theme)"
               class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-3 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[90px] relative overflow-hidden group shadow-inner"
