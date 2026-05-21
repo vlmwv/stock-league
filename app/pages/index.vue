@@ -40,12 +40,12 @@
           </div>
 
           <!-- 테마 카드 그리드 -->
-          <div class="grid grid-cols-2 gap-2 sm:gap-3">
+          <div class="grid grid-cols-3 gap-2">
             <div
-              v-for="(theme, index) in themes.slice(0, 4)"
+              v-for="(theme, index) in themes.slice(0, 6)"
               :key="theme.sector"
               @click="handleOpenThemeModal(theme)"
-              class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-3 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[90px] relative overflow-hidden group shadow-inner"
+              class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-2.5 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[84px] relative overflow-hidden group shadow-inner"
             >
               <!-- 은은한 무늬/그라데이션 효과 -->
               <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
