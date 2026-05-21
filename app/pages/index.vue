@@ -3,93 +3,24 @@
     <TopHeader />
  
     <main class="max-w-md mx-auto">
-      <!-- Hero Section (Premium Gradient) -->
+      <!-- Hero Section (Premium Welcome Card) -->
       <section class="px-4 py-4">
         <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-brand-primary/20 via-brand-secondary/10 to-transparent border border-white/10 p-6 shadow-3xl">
           <div class="relative z-10">
-            <h2 class="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tighter text-slate-100">
-              오늘의 차트를 <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">예측해 보세요!</span>
+            <h2 class="text-2xl sm:text-3xl font-black mb-3 leading-tight tracking-tighter text-slate-100">
+              투자 트렌드를 <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">한눈에 확인하세요!</span>
             </h2>
-            <div class="flex flex-col gap-2 mt-4">
-              <div class="flex items-center gap-2">
-                <div v-if="participantCount > 0" class="flex items-center gap-2">
-                  <p class="text-sm text-slate-100 font-bold tracking-tight">
-                    오늘 {{ participantCount.toLocaleString() }}명 누적 {{ totalMemberCount.toLocaleString() }}명 참여
-                  </p>
-                </div>
-                <div v-else class="flex items-center gap-2">
-                  <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
-                  <p class="text-sm text-slate-100 font-bold tracking-tight">
-                    가장 먼저 예측에 참여해 보세요!
-                    <span v-if="totalMemberCount > 0" class="text-slate-400 font-normal ml-1">(누적 {{ totalMemberCount.toLocaleString() }}명 참여)</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- League Schedule Info (Premium Redesign) -->
-              <div class="mt-6 p-4 rounded-[1.25rem] bg-indigo-500/[0.03] border border-white/5 backdrop-blur-xl relative overflow-hidden group/schedule shadow-inner">
-                <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-primary/10 blur-2xl rounded-full group-hover/schedule:bg-brand-primary/15 transition-all duration-700"></div>
-                <div class="flex items-center justify-between relative z-10">
-                  <div class="flex flex-col gap-1.5">
-                    <div class="flex items-center gap-1.5 opacity-60">
-                      <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-brand-primary" />
-                      <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">참여 가능</span>
-                    </div>
-                    <span class="text-sm font-bold text-slate-100 tracking-tight">전일 21:20 ~ 당일 08:00</span>
-                  </div>
-                  <div class="h-10 w-px bg-white/5 mx-4"></div>
-                  <div class="flex flex-col gap-1.5 items-end text-right">
-                    <div class="flex items-center gap-1.5 opacity-60">
-                      <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">결과 발표</span>
-                      <UIcon name="i-heroicons-megaphone" class="w-3.5 h-3.5 text-brand-secondary" />
-                    </div>
-                    <span class="text-sm font-bold text-brand-secondary tracking-tight">당일 20:30 <span class="text-slate-400">발표</span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-              
-              <button 
-                @click="handleParticipation"
-                class="group relative px-6 py-3.5 rounded-xl bg-brand-primary text-slate-900 font-black text-sm uppercase tracking-widest shadow-2xl shadow-brand-primary/30 hover:scale-105 active:scale-95 transition-all overflow-hidden mt-4 w-full text-center"
-              >
-                {{ allPredicted ? '참여 완료 (내 예측 보기)' : (isLeagueOpen ? '참여하기' : (isResultPublished ? '오늘의 결과 확인하기' : (getKstTimeVal() >= 2120 ? '내일의 종목 준비 중' : '오늘의리그 마감 (결과 대기 중)'))) }}
-                <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              </button>
-            </div>
+            <p class="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed mb-1">
+              AI 추천 종목과 실시간 트렌드 테마를 통해
+            </p>
+            <p class="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+              더 빠르고 정확한 투자 인사이트를 만나보세요. 📈
+            </p>
+          </div>
           <!-- Decorative UI elements -->
           <div class="absolute -top-10 -right-10 w-48 h-48 bg-brand-primary/20 blur-[60px] rounded-full"></div>
           <div class="absolute top-1/2 -left-10 w-32 h-32 bg-brand-secondary/20 blur-[60px] rounded-full"></div>
         </div>
-      </section>
-
-      <!-- 30일 시나리오 예측 게임 진입 배너 (Neo-brutalism Style) -->
-      <section class="px-4 mb-8">
-        <NuxtLink 
-          to="/scenarios"
-          class="block bg-gradient-to-r from-indigo-500/20 to-emerald-500/10 border-2 border-brand-primary/30 rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-brand-primary/50 transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.15)]"
-        >
-          <!-- Subtle Glow -->
-          <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-primary/10 blur-2xl rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
-          
-          <div class="relative z-10 flex items-center justify-between gap-4">
-            <div class="flex-1">
-              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand-primary/20 text-[9px] font-black text-brand-primary uppercase tracking-widest mb-2.5">
-                New Game
-              </div>
-              <h3 class="text-lg font-black text-slate-100 group-hover:text-brand-primary transition-colors leading-tight mb-1.5">
-                30일 시나리오 예측 게임 📈
-              </h3>
-              <p class="text-xs text-slate-400 leading-relaxed font-medium">
-                역사적 금융위기부터 가상의 AI 버블 쇼크까지! 단 한 번의 생존 도전에 나서 명예의 전당 랭킹에 이름을 올리세요.
-              </p>
-            </div>
-            
-            <div class="w-11 h-11 rounded-2xl bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center text-brand-primary shrink-0 group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-slate-900 transition-all shadow-md">
-              <UIcon name="i-heroicons-play" class="w-5 h-5" />
-            </div>
-          </div>
-        </NuxtLink>
       </section>
  
       <!-- AI 추천 종목 (More Compact & Harmonious) -->
@@ -347,28 +278,14 @@
 <script setup lang="ts">
 import { repairNewsUrl } from '~/utils/stock'
 const { 
-  dailyStocks, 
   recommendedStocks, 
   hearts, 
-  myPredictions, 
-  participantCount, 
-  totalMemberCount, 
-  refresh, 
   fetchWishlist, 
-  fetchPredictions, 
-  toggleHeart, 
-  fetchParticipantCount, 
   fetchNews, 
-  refreshMarketCap, 
   fetchGlobalAiStats, 
-  isLeagueOpen, 
-  isResultPublished, 
-  isGuideOpen, 
-  allPredicted, 
   refreshAll,
   wishlistsWithGroups,
   themes,
-  isThemesLoading,
   fetchThemes
 } = useStock()
 
@@ -404,8 +321,7 @@ const handleOpenModal = (id: number) => {
   isGroupModalOpen.value = true
 }
 
-const kstTime = useState<{ hour: number, minute: number, timeVal: number }>('kst_time')
-const getKstTimeVal = () => kstTime.value?.timeVal || 0
+
 
 const recentNews = ref<any[]>([])
 const globalAiStats = ref({ totalWins: 0, totalProcessed: 0 })
@@ -459,16 +375,6 @@ const navigateToNews = (item: any) => {
   }
 }
 
-const user = useSupabaseUser()
-const handleParticipation = () => {
-  if (isLeagueOpen.value && !user.value) {
-    if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-      navigateTo('/login')
-    }
-    return
-  }
-  navigateTo('/daily')
-}
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
@@ -485,11 +391,6 @@ onMounted(async () => {
     })()
   ])
 
-  const hasSeenGuide = localStorage.getItem('hasSeenLeagueGuide')
-  if (!hasSeenGuide) {
-    isGuideOpen.value = true
-    localStorage.setItem('hasSeenLeagueGuide', 'true')
-  }
 })
 </script>
  
