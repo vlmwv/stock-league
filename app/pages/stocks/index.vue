@@ -360,6 +360,7 @@ const sentinel = ref<HTMLElement | null>(null)
 const sortTabs = [
   { key: 'marketCap', label: '시가총액' },
   { key: 'volume', label: '거래총액' },
+  { key: 'themes', label: '테마' },
   { key: 'interested', label: '관심' },
   { key: 'wishlist', label: '찜 순' },
   { key: 'prediction', label: '예측 성공' },

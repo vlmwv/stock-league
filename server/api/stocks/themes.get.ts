@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   // stocks 테이블에서 전체 종목 데이터를 가져옵니다.
   const { data: stocks, error } = await client
     .from('stocks')
-    .select('id, name, code, sector, last_price, change_amount, change_rate')
+    .select('id, name, code, sector, last_price, change_amount, change_rate, market_cap_rank')
 
   if (error) {
     throw createError({
@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
       code: stock.code,
       last_price: stock.last_price || 0,
       change_amount: stock.change_amount || 0,
-      change_rate: stock.change_rate || 0
+      change_rate: stock.change_rate || 0,
+      market_cap_rank: stock.market_cap_rank ?? 99999
     })
   }
 
@@ -59,8 +60,8 @@ export default defineEventHandler(async (event) => {
     const totalChangeRate = theme.stocks.reduce((sum, s) => sum + (s.change_rate || 0), 0)
     theme.avg_change_rate = Number((totalChangeRate / theme.stock_count).toFixed(2))
     
-    // 테마 내부 종목들을 오늘 상승률이 높은 순서로 정렬합니다.
-    theme.stocks.sort((a, b) => (b.change_rate || 0) - (a.change_rate || 0))
+    // 테마 내부 종목들을 시가총액 순위(market_cap_rank) 오름차순으로 정렬합니다.
+    theme.stocks.sort((a, b) => (a.market_cap_rank ?? 99999) - (b.market_cap_rank ?? 99999))
   }
 
   // 테마 전체를 평균 등락률이 높은 순(내림차순)으로 정렬하여 상위 8개만 추려냅니다.

@@ -38,11 +38,13 @@
           <!-- 본문 종목 목록 (스크롤) -->
           <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 no-scrollbar">
             <div 
-              v-for="stock in theme.stocks" 
+              v-for="(stock, index) in theme.stocks" 
               :key="stock.id"
               @click="handleStockClick(stock.code)"
               class="glass-dark rounded-2xl p-4 border border-white/5 flex items-center gap-3.5 hover:bg-white/5 active:scale-[0.98] transition-all cursor-pointer group"
             >
+              <!-- 테마 내 순위 번호 -->
+              <span class="text-[10px] font-black text-slate-500 w-5 text-center shrink-0">{{ index + 1 }}</span>
               <!-- 종목 아이콘 -->
               <StockIcon :code="stock.code" :name="stock.name" size="md" class="group-hover:scale-105 transition-transform duration-300" />
               
@@ -103,6 +105,7 @@ const props = defineProps<{
       last_price: number
       change_amount: number
       change_rate: number
+      market_cap_rank?: number
     }>
   } | null
 }>()
