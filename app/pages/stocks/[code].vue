@@ -55,24 +55,48 @@
         <!-- 차트 섹션 (이력 탭에서만 보일지 고민하다가, 공통 정보로 상단에 작게 배치하거나 이력 탭에만 넣기로 함. 여기서는 상단 유지) -->
         <section class="glass-dark rounded-[2.5rem] p-6 border border-white/5 relative overflow-hidden">
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Price Chart</h3>
-            <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
-              최근 100일
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Price & Volume</h3>
+            <div class="flex items-center gap-3">
+              <!-- 마커 체크박스 -->
+              <label class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
+                <input
+                  type="checkbox"
+                  v-model="showMarkers"
+                  class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-brand-primary focus:ring-brand-primary focus:ring-offset-slate-900"
+                />
+                <span>마커</span>
+              </label>
+              <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
+                최근 50일
+              </div>
             </div>
           </div>
           
-          <div v-if="chartSeries.length > 0" class="min-h-[220px]">
+          <div v-if="chartSeries.length > 0" class="space-y-2">
             <client-only>
-              <apexchart
-                :key="`chart-${chartSeries.length}-${chartAnnotations.xaxis.length}-${chartAnnotations.yaxis.length}`"
-                type="candlestick"
-                height="220"
-                :options="chartOptions"
-                :series="chartSeries"
-              />
+              <!-- 1. 상단 캔들스틱 차트 -->
+              <div class="h-[200px]">
+                <apexchart
+                  :key="`candlestick-${chartSeries.length}-${chartAnnotations.points.length}-${showMarkers}`"
+                  type="candlestick"
+                  height="200"
+                  :options="chartOptions"
+                  :series="chartSeries"
+                />
+              </div>
+              <!-- 2. 하단 거래량 차트 -->
+              <div class="h-[80px] border-t border-white/5 pt-2">
+                <apexchart
+                  :key="`volume-${volumeSeries.length}-${showMarkers}`"
+                  type="bar"
+                  height="80"
+                  :options="volumeChartOptions"
+                  :series="volumeSeries"
+                />
+              </div>
             </client-only>
           </div>
-          <div v-else class="h-[220px] flex items-center justify-center text-slate-600 text-sm font-bold italic">
+          <div v-else class="h-[280px] flex items-center justify-center text-slate-600 text-sm font-bold italic">
             충분한 가격 데이터가 없습니다.
           </div>
         </section>
@@ -319,6 +343,7 @@ const router = useRouter()
 const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
+const showMarkers = ref(true)
 const tabs = [
   { key: 'history', label: '주가 이력' },
   { key: 'news', label: '종목 뉴스' },
@@ -463,6 +488,24 @@ const chartSeries = computed(() => {
   }]
 })
 
+const volumeSeries = computed(() => {
+  if (priceHistory.value.length === 0) return []
+  const dataForChart = [...priceHistory.value].reverse()
+  return [{
+    name: '거래량',
+    data: dataForChart.map(h => {
+      const open = h.open_price !== null && h.open_price !== undefined ? h.open_price : h.close_price
+      const close = h.close_price
+      const isUp = close >= open
+      return {
+        x: new Date(h.price_date).getTime(),
+        y: h.volume || 0,
+        fillColor: isUp ? '#f87171' : '#818cf8'
+      }
+    })
+  }]
+})
+
 const chartAnnotations = computed(() => {
   const ann: any = {
     yaxis: [],
@@ -555,11 +598,105 @@ const chartAnnotations = computed(() => {
     })
   }
 
+  // 3. 주요 뉴스/이슈 마커 추가 (마커 체크박스가 켜져 있고 뉴스가 로드되었을 때)
+  if (showMarkers.value && currentNewsItems.value.length > 0 && priceHistory.value.length > 0) {
+    const dates = priceHistory.value.map(h => h.price_date)
+    const minDate = dates[dates.length - 1]
+    const maxDate = dates[0]
+
+    // 날짜별 시세 정보 맵핑
+    const priceMap = new Map<string, any>()
+    priceHistory.value.forEach(h => {
+      priceMap.set(h.price_date, h)
+    })
+
+    // 차트 범위 내 뉴스 필터링
+    const filteredNews = currentNewsItems.value.filter(item => {
+      if (!item.published_at) return false
+      const newsDateStr = item.published_at.substring(0, 10)
+      return newsDateStr >= minDate && newsDateStr <= maxDate
+    })
+
+    // 날짜별 뉴스 그룹핑
+    const newsByDate = new Map<string, any[]>()
+    filteredNews.forEach(item => {
+      const dateStr = item.published_at.substring(0, 10)
+      if (!newsByDate.has(dateStr)) {
+        newsByDate.set(dateStr, [])
+      }
+      newsByDate.get(dateStr)!.push(item)
+    })
+
+    // 날짜별 마커 및 텍스트 생성
+    newsByDate.forEach((items, dateStr) => {
+      const historyItem = priceMap.get(dateStr)
+      if (!historyItem) return
+
+      const timestamp = new Date(dateStr).getTime()
+      const high = historyItem.high_price !== null && historyItem.high_price !== undefined ? historyItem.high_price : historyItem.close_price
+
+      items.forEach((news, index) => {
+        // 최대 3개까지만 차트에 표시하여 너무 도배되지 않도록 함
+        if (index >= 3) return 
+
+        const priceScale = high > 0 ? high : 10000
+        const offsetPercent = 0.035 + (index * 0.045) // 3.5%, 8%, 12.5% 순으로 위로 띄움
+        const yValue = high + (priceScale * offsetPercent)
+
+        const title = news.title || ''
+        const isPositive = /상승|급등|호재|실적|기대|최대|돌파|수혜|흑자|AI|신제품|상한가/i.test(title)
+        const isNegative = /하락|급락|악재|적자|우려|부진|감소|소송|하한가/i.test(title)
+        
+        let textColor = '#22c55e' // 기본 초록 (Green 500)
+        let bgColor = '#0f172a'
+        let borderColor = '#22c55e'
+
+        if (isPositive) {
+          textColor = '#f87171' // 빨강 (Red 400)
+          borderColor = '#f87171'
+        } else if (isNegative) {
+          textColor = '#60a5fa' // 파랑 (Blue 400)
+          borderColor = '#60a5fa'
+        }
+
+        ann.points.push({
+          x: timestamp,
+          y: yValue,
+          marker: {
+            size: 3,
+            fillColor: textColor,
+            strokeColor: '#0f172a',
+            strokeWidth: 1,
+            shape: 'circle'
+          },
+          label: {
+            borderColor: borderColor,
+            borderWidth: 1,
+            borderRadius: 6,
+            textAnchor: 'middle',
+            offsetX: 0,
+            offsetY: -3,
+            style: {
+              color: textColor,
+              background: bgColor,
+              fontSize: '8px',
+              fontWeight: 700,
+              padding: { left: 5, right: 5, top: 2.5, bottom: 2.5 }
+            },
+            text: title.length > 16 ? title.substring(0, 14) + '...' : title
+          }
+        })
+      })
+    })
+  }
+
   return ann
 })
 
 const chartOptions = computed(() => ({
   chart: {
+    id: 'stock-candlestick',
+    group: 'stock-charts',
     type: 'candlestick',
     toolbar: { 
       show: true,
@@ -601,6 +738,71 @@ const chartOptions = computed(() => ({
   xaxis: {
     type: 'datetime',
     labels: { 
+      show: false // 상단 차트에서는 X축 라벨 숨김 (하단 거래량 차트에만 표시)
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+    crosshairs: {
+      show: true,
+      position: 'back',
+      stroke: {
+        color: '#6366f1',
+        width: 1,
+        dashArray: 4,
+      },
+    }
+  },
+  yaxis: {
+    show: true,
+    opposite: true,
+    labels: {
+      style: {
+        colors: '#64748b',
+        fontSize: '10px',
+        fontWeight: 600
+      },
+      formatter: (val: number) => val >= 1000 ? (val / 1000).toLocaleString() + 'k' : val.toLocaleString(),
+      minWidth: 65, // Y축 너비 고정하여 하단 차트와 완벽 매칭
+      maxWidth: 65
+    }
+  },
+  tooltip: {
+    theme: 'dark',
+    x: { format: 'MM월 dd일' },
+    style: {
+      fontSize: '10px'
+    }
+  },
+  annotations: chartAnnotations.value
+}))
+
+const volumeChartOptions = computed(() => ({
+  chart: {
+    id: 'stock-volume',
+    group: 'stock-charts',
+    type: 'bar',
+    toolbar: { show: false },
+    sparkline: { enabled: false },
+    background: 'transparent',
+    fontFamily: 'Pretendard, Inter, sans-serif'
+  },
+  plotOptions: {
+    bar: {
+      columnWidth: '80%',
+      colors: {
+        ranges: [
+          { from: 0, to: 0, color: undefined }
+        ]
+      }
+    }
+  },
+  grid: {
+    show: false,
+    padding: { left: -10, right: 0, top: 0, bottom: 0 }
+  },
+  xaxis: {
+    type: 'datetime',
+    labels: { 
       show: true,
       style: {
         colors: '#64748b',
@@ -608,10 +810,10 @@ const chartOptions = computed(() => ({
         fontWeight: 600
       },
       datetimeFormatter: {
-        year: 'yyyy',
-        month: 'MMM \'yy',
-        day: 'dd MMM',
-        hour: 'HH:mm'
+         year: 'yyyy',
+         month: 'MMM \'yy',
+         day: 'dd MMM',
+         hour: 'HH:mm'
       }
     },
     axisBorder: { show: false },
@@ -635,7 +837,13 @@ const chartOptions = computed(() => ({
         fontSize: '10px',
         fontWeight: 600
       },
-      formatter: (val: number) => val >= 1000 ? (val / 1000).toLocaleString() + 'k' : val.toLocaleString()
+      formatter: (val: number) => {
+        if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M'
+        if (val >= 1000) return (val / 1000).toFixed(0) + 'K'
+        return val.toString()
+      },
+      minWidth: 65, // Y축 너비 고정하여 상단 차트와 완벽 매칭
+      maxWidth: 65
     }
   },
   tooltip: {
@@ -644,8 +852,7 @@ const chartOptions = computed(() => ({
     style: {
       fontSize: '10px'
     }
-  },
-  annotations: chartAnnotations.value
+  }
 }))
 
 onMounted(async () => {
@@ -672,7 +879,7 @@ onMounted(async () => {
   
   // 3. 관련 데이터(이력, 찜, 뉴스, AI이력)를 병렬로 로드
   await Promise.all([
-    fetchPriceHistory(stock.value.id).then(data => priceHistory.value = data),
+    fetchPriceHistory(stock.value.id, 50).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent(),
     loadAiHistory()

@@ -278,11 +278,26 @@ const {
   isGuideOpen, 
   allPredicted, 
   refreshAll,
-  wishlistsWithGroups
+  wishlistsWithGroups,
+  themes,
+  isThemesLoading,
+  fetchThemes
 } = useStock()
 
 const isGroupModalOpen = ref(false)
+const isThemeModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
+const selectedTheme = ref<any>(null)
+
+const handleOpenThemeModal = (theme: any) => {
+  selectedTheme.value = theme
+  isThemeModalOpen.value = true
+}
+
+const todayKstDisplay = computed(() => {
+  const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
+  return new Intl.DateTimeFormat('sv-SE', options).format(new Date())
+})
 const router = useRouter()
 const navigateToStock = (code: string) => {
   if (code) {
@@ -372,6 +387,7 @@ const isHearted = (id: number) => hearts.value.includes(Number(id))
 onMounted(async () => {
   await Promise.all([
     refreshAll(),
+    fetchThemes(),
     (async () => {
       const response = await fetchNews(5)
       recentNews.value = response.data || []

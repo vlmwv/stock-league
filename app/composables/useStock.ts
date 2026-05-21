@@ -1154,6 +1154,23 @@ export const useStock = () => {
       return { ...r, rank: lastRank }
     })
   }
+  const themes = useState<any[]>('themes_list', () => [])
+  const isThemesLoading = useState<boolean>('is_themes_loading', () => false)
+
+  const fetchThemes = async () => {
+    isThemesLoading.value = true
+    try {
+      const data = await $fetch<any[]>('/api/stocks/themes')
+      themes.value = data || []
+      return themes.value
+    } catch (err) {
+      console.error('[useStock] Failed to fetch themes:', err)
+      return []
+    } finally {
+      isThemesLoading.value = false
+    }
+  }
+
   const currentUserProfile = useState<any | null>('current_user_profile', () => null)
 
   const fetchUserStats = async () => {
@@ -1802,6 +1819,9 @@ export const useStock = () => {
     allPredicted,
     refreshAll,
     fetchAiHistory,
+    themes,
+    isThemesLoading,
+    fetchThemes,
     isHearted: (id: number) => hearts.value.includes(Number(id)),
     getPrediction: (id: number) => myPredictions.value.find(p => p.stockId === id) || null,
     getPredictionValue: (id: number) => myPredictions.value.find(p => p.stockId === id)?.prediction || null,
