@@ -720,6 +720,9 @@ const chartOptions = computed(() => ({
     background: 'transparent',
     fontFamily: 'Pretendard, Inter, sans-serif'
   },
+  dataLabels: {
+    enabled: false
+  },
   plotOptions: {
     candlestick: {
       colors: {
@@ -785,6 +788,9 @@ const volumeChartOptions = computed(() => ({
     sparkline: { enabled: false },
     background: 'transparent',
     fontFamily: 'Pretendard, Inter, sans-serif'
+  },
+  dataLabels: {
+    enabled: false
   },
   plotOptions: {
     bar: {
