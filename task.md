@@ -1,12 +1,12 @@
 - [x] Create migration for `last_recommendation_date` and improved trigger
 - [x] Update `useStock.ts` to use the new column
 - [x] Verify count and date synchronization
-- [x] `daily.vue`: 종목 로드 후 해당 리그 날짜로 예측 데이터 재조회 로직 추가
-- [x] `index.vue`: 메인 페이지 예측 데이터 조회 날짜 보정
-- [x] 전체적인 여백 및 조화 조정
-    - [x] 섹션 간 간격 통일
-    - [x] 시각적 피드백 및 스크롤 경험 최적화
-- [x] AI 추천 종목 명칭 잘림 문제 해결
+- [x] index.vue 메인화면 최적화 (상위 4개 노출, 패딩 조율, 더보기 링크 추가)
+- [x] stocks/index.vue에 오늘 뜨는 테마 탭 옵션 추가
+- [x] stocks/index.vue에 useStock themes 상태 및 fetchThemes 연동
+- [x] stocks/index.vue에 테마 탭 전용 리스트 뷰 마크업 및 ThemeModal 배치
+- [x] 컴파일 및 빌드 정합성 검증 (npm run build)
+- [x] 최종 구현 사항을 기록한 walkthrough.md 업데이트문제 해결
     - [x] 종목명 텍스트 처리 방식을 `truncate`에서 `line-clamp-2`로 변경하거나 폰트 크기 조정
     - [x] 수평 공간 최적화를 위해 가격 및 버튼 영역 간격 재조정
 - [x] 최종 검증 및 워크스루 작성

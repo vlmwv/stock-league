@@ -112,116 +112,182 @@
 
       <!-- 종목 수 표시 -->
       <section class="px-6 mb-4 flex justify-between items-center">
-        <p v-if="totalCount > 0" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <p v-if="totalCount > 0 && currentSort !== 'themes'" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
           전체 <span class="text-brand-primary">{{ totalCount.toLocaleString() }}</span>개 종목
+        </p>
+        <p v-else-if="currentSort === 'themes' && themes" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          전체 <span class="text-brand-primary">{{ themes.length }}</span>개 인기 테마
         </p>
       </section>
 
       <!-- 종목 목록 -->
       <section class="px-6 space-y-3 animate-fade-in">
-        <div v-if="isLoading && allStocks.length === 0" class="flex items-center justify-center py-20">
-          <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-
-        <div v-else-if="allStocks.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-          <UIcon name="i-heroicons-magnifying-glass-20-solid" class="w-12 h-12 text-slate-700 mb-4" />
-          <p class="text-sm text-slate-500 font-medium">
-            {{ searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : '종목 데이터가 없습니다.' }}
-          </p>
-        </div>
-
-        <template v-else>
-          <div
-            v-for="(stock, index) in allStocks"
-            :key="stock.id"
-            @click="navigateToStock(stock.code)"
-            class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            <!-- 아이콘 -->
-            <StockIcon :code="stock.code" :name="stock.name" size="md" />
-
-            <!-- 종목 정보 (3줄 레이아웃) -->
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-col gap-1.5">
-                <!-- 1줄: 종목명 및 코드 -->
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="text-[10px] font-black text-slate-500/80 mr-0.5 shrink-0">
-                    <template v-if="(page - 1) * pageSize + index + 1 == 1">🥇</template>
-                    <template v-else-if="(page - 1) * pageSize + index + 1 == 2">🥈</template>
-                    <template v-else-if="(page - 1) * pageSize + index + 1 == 3">🥉</template>
-                    <template v-else>{{ (page - 1) * pageSize + index + 1 }}.</template>
-                  </span>
-                  <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
-                  <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
+        <!-- 오늘 뜨는 테마 목록 (currentSort === 'themes') -->
+        <div v-if="currentSort === 'themes'" class="space-y-4">
+          <div v-if="isThemesLoading && (!themes || themes.length === 0)" class="flex items-center justify-center py-20">
+            <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          
+          <div v-else-if="!themes || themes.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+            <UIcon name="i-heroicons-exclamation-circle" class="w-12 h-12 text-slate-700 mb-4" />
+            <p class="text-sm text-slate-500 font-medium">인기 테마 정보가 없습니다.</p>
+          </div>
+          
+          <template v-else>
+            <div
+              v-for="(theme, index) in themes"
+              :key="theme.sector"
+              @click="handleOpenThemeModal(theme)"
+              class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center justify-between group hover:bg-white/5 transition-colors cursor-pointer relative overflow-hidden active:scale-[0.98] duration-300"
+            >
+              <div class="absolute -top-12 -right-12 w-24 h-24 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
+              
+              <div class="flex items-center gap-4 min-w-0 z-10">
+                <!-- 등락률에 따른 시각적 지표 아이콘 -->
+                <div 
+                  class="w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 shadow-md"
+                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'"
+                >
+                  <UIcon :name="theme.avg_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-5 h-5" />
                 </div>
                 
-                <!-- 2줄: 종가 및 변동금액(변동률) -->
-                <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold">
-                  <span class="text-slate-300 shrink-0">{{ stock.last_price.toLocaleString() }}</span>
-                  <span
-                    class="font-black flex items-center gap-0.5 shrink-0"
-                    :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                  >
-                    <span class="text-[10px]">{{ stock.change_amount >= 0 ? '▲' : '▼' }}</span>
-                    <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
-                    <span class="text-[9px] opacity-70">({{ stock.change_rate }}%)</span>
-                  </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-[10px] font-black text-slate-500">#{{ index + 1 }}</span>
+                    <h4 class="font-black text-slate-100 truncate text-sm sm:text-base group-hover:text-brand-primary transition-colors">{{ theme.sector }}</h4>
+                  </div>
+                  <p class="text-[10px] text-slate-500 font-medium">관련 종목 {{ theme.stock_count }}개</p>
                 </div>
-                  
-                <!-- 3줄: 정렬 기준별 부가 정보 -->
-                <div class="flex items-center">
-                  <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5 shrink-0">
-                    <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
-                    {{ stock.wishlist_count ?? 0 }}
-                  </span>
-                  <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 font-black flex items-center gap-1 shrink-0">
-                    <span class="text-brand-primary">{{ stock.win_count ?? 0 }}</span>
-                    <span class="opacity-30">/</span>
-                    <span class="text-slate-400">{{ stock.prediction_count ?? 0 }}</span>
-                    <span class="ml-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[9px]">
-                      {{ stock.win_rate ?? 0 }}%
+              </div>
+              
+              <div class="flex items-center gap-3.5 z-10 shrink-0">
+                <!-- 등락률 표시 -->
+                <span
+                  class="px-3 py-1 rounded-xl text-xs font-black tracking-tight flex items-center gap-1"
+                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'"
+                >
+                  <UIcon :name="theme.avg_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-3 h-3" />
+                  {{ theme.avg_change_rate >= 0 ? '+' : '' }}{{ theme.avg_change_rate }}%
+                </span>
+                
+                <!-- 화살표 아이콘 -->
+                <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 기존 종목 목록 (currentSort !== 'themes') -->
+        <template v-else>
+          <div v-if="isLoading && allStocks.length === 0" class="flex items-center justify-center py-20">
+            <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+
+          <div v-else-if="allStocks.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+            <UIcon name="i-heroicons-magnifying-glass-20-solid" class="w-12 h-12 text-slate-700 mb-4" />
+            <p class="text-sm text-slate-500 font-medium">
+              {{ searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : '종목 데이터가 없습니다.' }}
+            </p>
+          </div>
+
+          <template v-else>
+            <div
+              v-for="(stock, index) in allStocks"
+              :key="stock.id"
+              @click="navigateToStock(stock.code)"
+              class="glass-dark rounded-3xl p-5 border border-white/5 flex items-center gap-4 group hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <!-- 아이콘 -->
+              <StockIcon :code="stock.code" :name="stock.name" size="md" />
+
+              <!-- 종목 정보 (3줄 레이아웃) -->
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-col gap-1.5">
+                  <!-- 1줄: 종목명 및 코드 -->
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-[10px] font-black text-slate-500/80 mr-0.5 shrink-0">
+                      <template v-if="(page - 1) * pageSize + index + 1 == 1">🥇</template>
+                      <template v-else-if="(page - 1) * pageSize + index + 1 == 2">🥈</template>
+                      <template v-else-if="(page - 1) * pageSize + index + 1 == 3">🥉</template>
+                      <template v-else>{{ (page - 1) * pageSize + index + 1 }}.</template>
                     </span>
-                  </span>
-                  <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-2 shrink-0">
-                    <div class="flex items-center gap-0.5">
-                      <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
-                      {{ stock.ai_recommendation_count ?? 0 }}회
-                    </div>
-                    <div v-if="stock.last_recommendation_date" class="text-[8px] text-slate-500 font-bold opacity-60">
-                      최근 {{ formatDate(stock.last_recommendation_date) }}
-                    </div>
-                  </span>
-                  <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
-                    <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
-                    {{ formatVolume(stock.volume) }}
-                  </span>
-                  <span v-else-if="currentSort === 'marketCap'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
-                    <UIcon name="i-heroicons-banknotes" class="w-3 h-3 text-slate-500/60" />
-                    {{ formatMarketValue(stock.market_cap) }}
-                  </span>
+                    <h4 class="font-bold text-slate-200 truncate text-sm sm:text-base">{{ stock.name }}</h4>
+                    <span class="text-[9px] font-bold text-slate-600 uppercase shrink-0">{{ stock.code }}</span>
+                  </div>
+                  
+                  <!-- 2줄: 종가 및 변동금액(변동률) -->
+                  <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold">
+                    <span class="text-slate-300 shrink-0">{{ stock.last_price.toLocaleString() }}</span>
+                    <span
+                      class="font-black flex items-center gap-0.5 shrink-0"
+                      :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                    >
+                      <span class="text-[10px]">{{ stock.change_amount >= 0 ? '▲' : '▼' }}</span>
+                      <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>
+                      <span class="text-[9px] opacity-70">({{ stock.change_rate }}%)</span>
+                    </span>
+                  </div>
+                    
+                  <!-- 3줄: 정렬 기준별 부가 정보 -->
+                  <div class="flex items-center">
+                    <span v-if="currentSort === 'wishlist'" class="text-[10px] text-slate-600 flex items-center gap-0.5 shrink-0">
+                      <UIcon name="i-heroicons-heart-20-solid" class="w-3 h-3 text-rose-500/60" />
+                      {{ stock.wishlist_count ?? 0 }}
+                    </span>
+                    <span v-else-if="currentSort === 'prediction'" class="text-[10px] text-slate-500 font-black flex items-center gap-1 shrink-0">
+                      <span class="text-brand-primary">{{ stock.win_count ?? 0 }}</span>
+                      <span class="opacity-30">/</span>
+                      <span class="text-slate-400">{{ stock.prediction_count ?? 0 }}</span>
+                      <span class="ml-1 px-1.5 py-0.5 rounded-md bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[9px]">
+                        {{ stock.win_rate ?? 0 }}%
+                      </span>
+                    </span>
+                    <span v-else-if="currentSort === 'aiRecommendation'" class="text-[10px] text-brand-primary flex items-center gap-2 shrink-0">
+                      <div class="flex items-center gap-0.5">
+                        <UIcon name="i-heroicons-hand-thumb-up-20-solid" class="w-3 h-3" />
+                        {{ stock.ai_recommendation_count ?? 0 }}회
+                      </div>
+                      <div v-if="stock.last_recommendation_date" class="text-[8px] text-slate-500 font-bold opacity-60">
+                        최근 {{ formatDate(stock.last_recommendation_date) }}
+                      </div>
+                    </span>
+                    <span v-else-if="currentSort === 'volume'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
+                      <UIcon name="i-heroicons-chart-bar-20-solid" class="w-3 h-3 text-slate-500/60" />
+                      {{ formatVolume(stock.volume) }}
+                    </span>
+                    <span v-else-if="currentSort === 'marketCap'" class="text-[10px] text-slate-500 flex items-center gap-0.5 shrink-0">
+                      <UIcon name="i-heroicons-banknotes" class="w-3 h-3 text-slate-500/60" />
+                      {{ formatMarketValue(stock.market_cap) }}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              <!-- 액션 버튼 -->
+              <div class="flex items-center gap-2 shrink-0">
+                <button
+                  @click.stop="handleOpenModal(stock.id)"
+                  class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-2xl"
+                  :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500 shadow-rose-500/10' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
+                >
+                  <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
+                </button>
               </div>
             </div>
 
-            <!-- 액션 버튼 -->
-            <div class="flex items-center gap-2 shrink-0">
-              <button
-                @click.stop="handleOpenModal(stock.id)"
-                class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-2xl"
-                :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500 shadow-rose-500/10' : 'bg-slate-800 text-slate-600 hover:text-slate-400'"
-              >
-                <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
-              </button>
+            <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
+            <div ref="sentinel" class="py-10 flex justify-center items-center">
+              <div v-if="isFetchingMore" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+              <p v-else-if="!hasMore && allStocks.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 종목입니다</p>
             </div>
-          </div>
-
-          <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
-          <div ref="sentinel" class="py-10 flex justify-center items-center">
-            <div v-if="isFetchingMore" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
-            <p v-else-if="!hasMore && allStocks.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 종목입니다</p>
-          </div>
+          </template>
         </template>
       </section>
+
+      <ThemeModal 
+        v-model:open="isThemeModalOpen"
+        :theme="selectedTheme"
+      />
     </main>
 
     <BottomNav />
@@ -236,15 +302,33 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const { hearts, toggleHeart, fetchWishlist, fetchStocksWithStats, wishlistsWithGroups, wishlistGroups, fetchWishlistGroups } = useStock()
+const { 
+  hearts, 
+  toggleHeart, 
+  fetchWishlist, 
+  fetchStocksWithStats, 
+  wishlistsWithGroups, 
+  wishlistGroups, 
+  fetchWishlistGroups,
+  themes,
+  fetchThemes,
+  isThemesLoading
+} = useStock()
 
 const isGroupModalOpen = ref(false)
+const isThemeModalOpen = ref(false)
 const selectedStockId = ref<number | null>(null)
+const selectedTheme = ref<any>(null)
 const currentGroupId = ref<number | null>(null)
 const router = useRouter()
 const navigateToStock = (code: string) => {
   if (code) router.push('/stocks/' + code)
 }
+const handleOpenThemeModal = (theme: any) => {
+  selectedTheme.value = theme
+  isThemeModalOpen.value = true
+}
+
 const currentStockGroupIds = computed(() => {
   if (!selectedStockId.value) return []
   return wishlistsWithGroups.value
@@ -258,7 +342,7 @@ const handleOpenModal = (id: number) => {
 }
 
 const searchQuery = ref('')
-const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume'>('marketCap')
+const currentSort = ref<'marketCap' | 'wishlist' | 'prediction' | 'aiRecommendation' | 'interested' | 'volume' | 'themes'>('marketCap')
 const currentMarket = ref<'ALL' | 'KOSPI' | 'KOSDAQ'>('ALL')
 const currentAiSort = ref<'count' | 'recent'>('count')
 const currentPredictionSort = ref<'count' | 'rate'>('count')
@@ -320,6 +404,7 @@ const handleToggleHeart = async (stockId: number) => {
 }
 
 const loadStocks = async (isAppend = false) => {
+  if (currentSort.value === 'themes') return
   try {
     if (!isAppend) {
       isLoading.value = true
@@ -434,7 +519,11 @@ watch(searchQuery, () => {
 watch(currentSort, () => {
   currentMarket.value = 'ALL'
   currentGroupId.value = null // 정렬 변경 시 그룹 필터 초기화
-  loadStocks()
+  if (currentSort.value === 'themes') {
+    fetchThemes()
+  } else {
+    loadStocks()
+  }
 })
 
 // 상세 필터 변경 시 데이터 다시 불러오기
@@ -479,7 +568,8 @@ onMounted(() => {
   Promise.all([
     fetchWishlist(),
     fetchWishlistGroups(),
-    loadStocks()
+    fetchThemes(),
+    currentSort.value === 'themes' ? Promise.resolve() : loadStocks()
   ])
 })
 </script>
