@@ -408,7 +408,7 @@ const clearAiHistoryAndGoToTab = () => {
 // SSR 단계에서 종목 정보 로드
 const { data: ssrStock } = await useAsyncData<any>(`stock-seo-${code}`, () => fetchStockByCode(code))
 if (ssrStock.value) {
-  const title = `[${ssrStock.value.name}] 주식예측게임`
+  const title = `[${ssrStock.value.name}] 니나노AI`
   const description = ssrStock.value.summary || '해당 종목의 상세 정보와 주가 예측을 확인해보세요.'
   
   useSeoMeta({

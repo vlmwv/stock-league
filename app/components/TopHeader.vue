@@ -6,7 +6,7 @@
         <UIcon name="i-heroicons-presentation-chart-line-20-solid" class="w-5 h-5 text-white drop-shadow-sm" />
       </div>
       <h1 class="text-lg sm:text-xl font-black bg-gradient-to-r from-blue-400 via-brand-primary to-purple-500 bg-clip-text text-transparent tracking-tighter truncate max-w-[160px] sm:max-w-none group-hover:brightness-110 transition-all">
-        주식예측게임
+        니나노AI
       </h1>
     </NuxtLink>
 

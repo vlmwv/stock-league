@@ -12,14 +12,14 @@
 // Global functionality can be added here
 const { isGuideOpen } = useStock()
 useSeoMeta({
-  title: '주식예측게임',
-  ogTitle: '주식예측게임',
-  description: '매일 즐기는 주식 상승/하락 예측 게임',
-  ogDescription: '매일 즐기는 주식 상승/하락 예측 게임',
+  title: '니나노AI',
+  ogTitle: '니나노AI',
+  description: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스',
+  ogDescription: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스',
   ogImage: 'https://ninanoai.com/og-image.png',
   twitterCard: 'summary_large_image',
   ogType: 'website',
   ogLocale: 'ko_KR',
-  ogSiteName: '주식예측게임'
+  ogSiteName: '니나노AI'
 })
 </script>

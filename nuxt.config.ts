@@ -17,14 +17,14 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'ko'
       },
-      title: '주식예측게임',
+      title: '니나노AI',
       meta: [
-        { name: 'title', content: '주식예측게임' },
-        { name: 'description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { name: 'title', content: '니나노AI' },
+        { name: 'description', content: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: '주식예측게임' },
-        { property: 'og:title', content: '주식예측게임' },
-        { property: 'og:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { property: 'og:site_name', content: '니나노AI' },
+        { property: 'og:title', content: '니나노AI' },
+        { property: 'og:description', content: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스' },
         { property: 'og:image', content: 'https://ninanoai.com/og-image-v2.png' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
@@ -32,8 +32,8 @@ export default defineNuxtConfig({
         { property: 'og:locale', content: 'ko_KR' },
         { property: 'al:web:url', content: 'https://ninanoai.com' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: '주식예측게임' },
-        { name: 'twitter:description', content: '매일 즐기는 주식 상승/하락 예측 게임' },
+        { name: 'twitter:title', content: '니나노AI' },
+        { name: 'twitter:description', content: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스' },
         { name: 'twitter:image', content: 'https://ninanoai.com/og-image-v2.png' }
       ],
       link: [
@@ -58,9 +58,9 @@ export default defineNuxtConfig({
   },
   pwa: {
     manifest: {
-      name: '주식예측게임',
-      short_name: '주식예측',
-      description: '매일 즐기는 주식 상승/하락 예측 게임',
+      name: '니나노AI',
+      short_name: '니나노AI',
+      description: '니나노AI와 함께 즐기는 주식 상승/하락 예측 및 테마 분석 서비스',
       theme_color: '#ffffff',
       icons: [
         {
