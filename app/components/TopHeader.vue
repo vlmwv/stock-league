@@ -178,21 +178,8 @@ const isDark = computed(() => colorMode.value === 'dark')
 
 const toggleTheme = () => {
   colorMode.preference = isDark.value ? 'light' : 'dark'
-  if (isDark.value) {
-    document.documentElement.classList.remove('light')
-  } else {
-    document.documentElement.classList.add('light')
-  }
 }
 
-// 초기 로드 시 colorMode에 맞게 클래스 동기화
-watch(() => colorMode.value, (val) => {
-  if (val === 'light') {
-    document.documentElement.classList.add('light')
-  } else {
-    document.documentElement.classList.remove('light')
-  }
-}, { immediate: true })
 const { 
   notifications, 
   fetchEconomicIndicators, 
