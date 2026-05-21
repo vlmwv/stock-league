@@ -47,127 +47,85 @@
           </div>
         </div>
         
-        <div class="relative">
-          <!-- Navigation Buttons (Hidden on mobile, refined for desktop) -->
-          <div class="absolute -left-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none opacity-0 group-hover/ai-section:opacity-100 transition-opacity duration-300 hidden sm:block">
-            <button 
-              v-if="currentAiIndex > 0"
-              @click="scrollAiTo(currentAiIndex - 1)"
-              class="w-8 h-8 rounded-full bg-slate-900/90 border border-white/10 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg"
-            >
-              <UIcon name="i-heroicons-chevron-left-20-solid" class="w-5 h-5" />
-            </button>
-          </div>
-          
-          <div class="absolute -right-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none opacity-0 group-hover/ai-section:opacity-100 transition-opacity duration-300 hidden sm:block">
-            <button 
-              v-if="currentAiIndex < recommendedStocks.length - 1"
-              @click="scrollAiTo(currentAiIndex + 1)"
-              class="w-8 h-8 rounded-full bg-slate-900/90 border border-white/10 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg"
-            >
-              <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5" />
-            </button>
-          </div>
-
+        <div class="flex flex-col gap-3">
           <div 
-            ref="aiScrollContainer"
-            @scroll="handleAiScroll"
-            class="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 snap-x snap-mandatory scroll-smooth"
+            v-for="stock in recommendedStocks" 
+            :key="stock.id"
+            @click="navigateToStock(stock.code)"
+            class="w-full bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-4 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 cursor-pointer shadow-sm"
           >
-            <div 
-              v-for="(stock, idx) in recommendedStocks" 
-              :key="stock.id"
-              @click="navigateToStock(stock.code)"
-              class="w-[240px] flex-shrink-0 bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-3 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 snap-center cursor-pointer"
-            >
-              <!-- Subtle Background Glow -->
-              <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full group-hover:bg-brand-primary/10 transition-all"></div>
-              
-              <div class="relative z-10 flex flex-col gap-2.5">
-                <!-- Row 1: Icon, Info, Price, Heart -->
-                <div class="flex items-start justify-between gap-2.5">
-                  <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                    <div class="flex flex-col min-w-0">
-                      <h4 class="font-black text-slate-100 text-sm tracking-tight leading-tight line-clamp-2 min-h-[1.5em]">{{ stock.name }}</h4>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
-                      </div>
+            <!-- Subtle Background Glow -->
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full group-hover:bg-brand-primary/10 transition-all"></div>
+            
+            <div class="relative z-10 flex flex-col gap-3">
+              <!-- Row 1: Icon, Info, Price, Heart -->
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <div class="flex flex-col min-w-0">
+                    <h4 class="font-black text-slate-100 text-base tracking-tight leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{{ stock.name }}</h4>
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">{{ stock.code }}</span>
                     </div>
                   </div>
-                  
-                  <div class="flex items-end gap-1.5 flex-shrink-0 mt-0.5">
-                    <div class="flex flex-col items-end">
-                      <div class="flex items-center gap-1.5 mb-1">
-                        <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[10px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
-                        <span v-if="stock.ai_recommendation_count > 0" class="text-[10px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
-                      </div>
-                      <div class="flex items-center gap-1.5">
-                        <span class="text-sm font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
-                        <span v-if="stock.target_price" class="text-xs font-bold text-emerald-400 tracking-tighter leading-none flex items-center gap-0.5">
-                          <span class="text-[10px] opacity-60">→</span>
-                          {{ stock.target_price.toLocaleString() }}
-                        </span>
-                      </div>
-                      <div 
-                        class="text-[10px] font-black leading-none mt-1"
-                        :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                      >
-                        {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
-                        <span class="opacity-60">({{ stock.change_rate }}%)</span>
-                      </div>
+                </div>
+                
+                <div class="flex items-end gap-2 flex-shrink-0 mt-0.5">
+                  <div class="flex flex-col items-end">
+                    <div class="flex items-center gap-1.5 mb-1">
+                      <span v-if="stock.ai_score !== undefined && stock.ai_score !== null" class="text-[10px] font-black text-emerald-400/80">{{ stock.ai_score }}점</span>
+                      <span v-if="stock.ai_recommendation_count > 0" class="text-[10px] font-black text-brand-primary/80">{{ stock.ai_recommendation_count }}회</span>
                     </div>
-                    
-                    <button 
-                      @click.stop="handleOpenModal(stock.id)"
-                      class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
-                      :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-sm font-black text-slate-50 tracking-tighter leading-none">{{ stock.last_price.toLocaleString() }}</span>
+                      <span v-if="stock.target_price" class="text-xs font-bold text-emerald-400 tracking-tighter leading-none flex items-center gap-0.5">
+                        <span class="text-[10px] opacity-60">→</span>
+                        {{ stock.target_price.toLocaleString() }}
+                      </span>
+                    </div>
+                    <div 
+                      class="text-[10px] font-black leading-none mt-1"
+                      :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                     >
-                      <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Row 2: AI Summary (More Refined Marquee) -->
-                <div class="relative overflow-hidden bg-white/5 rounded-lg h-7 flex items-center border border-white/5 group/marquee px-2">
-                  <!-- AI 요약 문구 (가로 전체 활용) -->
-                  <!-- AI 요약 라벨 삭제됨 -->
-                  
-                  <!-- 스크롤되는 요약 텍스트 영역 (클릭 시 전체 보기) -->
-                  <UPopover mode="click" :popper="{ placement: 'top', offsetDistance: 12 }">
-                    <div class="flex-1 overflow-hidden relative cursor-help group/summary hover:bg-white/5 transition-colors rounded-md py-0.5">
-                      <div class="flex whitespace-nowrap animate-marquee-slow group-hover/marquee:animate-marquee-paused transition-all">
-                        <p class="text-xs text-slate-400 font-medium leading-none flex items-center h-full">
-                          {{ stock.summary }} &nbsp;&nbsp;&middot;&nbsp;&nbsp; {{ stock.summary }}
-                        </p>
-                      </div>
+                      {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
+                      <span class="opacity-60">({{ stock.change_rate }}%)</span>
                     </div>
-                    
-                    <template #content>
-                      <div class="px-4 py-3 max-w-[280px] bg-slate-900 border border-white/10 rounded-xl shadow-2xl ring-1 ring-white/5">
-                        <div class="flex items-center gap-1.5 mb-2 opacity-60">
-                          <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
-                          <span class="text-xs font-black text-slate-400 uppercase tracking-widest">AI INSIGHT</span>
-                        </div>
-                        <p class="text-sm text-slate-300 leading-relaxed font-medium">
-                          {{ stock.summary }}
-                        </p>
-                      </div>
-                    </template>
-                  </UPopover>
+                  </div>
+                  
+                  <button 
+                    @click.stop="handleOpenModal(stock.id)"
+                    class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
+                    :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
+                  >
+                    <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
+                  </button>
                 </div>
-
-
               </div>
+
+              <!-- Row 2: AI Summary (Static Text Layout) -->
+              <div class="relative bg-white/5 rounded-lg py-1.5 px-3 border border-white/5 flex items-center">
+                <!-- 요약 텍스트 영역 (클릭 시 전체 보기) -->
+                <UPopover mode="click" :popper="{ placement: 'top', offsetDistance: 12 }" class="w-full">
+                  <div class="w-full cursor-help hover:bg-white/5 transition-colors rounded-md">
+                    <p class="text-xs text-slate-400 font-medium leading-normal truncate">
+                      {{ stock.summary }}
+                    </p>
+                  </div>
+                  
+                  <template #content>
+                    <div class="px-4 py-3 max-w-[280px] bg-slate-900 border border-white/10 rounded-xl shadow-2xl ring-1 ring-white/5">
+                      <div class="flex items-center gap-1.5 mb-2 opacity-60">
+                        <UIcon name="i-heroicons-sparkles" class="w-3 h-3 text-brand-primary" />
+                        <span class="text-xs font-black text-slate-400 uppercase tracking-widest">AI INSIGHT</span>
+                      </div>
+                      <p class="text-sm text-slate-300 leading-relaxed font-medium">
+                        {{ stock.summary }}
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </div>
+
             </div>
-          </div>
-          
-          <div class="flex justify-center gap-1 mt-1">
-            <div 
-              v-for="(_, idx) in recommendedStocks" 
-              :key="idx"
-              class="h-1 rounded-full transition-all duration-300"
-              :class="idx === currentAiIndex ? 'w-4 bg-brand-primary' : 'w-1 bg-white/10'"
-            ></div>
           </div>
         </div>
       </section>
@@ -325,30 +283,6 @@ const handleOpenModal = (id: number) => {
 
 const recentNews = ref<any[]>([])
 const globalAiStats = ref({ totalWins: 0, totalProcessed: 0 })
-
-// AI 추천 종목 내비게이션 상태
-const aiScrollContainer = ref<HTMLElement | null>(null)
-const currentAiIndex = ref(0)
-
-const handleAiScroll = () => {
-  if (!aiScrollContainer.value) return
-  const container = aiScrollContainer.value
-  const scrollLeft = container.scrollLeft
-  
-  if (recommendedStocks.value && recommendedStocks.value.length > 0) {
-    const cardwidth = container.children[0]?.clientWidth || 240
-    currentAiIndex.value = Math.round(scrollLeft / (cardwidth + 12)) // card + gap(3=12)
-  }
-}
-
-const scrollAiTo = (index: number) => {
-  if (!aiScrollContainer.value) return
-  const container = aiScrollContainer.value
-  const target = container.children[index] as HTMLElement
-  if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-  }
-}
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
