@@ -54,13 +54,17 @@ Deno.serve(async (req) => {
       }
 
       const upsertData = responseData.datas.map((data: any) => {
+        const closePrice = parseInt(data.closePriceRaw, 10)
         return {
           code: data.itemCode,
-          last_price: parseInt(data.closePriceRaw, 10),
+          last_price: closePrice,
           change_amount: parseInt(data.compareToPreviousClosePriceRaw, 10),
           change_rate: parseFloat(data.fluctuationsRatioRaw),
           // 거래총액(거래대금)을 volume 컬럼에 저장
           volume: parseInt(data.accumulatedTradingValueRaw, 10),
+          open_price: data.openPriceRaw ? parseInt(data.openPriceRaw, 10) : closePrice,
+          high_price: data.highPriceRaw ? parseInt(data.highPriceRaw, 10) : closePrice,
+          low_price: data.lowPriceRaw ? parseInt(data.lowPriceRaw, 10) : closePrice,
           updated_at: new Date().toISOString()
         }
       })
@@ -104,6 +108,9 @@ Deno.serve(async (req) => {
         return supabase.from('stock_price_history').upsert({
           stock_id: original.id,
           price_date: currentDateStr,
+          open_price: item.open_price,
+          high_price: item.high_price,
+          low_price: item.low_price,
           close_price: item.last_price,
           change_amount: item.change_amount,
           change_rate: item.change_rate,

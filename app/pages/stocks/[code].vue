@@ -65,7 +65,7 @@
             <client-only>
               <apexchart
                 :key="`chart-${chartSeries.length}-${chartAnnotations.xaxis.length}-${chartAnnotations.yaxis.length}`"
-                type="area"
+                type="candlestick"
                 height="220"
                 :options="chartOptions"
                 :series="chartSeries"
@@ -114,16 +114,38 @@
           <div v-if="activeTab === 'history'" class="space-y-4 animate-fade-in">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2">Price History</h3>
             <div class="space-y-3">
-              <div v-for="item in priceHistory" :key="item.price_date" class="glass-dark rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-bold text-slate-200">{{ formatPriceDate(item.price_date) }}</p>
-                  <p class="text-[10px] text-slate-500 mt-0.5">{{ item.price_date }}</p>
+              <div v-for="item in priceHistory" :key="item.price_date" class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-bold text-slate-200">{{ formatPriceDate(item.price_date) }}</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">{{ item.price_date }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-black text-slate-200">{{ item.close_price?.toLocaleString() }}원</p>
+                    <p class="text-[10px] font-black" :class="item.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
+                      {{ item.change_amount >= 0 ? '▲' : '▼' }}{{ Math.abs(item.change_amount).toLocaleString() }} 
+                      ({{ item.change_amount >= 0 ? '+' : '' }}{{ item.change_rate }}%)
+                    </p>
+                  </div>
                 </div>
-                <div class="text-right">
-                  <p class="text-sm font-black text-slate-200">{{ item.close_price?.toLocaleString() }}</p>
-                  <p class="text-[10px] font-black" :class="item.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'">
-                    {{ item.change_amount >= 0 ? '+' : '' }}{{ item.change_rate }}%
-                  </p>
+                <!-- OHLC 상세 정보 -->
+                <div class="grid grid-cols-4 gap-1 pt-2 border-t border-white/5 text-center text-[10px] font-bold text-slate-400">
+                  <div>
+                    <span class="block text-[8px] text-slate-500 uppercase tracking-widest">시가</span>
+                    <span class="text-slate-300 font-mono">{{ item.open_price !== null && item.open_price !== undefined ? item.open_price.toLocaleString() : item.close_price?.toLocaleString() }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-[8px] text-slate-500 uppercase tracking-widest">고가</span>
+                    <span class="text-rose-400/80 font-mono">{{ item.high_price !== null && item.high_price !== undefined ? item.high_price.toLocaleString() : item.close_price?.toLocaleString() }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-[8px] text-slate-500 uppercase tracking-widest">저가</span>
+                    <span class="text-indigo-400/80 font-mono">{{ item.low_price !== null && item.low_price !== undefined ? item.low_price.toLocaleString() : item.close_price?.toLocaleString() }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-[8px] text-slate-500 uppercase tracking-widest">종가</span>
+                    <span class="text-slate-300 font-mono">{{ item.close_price?.toLocaleString() }}</span>
+                  </div>
                 </div>
               </div>
               
@@ -427,11 +449,17 @@ const chartSeries = computed(() => {
   if (priceHistory.value.length === 0) return []
   const dataForChart = [...priceHistory.value].reverse()
   return [{
-    name: '종가',
-    data: dataForChart.map(h => ({
-      x: h.price_date,
-      y: h.close_price
-    }))
+    name: '시세',
+    data: dataForChart.map(h => {
+      const open = h.open_price !== null && h.open_price !== undefined ? h.open_price : h.close_price
+      const high = h.high_price !== null && h.high_price !== undefined ? h.high_price : h.close_price
+      const low = h.low_price !== null && h.low_price !== undefined ? h.low_price : h.close_price
+      const close = h.close_price
+      return {
+        x: new Date(h.price_date).getTime(),
+        y: [open, high, low, close]
+      }
+    })
   }]
 })
 
@@ -532,7 +560,7 @@ const chartAnnotations = computed(() => {
 
 const chartOptions = computed(() => ({
   chart: {
-    type: 'area',
+    type: 'candlestick',
     toolbar: { 
       show: true,
       tools: {
@@ -555,20 +583,16 @@ const chartOptions = computed(() => ({
     background: 'transparent',
     fontFamily: 'Pretendard, Inter, sans-serif'
   },
-  colors: ['#6366f1'],
-  fill: {
-    type: 'gradient',
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom: 0.6,
-      opacityTo: 0.1,
-      stops: [0, 100]
+  plotOptions: {
+    candlestick: {
+      colors: {
+        upward: '#f87171',
+        downward: '#818cf8'
+      },
+      wick: {
+        useFillColor: true
+      }
     }
-  },
-  stroke: {
-    curve: 'smooth',
-    width: 3,
-    lineCap: 'round'
   },
   grid: {
     show: false,
@@ -617,16 +641,9 @@ const chartOptions = computed(() => ({
   tooltip: {
     theme: 'dark',
     x: { format: 'MM월 dd일' },
-    y: {
-      formatter: (val: number) => val.toLocaleString() + '원'
-    },
     style: {
       fontSize: '10px'
     }
-  },
-  markers: {
-    size: 0,
-    hover: { size: 5 }
   },
   annotations: chartAnnotations.value
 }))
