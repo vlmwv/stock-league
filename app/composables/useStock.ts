@@ -1784,6 +1784,98 @@ export const useStock = () => {
     return { items: [], emptyReason: 'no_data' as const }
   }
 
+  const fetchAiHistoryMonthly = async (year: number, month: number) => {
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+    const lastDay = new Date(year, month, 0).getDate()
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+
+    const { data, error } = await client
+      .from('daily_stocks')
+      .select(`
+        id,
+        game_date,
+        created_at,
+        llm_summary,
+        ai_score,
+        ai_result,
+        target_price,
+        target_date,
+        stocks (
+          id,
+          name,
+          code,
+          sector,
+          last_price,
+          change_amount,
+          change_rate
+        )
+      `)
+      .gte('game_date', startDate)
+      .lte('game_date', endDate)
+      .order('game_date', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching AI monthly history:', error)
+      return []
+    }
+
+    const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
+    const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
+    
+    let historyPrices: any[] = []
+    if (stockIds.length > 0 && gameDates.length > 0) {
+      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
+      const searchStartDate = new Date(minDate)
+      searchStartDate.setDate(searchStartDate.getDate() - 10) 
+      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
+
+      const { data: hpData } = await client
+        .from('stock_price_history')
+        .select('stock_id, price_date, close_price')
+        .in('stock_id', stockIds)
+        .gte('price_date', searchStartDateStr)
+        .order('price_date', { ascending: false })
+      historyPrices = hpData || []
+    }
+
+    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
+      const recPriceRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+      )
+      const sameDayRecord = historyPrices.find(hp => 
+        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+      )
+      
+      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
+      const currentPrice = ds.stocks.last_price || 0
+      
+      let cumulativeChangeRate = 0
+      if (recPrice > 0) {
+        cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
+      }
+
+      return {
+        id: Number(ds.stocks.id),
+        daily_id: ds.id,
+        game_date: ds.game_date,
+        created_at: ds.created_at,
+        name: ds.stocks.name,
+        code: ds.stocks.code,
+        sector: ds.stocks.sector || '-',
+        last_price: currentPrice,
+        change_amount: ds.stocks.change_amount || 0,
+        change_rate: ds.stocks.change_rate || 0,
+        ai_score: ds.ai_score || 0,
+        ai_result: ds.ai_result || 'pending',
+        target_price: ds.target_price,
+        target_date: ds.target_date,
+        summary: decodeHtmlEntities(ds.llm_summary || ''),
+        rec_price: recPrice,
+        cumulative_change_rate: cumulativeChangeRate
+      }
+    })
+  }
+
   return {
     dailyStocks,
     recommendedStocks: recommended,
@@ -1819,6 +1911,7 @@ export const useStock = () => {
     allPredicted,
     refreshAll,
     fetchAiHistory,
+    fetchAiHistoryMonthly,
     themes,
     isThemesLoading,
     fetchThemes,

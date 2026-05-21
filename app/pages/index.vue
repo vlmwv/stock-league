@@ -62,6 +62,35 @@
           <div class="absolute top-1/2 -left-10 w-32 h-32 bg-brand-secondary/20 blur-[60px] rounded-full"></div>
         </div>
       </section>
+
+      <!-- 30일 시나리오 예측 게임 진입 배너 (Neo-brutalism Style) -->
+      <section class="px-4 mb-8">
+        <NuxtLink 
+          to="/scenarios"
+          class="block bg-gradient-to-r from-indigo-500/20 to-emerald-500/10 border-2 border-brand-primary/30 rounded-[1.5rem] p-5 relative overflow-hidden group hover:border-brand-primary/50 transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.15)]"
+        >
+          <!-- Subtle Glow -->
+          <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-primary/10 blur-2xl rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
+          
+          <div class="relative z-10 flex items-center justify-between gap-4">
+            <div class="flex-1">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand-primary/20 text-[9px] font-black text-brand-primary uppercase tracking-widest mb-2.5">
+                New Game
+              </div>
+              <h3 class="text-lg font-black text-slate-100 group-hover:text-brand-primary transition-colors leading-tight mb-1.5">
+                30일 시나리오 예측 게임 📈
+              </h3>
+              <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                역사적 금융위기부터 가상의 AI 버블 쇼크까지! 단 한 번의 생존 도전에 나서 명예의 전당 랭킹에 이름을 올리세요.
+              </p>
+            </div>
+            
+            <div class="w-11 h-11 rounded-2xl bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center text-brand-primary shrink-0 group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-slate-900 transition-all shadow-md">
+              <UIcon name="i-heroicons-play" class="w-5 h-5" />
+            </div>
+          </div>
+        </NuxtLink>
+      </section>
  
       <!-- AI 추천 종목 (More Compact & Harmonious) -->
       <section v-if="recommendedStocks && recommendedStocks.length > 0" class="px-4 mb-10 relative group/ai-section">
@@ -212,6 +241,55 @@
         </div>
       </section>
 
+      <!-- 오늘 뜨는 테마 섹션 -->
+      <section v-if="themes && themes.length > 0" class="px-4 mb-10">
+        <div class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden shadow-2xl">
+          <!-- 헤더 -->
+          <div class="flex items-end justify-between mb-6 px-1">
+            <h3 class="text-xl font-black text-slate-100 tracking-tight">오늘 뜨는 테마</h3>
+            <span class="text-[10px] font-bold text-slate-500">
+              {{ todayKstDisplay }} 기준 · 평균 등락률
+            </span>
+          </div>
+
+          <!-- 테마 카드 그리드 -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div
+              v-for="(theme, index) in themes"
+              :key="theme.sector"
+              @click="handleOpenThemeModal(theme)"
+              class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-2xl p-4 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[110px] relative overflow-hidden group shadow-inner"
+            >
+              <!-- 은은한 무늬/그라데이션 효과 -->
+              <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
+
+              <div>
+                <!-- 순위 및 개수 -->
+                <div class="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <span>#{{ index + 1 }}</span>
+                  <span>{{ theme.stock_count }}개</span>
+                </div>
+                <!-- 테마 이름 -->
+                <h4 class="font-black text-slate-100 text-sm tracking-tight leading-tight mt-2.5 line-clamp-2 min-h-[2.5em] group-hover:text-brand-primary transition-colors">
+                  {{ theme.sector }}
+                </h4>
+              </div>
+
+              <!-- 등락률 배지 -->
+              <div class="mt-3.5 flex">
+                <span
+                  class="px-2.5 py-0.5 rounded-lg text-[10px] font-black tracking-tight flex items-center gap-0.5"
+                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'"
+                >
+                  <UIcon :name="theme.avg_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-3 h-3" />
+                  {{ theme.avg_change_rate >= 0 ? '+' : '' }}{{ theme.avg_change_rate }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 최근 뉴스 & 공시 -->
       <section class="px-4 mb-8">
         <div class="flex justify-between items-end mb-4 px-2">
@@ -252,6 +330,11 @@
       v-model:open="isGroupModalOpen"
       :stock-id="selectedStockId"
       :initial-group-ids="currentStockGroupIds"
+    />
+    
+    <ThemeModal 
+      v-model:open="isThemeModalOpen"
+      :theme="selectedTheme"
     />
   </div>
 </template>
