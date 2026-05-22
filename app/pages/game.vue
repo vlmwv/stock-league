@@ -212,6 +212,14 @@ onMounted(async () => {
                   </div>
                   <span class="text-[9px] font-black uppercase tracking-wider ml-0.5">{{ item.difficulty }}</span>
                 </div>
+                <!-- 기초 지수 마크 -->
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 bg-slate-800/80 border-slate-700 text-slate-300">
+                  {{ item.indexName }}
+                </span>
+                <!-- ETF 마크 -->
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 bg-brand-primary/20 border-brand-primary/30 text-brand-primary">
+                  {{ item.etfName }}
+                </span>
               </div>
               
               <!-- 도전 완료 여부 배지 (정답 수 / 총 문제 수 표시 추가) -->
@@ -225,8 +233,8 @@ onMounted(async () => {
             <h3 class="text-xl font-black text-slate-100 group-hover:text-brand-primary transition-colors mb-1">
               {{ item.title }}
             </h3>
-            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-tighter mb-4">
-              {{ item.subtitle }} | {{ item.candles.length }}일
+            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-4">
+              {{ item.startDate }} ~ {{ item.endDate }} | {{ item.candles.length }}일 거래 시뮬레이션
             </p>
 
             <!-- Description -->

@@ -21,6 +21,7 @@ export interface Scenario {
   difficulty: '어려움' | '보통' | '쉬움'
   type: '역사' | '가상'
   indexName: 'S&P 500' | 'KOSPI' | 'NASDAQ'
+  etfName: 'SPY' | 'KODEX 200' | 'QQQ' | 'SOXX'
   startDate: string
   endDate: string
   description: string
@@ -36,29 +37,30 @@ export const useScenario = () => {
     {
       id: 1,
       title: '2008 글로벌 금융위기',
-      subtitle: 'S&P 500 | 2008-09-01 ~ 2008-10-15',
+      subtitle: 'SPY | 2008-09-01 ~ 2008-10-15',
       difficulty: '어려움',
       type: '역사',
       indexName: 'S&P 500',
+      etfName: 'SPY',
       startDate: '2008-09-01',
       endDate: '2008-10-15',
-      description: '리먼 브러더스 파산으로 시작된 역사적 금융 대폭락 시나리오. 공포의 소용돌이에서 S&P 500의 상승과 하락을 맞히고 살아남을 수 있을까요?',
+      description: '리먼 브러더스 파산으로 시작된 역사적 금융 대폭락 시나리오. 공포의 소용돌이에서 SPY ETF의 상승과 하락을 맞히고 살아남을 수 있을까요?',
       candles: Array.from({ length: 144 }, (_, i) => {
-        const basePrice = 1400
+        const basePrice = 140
         let offset = 0
         if (i < 40) {
-          offset = -3 * i
+          offset = -0.3 * i
         } else if (i < 80) {
-          offset = -120 - 7 * (i - 40)
+          offset = -12 - 0.7 * (i - 40)
         } else if (i < 110) {
-          offset = -400 - 15 * (i - 80)
+          offset = -40 - 1.5 * (i - 80)
         } else {
-          offset = -850 + 8 * (i - 110)
+          offset = -85 + 0.8 * (i - 110)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.5) * 40)
-        const open = close + (Math.cos(i) * 20)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 15)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 18)
+        const close = basePrice + offset + (Math.sin(i * 0.5) * 4)
+        const open = close + (Math.cos(i) * 2)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.8)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -79,25 +81,26 @@ export const useScenario = () => {
     {
       id: 2,
       title: '2020 코로나 팬데믹 폭락',
-      subtitle: 'KOSPI | 2020-03-02 ~ 2020-04-10',
+      subtitle: 'KODEX 200 | 2020-03-02 ~ 2020-04-10',
       difficulty: '보통',
       type: '역사',
       indexName: 'KOSPI',
+      etfName: 'KODEX 200',
       startDate: '2020-03-02',
       endDate: '2020-04-10',
-      description: '바이러스 공포가 전 세계 금융시장을 잠식하며 코스피가 한 달 만에 -35% 폭락 후 극적인 V자 반등을 거둔 기적의 매수 기회 시나리오입니다.',
+      description: '바이러스 공포가 전 세계 금융시장을 잠식하며 KODEX 200 ETF가 한 달 만에 -35% 폭락 후 극적인 V자 반등을 거둔 기적의 매수 기회 시나리오입니다.',
       candles: Array.from({ length: 102 }, (_, i) => {
-        const basePrice = 2150
+        const basePrice = 30000
         let offset = 0
         if (i < 40) {
-          offset = -18 * i
+          offset = -250 * i
         } else {
-          offset = -720 + 12 * (i - 40)
+          offset = -10000 + 170 * (i - 40)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.4) * 45)
-        const open = close - (i < 40 ? -12 : 8) + (Math.cos(i) * 25)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 30)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 35)
+        const close = basePrice + offset + (Math.sin(i * 0.4) * 630)
+        const open = close - (i < 40 ? -170 : 110) + (Math.cos(i) * 350)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 420)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 490)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -118,27 +121,28 @@ export const useScenario = () => {
     {
       id: 3,
       title: '2026 DeepSeek 쇼크와 AI 버블론',
-      subtitle: 'NASDAQ | 2026-01-15 ~ 2026-02-25',
+      subtitle: 'QQQ | 2026-01-15 ~ 2026-02-25',
       difficulty: '어려움',
       type: '가상',
       indexName: 'NASDAQ',
+      etfName: 'QQQ',
       startDate: '2026-01-15',
       endDate: '2026-02-25',
-      description: '중국 AI 모델 DeepSeek의 파괴적 가성비 발표로 엔비디아가 급락하고 빅테크의 AI 인프라 고평가 거품론이 터졌던 초긴장 상태의 나스닥 시뮬레이션입니다.',
+      description: '중국 AI 모델 DeepSeek의 파괴적 가성비 발표로 엔비디아가 급락하고 빅테크의 AI 인프라 고평가 거품론이 터졌던 초긴장 상태의 QQQ ETF 시뮬레이션입니다.',
       candles: Array.from({ length: 20 }, (_, i) => {
-        const basePrice = 16200
+        const basePrice = 450
         let offset = 0
         if (i < 8) {
-          offset = -280 * i
+          offset = -7 * i
         } else if (i < 15) {
-          offset = -2240 + 200 * (i - 8)
+          offset = -56 + 5 * (i - 8)
         } else {
-          offset = -840 + 30 * (i - 15)
+          offset = -21 + 0.8 * (i - 15)
         }
-        const close = basePrice + offset + (Math.sin(i * 1.2) * 200)
-        const open = close + (Math.cos(i * 1.1) * 150)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 180)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 200)
+        const close = basePrice + offset + (Math.sin(i * 1.2) * 5)
+        const open = close + (Math.cos(i * 1.1) * 4)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 4.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 5)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -159,29 +163,30 @@ export const useScenario = () => {
     {
       id: 4,
       title: '1997 IMF 외환위기',
-      subtitle: 'KOSPI | 1997-10-01 ~ 1998-02-28',
+      subtitle: 'KODEX 200 | 1997-10-01 ~ 1998-02-28',
       difficulty: '어려움',
       type: '역사',
       indexName: 'KOSPI',
+      etfName: 'KODEX 200',
       startDate: '1997-10-01',
       endDate: '1998-02-28',
-      description: '대기업 연쇄 부도와 외환보유고 고갈로 한보철강, 기아차 등이 무너지고 IMF 구제금융을 신청하게 되는 국가 부도의 날 시나리오입니다.',
+      description: '대기업 연쇄 부도와 외환보유고 고갈로 한보철강, 기아차 등이 무너지고 IMF 구제금융을 신청하게 되는 국가 부도의 날 시나리오입니다. (KODEX 200 가상 매칭)',
       candles: Array.from({ length: 120 }, (_, i) => {
-        const basePrice = 650
+        const basePrice = 9000
         let offset = 0
         if (i < 65) {
-          offset = -4.6 * i
+          offset = -64 * i
         } else if (i < 88) {
-          offset = -300 - 3 * (i - 65)
+          offset = -4200 - 42 * (i - 65)
         } else if (i < 110) {
-          offset = -370 + (Math.sin((i - 88) * 0.5) * 20)
+          offset = -5180 + (Math.sin((i - 88) * 0.5) * 280)
         } else {
-          offset = -370 + 15 * (i - 110)
+          offset = -5180 + 210 * (i - 110)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.6) * 15)
-        const open = close + (Math.cos(i) * 10)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 8)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 10)
+        const close = basePrice + offset + (Math.sin(i * 0.6) * 210)
+        const open = close + (Math.cos(i) * 140)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 112)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 140)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -202,29 +207,30 @@ export const useScenario = () => {
     {
       id: 5,
       title: '2000 닷컴 버블 붕괴',
-      subtitle: 'NASDAQ | 2000-03-01 ~ 2000-10-15',
+      subtitle: 'QQQ | 2000-03-01 ~ 2000-10-15',
       difficulty: '어려움',
       type: '역사',
       indexName: 'NASDAQ',
+      etfName: 'QQQ',
       startDate: '2000-03-01',
       endDate: '2000-10-15',
-      description: '실적 없이 기대감만으로 폭등했던 인터넷 벤처 기업들의 거품이 한순간에 꺼지며 나스닥이 무참히 폭락했던 역사적인 닷컴 붕괴 시나리오입니다.',
+      description: '실적 없이 기대감만으로 폭등했던 인터넷 벤처 기업들의 거품이 한순간에 꺼지며 QQQ ETF가 무참히 폭락했던 역사적인 닷컴 붕괴 시나리오입니다.',
       candles: Array.from({ length: 140 }, (_, i) => {
-        const basePrice = 4800
+        const basePrice = 120
         let offset = 0
         if (i < 35) {
-          offset = -17 * i
+          offset = -0.42 * i
         } else if (i < 92) {
-          offset = -600 - 24 * (i - 35)
+          offset = -15 - 0.6 * (i - 35)
         } else if (i < 125) {
-          offset = -1970 - 30 * (i - 92)
+          offset = -49 - 0.75 * (i - 92)
         } else {
-          offset = -2960 + 10 * (i - 125)
+          offset = -74 + 0.25 * (i - 125)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.4) * 100)
-        const open = close + (Math.cos(i * 0.9) * 80)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 60)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 70)
+        const close = basePrice + offset + (Math.sin(i * 0.4) * 2.5)
+        const open = close + (Math.cos(i * 0.9) * 2)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.75)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -245,31 +251,32 @@ export const useScenario = () => {
     {
       id: 6,
       title: '2025 러-우 전쟁 전격 종식 및 재건',
-      subtitle: 'S&P 500 | 2025-06-01 ~ 2025-10-15',
+      subtitle: 'SPY | 2025-06-01 ~ 2025-10-15',
       difficulty: '보통',
       type: '역사',
       indexName: 'S&P 500',
+      etfName: 'SPY',
       startDate: '2025-06-01',
       endDate: '2025-10-15',
-      description: '수년간 원자재 인플레이션을 자극하던 러-우 전쟁이 평화 협정으로 극적 휴전되면서 시작되는 글로벌 인프라 대재건 호재 시나리오입니다.',
+      description: '수년간 원자재 인플레이션을 자극하던 러-우 전쟁이 평화 협정으로 극적 휴전되면서 시작되는 글로벌 인프라 대재건 호재 시나리오입니다. (SPY ETF)',
       candles: Array.from({ length: 100 }, (_, i) => {
-        const basePrice = 4900
+        const basePrice = 490
         let offset = 0
         if (i < 12) {
-          offset = Math.sin(i * 1.5) * 40
+          offset = Math.sin(i * 1.5) * 4
         } else if (i < 35) {
-          offset = 8.7 * (i - 12)
+          offset = 0.87 * (i - 12)
         } else if (i < 62) {
-          offset = 200 + 15 * (i - 35)
+          offset = 20 + 1.5 * (i - 35)
         } else if (i < 85) {
-          offset = 605 + 6 * (i - 62)
+          offset = 60.5 + 0.6 * (i - 62)
         } else {
-          offset = 743 + 10 * (i - 85)
+          offset = 74.3 + 1.0 * (i - 85)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.8) * 35)
-        const open = close - 15 + (Math.cos(i) * 20)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 15)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 18)
+        const close = basePrice + offset + (Math.sin(i * 0.8) * 3.5)
+        const open = close - 1.5 + (Math.cos(i) * 2)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.8)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -289,31 +296,32 @@ export const useScenario = () => {
     {
       id: 7,
       title: '2026 이란-중동 전쟁 발발',
-      subtitle: 'NASDAQ | 2026-09-01 ~ 2026-12-10',
+      subtitle: 'QQQ | 2026-09-01 ~ 2026-12-10',
       difficulty: '어려움',
       type: '역사',
       indexName: 'NASDAQ',
+      etfName: 'QQQ',
       startDate: '2026-09-01',
       endDate: '2026-12-10',
-      description: '호르무즈 해협 봉쇄와 중동발 전면 확전으로 유가가 폭등하고 3차 오일쇼크 우려가 테크 증시를 덮치는 블랙 스완 가상 시나리오입니다.',
+      description: '호르무즈 해협 봉쇄와 중동발 전면 확전으로 유가가 폭등하고 3차 오일쇼크 우려가 테크 증시를 덮치는 블랙 스완 QQQ ETF 가상 시나리오입니다.',
       candles: Array.from({ length: 90 }, (_, i) => {
-        const basePrice = 17500
+        const basePrice = 440
         let offset = 0
         if (i < 8) {
-          offset = Math.cos(i) * 100
+          offset = Math.cos(i) * 2.5
         } else if (i < 25) {
-          offset = -70 * (i - 8)
+          offset = -1.75 * (i - 8)
         } else if (i < 48) {
-          offset = -1190 - 91 * (i - 25)
+          offset = -29.75 - 2.275 * (i - 25)
         } else if (i < 72) {
-          offset = -3283 + (Math.sin(i * 0.7) * 250)
+          offset = -82.075 + (Math.sin(i * 0.7) * 6.25)
         } else {
-          offset = -3283 + 65 * (i - 72)
+          offset = -82.075 + 1.625 * (i - 72)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.9) * 120)
-        const open = close + (Math.cos(i * 1.2) * 100)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 80)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 90)
+        const close = basePrice + offset + (Math.sin(i * 0.9) * 3)
+        const open = close + (Math.cos(i * 1.2) * 2.5)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 2)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 2.25)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -334,31 +342,32 @@ export const useScenario = () => {
     {
       id: 8,
       title: '2028 메타버스 디바이스 혁명',
-      subtitle: 'NASDAQ | 2028-03-01 ~ 2028-06-20',
+      subtitle: 'QQQ | 2028-03-01 ~ 2028-06-20',
       difficulty: '보통',
       type: '가상',
       indexName: 'NASDAQ',
+      etfName: 'QQQ',
       startDate: '2028-03-01',
       endDate: '2028-06-20',
-      description: '경량 스마트 글래스가 스마트폰을 전면 대체하며 글로벌 가상현실 생태계와 부품 시장이 폭발적으로 급성장하는 가상 미래 시나리오입니다.',
+      description: '경량 스마트 글래스가 스마트폰을 전면 대체하며 글로벌 가상현실 생태계와 부품 시장이 폭발적으로 급성장하는 QQQ ETF 가상 미래 시나리오입니다.',
       candles: Array.from({ length: 110 }, (_, i) => {
-        const basePrice = 18500
+        const basePrice = 460
         let offset = 0
         if (i < 15) {
-          offset = Math.sin(i * 0.5) * 80
+          offset = Math.sin(i * 0.5) * 2
         } else if (i < 40) {
-          offset = 52 * (i - 15)
+          offset = 1.3 * (i - 15)
         } else if (i < 65) {
-          offset = 1300 + 68 * (i - 40)
+          offset = 32.5 + 1.7 * (i - 40)
         } else if (i < 90) {
-          offset = 3000 - 116 * (i - 65)
+          offset = 75 - 2.9 * (i - 65)
         } else {
-          offset = 100 + 200 * (i - 90)
+          offset = 2.5 + 5.0 * (i - 90)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.6) * 150)
-        const open = close - 30 + (Math.cos(i) * 120)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 100)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 110)
+        const close = basePrice + offset + (Math.sin(i * 0.6) * 3.75)
+        const open = close - 0.75 + (Math.cos(i) * 3)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 2.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 2.75)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -379,31 +388,32 @@ export const useScenario = () => {
     {
       id: 9,
       title: '2030 AGI 싱귤래리티와 노동의 종말',
-      subtitle: 'NASDAQ | 2030-01-10 ~ 2030-05-20',
+      subtitle: 'SOXX | 2030-01-10 ~ 2030-05-20',
       difficulty: '어려움',
       type: '가상',
       indexName: 'NASDAQ',
+      etfName: 'SOXX',
       startDate: '2030-01-10',
       endDate: '2030-05-20',
-      description: '인간의 지능을 완전히 아득히 뛰어넘은 초지능 인공지능(AGI)의 등장으로 초래된 생산성 대폭발과 대규모 실업난 속 초변동성 미래 시나리오입니다.',
+      description: '인간의 지능을 완전히 아득히 뛰어넘은 초지능 인공지능(AGI)의 등장으로 초래된 생산성 대폭발과 대규모 실업난 속 SOXX 반도체 ETF 기반의 초변동성 미래 시나리오입니다.',
       candles: Array.from({ length: 130 }, (_, i) => {
-        const basePrice = 22000
+        const basePrice = 550
         let offset = 0
         if (i < 12) {
-          offset = 60 * i
+          offset = 1.5 * i
         } else if (i < 45) {
-          offset = 720 + 100 * (i - 12)
+          offset = 18 + 2.5 * (i - 12)
         } else if (i < 75) {
-          offset = 4020 - 250 * (i - 45)
+          offset = 100.5 - 6.25 * (i - 45)
         } else if (i < 100) {
-          offset = -3480 + (Math.sin(i * 1.1) * 600)
+          offset = -87 + (Math.sin(i * 1.1) * 15)
         } else {
-          offset = -3480 + 180 * (i - 100)
+          offset = -87 + 4.5 * (i - 100)
         }
-        const close = basePrice + offset + (Math.sin(i * 1.5) * 300)
-        const open = close + (Math.cos(i * 1.3) * 250)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 220)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 240)
+        const close = basePrice + offset + (Math.sin(i * 1.5) * 7.5)
+        const open = close + (Math.cos(i * 1.3) * 6.25)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 5.5)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 6)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),
@@ -424,31 +434,32 @@ export const useScenario = () => {
     {
       id: 10,
       title: '2029 슈퍼 엘니뇨와 기후 리스크',
-      subtitle: 'KOSPI | 2029-07-01 ~ 2029-10-10',
+      subtitle: 'KODEX 200 | 2029-07-01 ~ 2029-10-10',
       difficulty: '보통',
       type: '가상',
       indexName: 'KOSPI',
+      etfName: 'KODEX 200',
       startDate: '2029-07-01',
       endDate: '2029-10-10',
-      description: '초대형 폭염 가뭄으로 글로벌 식량 자재 가격이 폭등하고, 수자원 부족으로 인한 반도체 공장 위기가 찾아오는 가상 기후 위기 시나리오입니다.',
+      description: '초대형 폭염 가뭄으로 글로벌 식량 자재 가격이 폭등하고, 수자원 부족으로 인한 반도체 공장 위기가 찾아오는 KODEX 200 ETF 가상 기후 위기 시나리오입니다.',
       candles: Array.from({ length: 100 }, (_, i) => {
-        const basePrice = 2600
+        const basePrice = 36000
         let offset = 0
         if (i < 10) {
-          offset = Math.sin(i) * 20
+          offset = Math.sin(i) * 280
         } else if (i < 30) {
-          offset = -9 * (i - 10)
+          offset = -126 * (i - 10)
         } else if (i < 55) {
-          offset = -180 + 2.4 * (i - 30)
+          offset = -2520 + 33 * (i - 30)
         } else if (i < 80) {
-          offset = -120 - 15 * (i - 55)
+          offset = -1680 - 210 * (i - 55)
         } else {
-          offset = -495 + 17.5 * (i - 80)
+          offset = -6930 + 245 * (i - 80)
         }
-        const close = basePrice + offset + (Math.sin(i * 0.8) * 30)
-        const open = close + (Math.cos(i) * 25)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 15)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 20)
+        const close = basePrice + offset + (Math.sin(i * 0.8) * 420)
+        const open = close + (Math.cos(i) * 350)
+        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 210)
+        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 280)
         return {
           date: `Day ${i + 1}`,
           open: Math.round(open),

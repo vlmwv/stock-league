@@ -199,6 +199,14 @@ const submitScore = async () => {
   }
 }
 
+const formatPrice = (price: number | undefined) => {
+  if (price === undefined) return ''
+  if (scenario.value?.etfName === 'KODEX 200') {
+    return `${price.toLocaleString()}원`
+  }
+  return `$${price.toLocaleString()}`
+}
+
 onMounted(async () => {
   if (!scenario.value) {
     router.push('/daily') // 잘못된 접근 시 회귀
@@ -216,9 +224,14 @@ onMounted(async () => {
         <UIcon name="i-heroicons-arrow-left" class="w-4 h-4" />
         뒤로가기
       </button>
-      <span class="text-xs font-black text-slate-500 bg-slate-800/60 px-3 py-1 rounded-full border border-white/5">
-        {{ scenario?.indexName }} 시뮬레이터
-      </span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[9px] font-black text-slate-300 bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded-md uppercase shrink-0">
+          {{ scenario?.indexName }}
+        </span>
+        <span class="text-[9px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-2 py-0.5 rounded-md uppercase shrink-0">
+          {{ scenario?.etfName }} 시뮬레이터
+        </span>
+      </div>
     </header>
 
     <main v-if="scenario" class="max-w-md mx-auto px-6 py-6">
@@ -252,6 +265,14 @@ onMounted(async () => {
             </div>
             <span class="text-[9px] font-black uppercase tracking-wider ml-0.5">{{ scenario.difficulty }}</span>
           </div>
+          <!-- 기초 지수 마크 -->
+          <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 bg-slate-800/80 border-slate-700 text-slate-300">
+            {{ scenario.indexName }}
+          </span>
+          <!-- ETF 마크 -->
+          <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 bg-brand-primary/20 border-brand-primary/30 text-brand-primary">
+            {{ scenario.etfName }}
+          </span>
           <span class="text-[10px] font-bold text-slate-500">{{ totalDays }}일 스페셜</span>
         </div>
         <h2 class="text-2xl font-black text-slate-100">{{ scenario.title }}</h2>
@@ -309,19 +330,19 @@ onMounted(async () => {
             <div class="grid grid-cols-5 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[10px] font-mono">
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">시가</span>
-                <span class="text-slate-300 font-bold">{{ activeCandle?.open.toLocaleString() }}</span>
+                <span class="text-slate-300 font-bold">{{ formatPrice(activeCandle?.open) }}</span>
               </div>
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">고가</span>
-                <span class="text-rose-400 font-bold">{{ activeCandle?.high.toLocaleString() }}</span>
+                <span class="text-rose-400 font-bold">{{ formatPrice(activeCandle?.high) }}</span>
               </div>
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">저가</span>
-                <span class="text-blue-400 font-bold">{{ activeCandle?.low.toLocaleString() }}</span>
+                <span class="text-blue-400 font-bold">{{ formatPrice(activeCandle?.low) }}</span>
               </div>
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">종가</span>
-                <span class="font-bold" :class="activeCandleColorClass">{{ activeCandle?.close.toLocaleString() }}</span>
+                <span class="font-bold" :class="activeCandleColorClass">{{ formatPrice(activeCandle?.close) }}</span>
               </div>
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">거래량</span>
@@ -334,13 +355,13 @@ onMounted(async () => {
           <svg :width="chartWidth" :height="chartHeight + volumeHeight + 20" class="overflow-visible">
             <!-- Grid Lines & Price Labels (Korean & Guidance) -->
             <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" />
-            <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y75.toLocaleString() }}원</text>
+            <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ formatPrice(priceLabels.y75) }}</text>
             
             <line x1="0" :y1="chartHeight * 0.5" :x2="chartWidth" :y2="chartHeight * 0.5" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" />
-            <text :x="chartWidth" :y="chartHeight * 0.5 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y50.toLocaleString() }}원</text>
+            <text :x="chartWidth" :y="chartHeight * 0.5 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ formatPrice(priceLabels.y50) }}</text>
             
             <line x1="0" :y1="chartHeight * 0.75" :x2="chartWidth" :y2="chartHeight * 0.75" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" stroke-dasharray="3" />
-            <text :x="chartWidth" :y="chartHeight * 0.75 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y25.toLocaleString() }}원</text>
+            <text :x="chartWidth" :y="chartHeight * 0.75 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ formatPrice(priceLabels.y25) }}</text>
 
             <!-- Today Active Day Guidance Line -->
             <line 
