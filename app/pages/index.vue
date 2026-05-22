@@ -190,7 +190,7 @@
           <div>
             <h3 class="text-xl font-black text-slate-100 tracking-tight">최근 주요 이슈</h3>
           </div>
-            <NuxtLink to="/news" class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus">
+            <NuxtLink to="/info?tab=news" class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus">
               <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
             </NuxtLink>
         </div>
@@ -305,7 +305,7 @@ const navigateToNews = (item: any) => {
   if (url) {
     window.open(url, '_blank')
   } else {
-    navigateTo('/news')
+    navigateTo('/info?tab=news')
   }
 }
 

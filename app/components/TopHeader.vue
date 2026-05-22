@@ -69,7 +69,7 @@
                     <div 
                       v-for="item in notifications" 
                       :key="item.id"
-                      @click="item.type === 'recommendation' ? navigateTo('/stocks/' + item.code) : navigateTo('/news?tab=indicators')"
+                      @click="item.type === 'recommendation' ? navigateTo('/stocks/' + item.code) : navigateTo('/info?tab=indicators')"
                       class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
                     >
                     <div class="flex flex-col gap-1">
