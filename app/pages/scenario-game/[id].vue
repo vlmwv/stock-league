@@ -86,7 +86,63 @@ const getVolumeY = (volume: number) => {
   return volumeHeight - (volume / maxVol) * volumeHeight
 }
 
-// 4. 오늘의 뉴스 및 힌트 텍스트 추출
+// 4. 호버 및 활성화된 캔들 인덱스 감지 상태 변수
+const hoveredIndex = ref<number | null>(null)
+
+const activeCandle = computed(() => {
+  if (hoveredIndex.value !== null && visibleCandles.value[hoveredIndex.value]) {
+    return visibleCandles.value[hoveredIndex.value]
+  }
+  return visibleCandles.value[visibleCandles.value.length - 1]
+})
+
+const activeCandleIndex = computed(() => {
+  if (hoveredIndex.value !== null) return hoveredIndex.value
+  return visibleCandles.value.length - 1
+})
+
+// 전일 종가 대비 당일 종가 기준으로 색상을 결정하는 헬퍼 함수
+const getCandleColor = (index: number) => {
+  const candles = visibleCandles.value
+  if (candles.length === 0 || !candles[index]) return '#ef4444'
+  if (index === 0) {
+    return candles[index].close >= candles[index].open ? '#ef4444' : '#3b82f6'
+  }
+  const prev = candles[index - 1]
+  if (!prev) return '#ef4444'
+  const prevClose = prev.close
+  const currClose = candles[index].close
+  return currClose >= prevClose ? '#ef4444' : '#3b82f6'
+}
+
+const getVolumeColor = (index: number) => {
+  const candles = visibleCandles.value
+  if (candles.length === 0 || !candles[index]) return 'rgba(239,68,68,0.45)'
+  if (index === 0) {
+    return candles[index].close >= candles[index].open ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'
+  }
+  const prev = candles[index - 1]
+  if (!prev) return 'rgba(239,68,68,0.45)'
+  const prevClose = prev.close
+  const currClose = candles[index].close
+  return currClose >= prevClose ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'
+}
+
+const activeCandleColorClass = computed(() => {
+  const index = activeCandleIndex.value
+  const candles = visibleCandles.value
+  if (candles.length === 0 || !candles[index]) return 'text-rose-400'
+  if (index === 0) {
+    return candles[index].close >= candles[index].open ? 'text-rose-400' : 'text-blue-400'
+  }
+  const prev = candles[index - 1]
+  if (!prev) return 'text-rose-400'
+  const prevClose = prev.close
+  const currClose = candles[index].close
+  return currClose >= prevClose ? 'text-rose-400' : 'text-blue-400'
+})
+
+// 5. 오늘의 뉴스 및 힌트 텍스트 추출
 const todayEvent = computed(() => {
   if (!scenario.value) return null
   return scenario.value.events.find(e => e.day === currentDay.value)
@@ -240,12 +296,38 @@ onMounted(async () => {
 
         <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
-          <!-- Chart Title -->
-          <div class="flex justify-between items-start mb-4">
-            <span class="text-[10px] font-bold text-slate-500 tracking-widest">가격 변동 이력</span>
-            <span class="text-xs font-mono font-black text-brand-primary">
-              현재 종가: {{ visibleCandles[visibleCandles.length - 1]?.close.toLocaleString() }}원
-            </span>
+          <!-- Chart Title & Interactive OHLCV Dashboard -->
+          <div class="flex flex-col gap-3 mb-4">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-bold text-slate-500 tracking-widest">가격 변동 이력</span>
+              <span class="text-[10px] font-bold text-slate-400 font-mono">
+                {{ activeCandleIndex === visibleCandles.length - 1 ? '실시간 (최종일)' : `${activeCandleIndex + 1}일차` }}
+              </span>
+            </div>
+            
+            <!-- OHLCV Board -->
+            <div class="grid grid-cols-5 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[10px] font-mono">
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">시가</span>
+                <span class="text-slate-300 font-bold">{{ activeCandle?.open.toLocaleString() }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">고가</span>
+                <span class="text-rose-400 font-bold">{{ activeCandle?.high.toLocaleString() }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">저가</span>
+                <span class="text-blue-400 font-bold">{{ activeCandle?.low.toLocaleString() }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">종가</span>
+                <span class="font-bold" :class="activeCandleColorClass">{{ activeCandle?.close.toLocaleString() }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">거래량</span>
+                <span class="text-slate-300 font-bold">{{ activeCandle?.volume.toLocaleString() }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- SVG Canvas -->
@@ -302,7 +384,7 @@ onMounted(async () => {
                 :y1="getY(candle.high)" 
                 :x2="getX(index)" 
                 :y2="getY(candle.low)" 
-                :stroke="candle.close >= candle.open ? '#ef4444' : '#3b82f6'" 
+                :stroke="getCandleColor(index)" 
                 stroke-width="1.8" 
               />
               <!-- Open-Close body -->
@@ -311,7 +393,7 @@ onMounted(async () => {
                 :y="Math.min(getY(candle.open), getY(candle.close))" 
                 width="8" 
                 :height="Math.max(Math.abs(getY(candle.open) - getY(candle.close)), 1)" 
-                :fill="candle.close >= candle.open ? '#ef4444' : '#3b82f6'" 
+                :fill="getCandleColor(index)" 
                 :stroke="isDark ? '#0d1527' : '#ffffff'"
                 stroke-width="1"
                 rx="1"
@@ -325,8 +407,22 @@ onMounted(async () => {
                 :y="chartHeight + 15 + (volumeHeight - getVolumeY(candle.volume))" 
                 width="6" 
                 :height="getVolumeY(candle.volume)" 
-                :fill="candle.close >= candle.open ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'" 
+                :fill="getVolumeColor(index)" 
                 rx="0.5"
+              />
+            </g>
+
+            <!-- Hover detection pillars -->
+            <g v-for="(candle, index) in visibleCandles" :key="'hover-' + index">
+              <rect 
+                :x="getX(index) - (chartWidth / Math.max(visibleCandles.length, 10)) / 2"
+                y="0"
+                :width="chartWidth / Math.max(visibleCandles.length, 10)"
+                :height="chartHeight + volumeHeight + 20"
+                fill="transparent"
+                class="cursor-pointer hover:fill-white/5 transition-colors duration-150"
+                @mouseenter="hoveredIndex = index"
+                @mouseleave="hoveredIndex = null"
               />
             </g>
           </svg>
