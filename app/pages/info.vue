@@ -83,12 +83,19 @@
               <h3 class="text-base font-black text-slate-100 tracking-tight">실시간 인기 테마</h3>
               <span class="text-[9px] font-bold text-slate-500">평균 등락률 순위</span>
             </div>
-            <NuxtLink to="/stocks?tab=themes" class="text-[10px] font-black text-brand-primary hover:underline">더보기</NuxtLink>
+            <button 
+              v-if="themes && themes.length > 3"
+              @click="isThemesExpanded = !isThemesExpanded"
+              class="text-[10px] font-black text-brand-primary hover:underline focus:outline-none flex items-center gap-0.5"
+            >
+              {{ isThemesExpanded ? '접기' : '더보기' }}
+              <UIcon :name="isThemesExpanded ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" class="w-3 h-3" />
+            </button>
           </div>
 
-          <div class="flex flex-col gap-2.5">
+          <div class="flex flex-col gap-2.5 transition-all duration-500 ease-in-out">
             <div 
-              v-for="(theme, idx) in themes.slice(0, 3)" 
+              v-for="(theme, idx) in themes.slice(0, isThemesExpanded ? themes.length : 3)" 
               :key="theme.sector"
               @click="handleOpenThemeModal(theme)"
               class="flex items-center justify-between bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-xl p-3 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
@@ -96,7 +103,7 @@
               <div class="flex items-center gap-3">
                 <span 
                   class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black"
-                  :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : 'bg-amber-600/20 text-amber-500'"
+                  :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-500'"
                 >
                   {{ idx + 1 }}
                 </span>
@@ -478,6 +485,8 @@ const activeTab = ref<'stock' | 'news' | 'indicators'>(
   (route.query.tab as any) === 'indicators' ? 'indicators' : 
   (route.query.tab as any) === 'news' ? 'news' : 'stock'
 )
+
+const isThemesExpanded = ref(false)
 
 // 아코디언 상태 관리 ('tax' | 'etf' | 'manager' | null)
 const expandedGuide = ref<'tax' | 'etf' | 'manager' | null>(null)
