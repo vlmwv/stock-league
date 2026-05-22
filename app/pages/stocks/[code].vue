@@ -341,6 +341,8 @@ import { repairNewsUrl } from '~/utils/stock'
 
 const route = useRoute()
 const router = useRouter()
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
 const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
@@ -649,7 +651,7 @@ const chartAnnotations = computed(() => {
         const isNegative = /하락|급락|악재|적자|우려|부진|감소|소송|하한가/i.test(title)
         
         let textColor = '#22c55e' // 기본 초록 (Green 500)
-        let bgColor = '#0f172a'
+        let bgColor = isDark.value ? '#0f172a' : '#f8fafc'
         let borderColor = '#22c55e'
 
         if (isPositive) {
@@ -756,7 +758,7 @@ const chartOptions = computed(() => ({
   },
   grid: {
     show: true,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: isDark.value ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.08)',
     strokeDashArray: 4,
     padding: { left: -10, right: 0, top: 0, bottom: 0 }
   },
@@ -782,7 +784,7 @@ const chartOptions = computed(() => ({
     opposite: true,
     labels: {
       style: {
-        colors: '#64748b',
+        colors: isDark.value ? '#64748b' : '#475569',
         fontSize: '10px',
         fontWeight: 600
       },
@@ -797,7 +799,7 @@ const chartOptions = computed(() => ({
     }
   },
   tooltip: {
-    theme: 'dark',
+    theme: isDark.value ? 'dark' : 'light',
     x: { format: 'MM월 dd일' },
     y: {
       title: {
@@ -842,7 +844,7 @@ const volumeChartOptions = computed(() => ({
   },
   grid: {
     show: true,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: isDark.value ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.08)',
     strokeDashArray: 4,
     padding: { left: -10, right: 0, top: 0, bottom: 0 }
   },
@@ -851,7 +853,7 @@ const volumeChartOptions = computed(() => ({
     labels: { 
       show: true,
       style: {
-        colors: '#64748b',
+        colors: isDark.value ? '#64748b' : '#475569',
         fontSize: '10px',
         fontWeight: 600
       },
@@ -879,7 +881,7 @@ const volumeChartOptions = computed(() => ({
     opposite: true,
     labels: {
       style: {
-        colors: '#64748b',
+        colors: isDark.value ? '#64748b' : '#475569',
         fontSize: '10px',
         fontWeight: 600
       },
@@ -894,7 +896,7 @@ const volumeChartOptions = computed(() => ({
     }
   },
   tooltip: {
-    theme: 'dark',
+    theme: isDark.value ? 'dark' : 'light',
     x: { format: 'MM월 dd일' },
     y: {
       title: {

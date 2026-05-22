@@ -4,6 +4,8 @@ import ScenarioRanking from '~/components/ScenarioRanking.vue'
 
 const route = useRoute()
 const router = useRouter()
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
 const { scenarios, submitScenarioAttempt, fetchUserAttempts } = useScenario()
 const user = useSupabaseUser()
 
@@ -249,14 +251,14 @@ onMounted(async () => {
           <!-- SVG Canvas -->
           <svg :width="chartWidth" :height="chartHeight + volumeHeight + 20" class="overflow-visible">
             <!-- Grid Lines & Price Labels (Korean & Guidance) -->
-            <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" stroke="rgba(255,255,255,0.08)" />
-            <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y75.toLocaleString() }}원</text>
+            <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" />
+            <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y75.toLocaleString() }}원</text>
             
-            <line x1="0" :y1="chartHeight * 0.5" :x2="chartWidth" :y2="chartHeight * 0.5" stroke="rgba(255,255,255,0.08)" />
-            <text :x="chartWidth" :y="chartHeight * 0.5 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y50.toLocaleString() }}원</text>
+            <line x1="0" :y1="chartHeight * 0.5" :x2="chartWidth" :y2="chartHeight * 0.5" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" />
+            <text :x="chartWidth" :y="chartHeight * 0.5 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y50.toLocaleString() }}원</text>
             
-            <line x1="0" :y1="chartHeight * 0.75" :x2="chartWidth" :y2="chartHeight * 0.75" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3" />
-            <text :x="chartWidth" :y="chartHeight * 0.75 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y25.toLocaleString() }}원</text>
+            <line x1="0" :y1="chartHeight * 0.75" :x2="chartWidth" :y2="chartHeight * 0.75" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" stroke-dasharray="3" />
+            <text :x="chartWidth" :y="chartHeight * 0.75 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y25.toLocaleString() }}원</text>
 
             <!-- Today Active Day Guidance Line -->
             <line 
@@ -265,7 +267,7 @@ onMounted(async () => {
               y1="0" 
               :x2="getX(currentDay - 1)" 
               :y2="chartHeight + volumeHeight + 15" 
-              stroke="rgba(239, 68, 68, 0.25)" 
+              :stroke="isDark ? 'rgba(239, 68, 68, 0.25)' : 'rgba(220, 38, 38, 0.35)'" 
               stroke-dasharray="3" 
               stroke-width="1.5"
             />
@@ -278,7 +280,7 @@ onMounted(async () => {
                   y1="0" 
                   :x2="getX(event.day - 1)" 
                   :y2="chartHeight" 
-                  stroke="rgba(56, 189, 248, 0.3)" 
+                  :stroke="isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.35)'" 
                   stroke-dasharray="2" 
                 />
                 <!-- Event marker node -->
@@ -310,7 +312,7 @@ onMounted(async () => {
                 width="8" 
                 :height="Math.max(Math.abs(getY(candle.open) - getY(candle.close)), 1)" 
                 :fill="candle.close >= candle.open ? '#ef4444' : '#3b82f6'" 
-                stroke="#0d1527"
+                :stroke="isDark ? '#0d1527' : '#ffffff'"
                 stroke-width="1"
                 rx="1"
               />
