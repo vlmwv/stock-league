@@ -5,17 +5,17 @@
     <main class="max-w-sm mx-auto px-4 py-6">
       <!-- User Profile Card -->
       <section class="mb-6">
-        <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-900/40 via-slate-800/40 to-slate-900/40 border border-white/10 p-4 pt-6 shadow-3xl text-center">
+        <div class="profile-card relative overflow-hidden rounded-[2.5rem] p-4 pt-6 shadow-3xl text-center">
           <div class="relative z-10">
             <div class="relative inline-block mb-6">
               <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"></div>
-              <div class="relative w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-slate-700 p-1 shadow-2xl overflow-hidden flex items-center justify-center">
+              <div class="profile-avatar relative w-24 h-24 rounded-[2rem] p-1 shadow-2xl overflow-hidden flex items-center justify-center">
                 <img v-if="stats?.avatarUrl" :src="stats.avatarUrl" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
-                  <UIcon :name="stats?.gender === 'female' ? 'i-mdi-gender-female' : stats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
+                   <UIcon :name="stats?.gender === 'female' ? 'i-mdi-gender-female' : stats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
                 </div>
               </div>
-              <div @click="openEditModal" class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-brand-primary border-4 border-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+              <div @click="openEditModal" class="profile-edit-btn absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-white" />
               </div>
             </div>
@@ -23,7 +23,7 @@
             <h2 class="text-2xl font-black text-slate-100 tracking-tight mb-1">{{ stats?.displayName || user?.user_metadata?.full_name || user?.email?.split('@')[0] }}님</h2>
             <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6">마스터 예측 티어</p>
             
-            <div class="grid grid-cols-3 gap-4 border-t border-white/5 pt-6">
+            <div class="grid grid-cols-3 gap-4 profile-card-divider pt-6">
               <div>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">이번 달 순위</p>
                 <p class="text-lg font-black text-brand-primary flex items-center justify-center gap-1">
@@ -34,7 +34,7 @@
                   <span v-else>-</span>
                 </p>
               </div>
-              <div class="border-x border-white/5">
+              <div class="profile-card-col-divider">
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">포인트</p>
                 <p class="text-lg font-black text-slate-200">{{ stats?.points?.toLocaleString() || 0 }}</p>
               </div>
