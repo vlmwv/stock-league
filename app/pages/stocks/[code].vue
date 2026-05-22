@@ -970,20 +970,20 @@ onMounted(async () => {
 :deep(.apexcharts-toolbar) {
   top: -38px !important;
   right: -10px !important;
-  padding: 4px 6px !important;
-  background: rgba(15, 23, 42, 0.4) !important;
-  border-radius: 12px !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(8px) !important;
+  padding: 2px !important;
+  background: transparent !important; /* 회색 덮개를 제거하기 위해 완전 투명화 */
+  border: none !important; /* 테두리 제거 */
+  backdrop-filter: none !important; /* 블러 필터 제거 */
+  box-shadow: none !important;
 }
 
 :deep(.apexcharts-toolbar svg) {
-  fill: #94a3b8 !important; /* slate-400 */
+  fill: #64748b !important; /* slate-500 으로 더 조화롭게 변경 */
   transform: scale(0.85) !important;
 }
 
 :deep(.apexcharts-toolbar svg:hover) {
-  fill: #6366f1 !important; /* indigo-500 */
+  fill: #ef4444 !important; /* 선명한 상승 빨간색으로 호버 피드백 변경 */
 }
 
 :deep(.apexcharts-xcrosshairs), :deep(.apexcharts-ycrosshairs) {
