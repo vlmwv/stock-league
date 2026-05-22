@@ -64,8 +64,11 @@ export default defineEventHandler(async (event) => {
     theme.stocks.sort((a, b) => (a.market_cap_rank ?? 99999) - (b.market_cap_rank ?? 99999))
   }
 
-  // 테마 전체를 평균 등락률이 높은 순(내림차순)으로 정렬하여 상위 8개만 추려냅니다.
-  themesList.sort((a, b) => b.avg_change_rate - a.avg_change_rate)
+  // 최소 3개 이상의 종목으로 구성된 테마만 필터링합니다.
+  const filteredThemes = themesList.filter(theme => theme.stock_count >= 3)
 
-  return themesList.slice(0, 8)
+  // 테마 전체를 평균 등락률이 높은 순(내림차순)으로 정렬하여 상위 8개만 추려냅니다.
+  filteredThemes.sort((a, b) => b.avg_change_rate - a.avg_change_rate)
+
+  return filteredThemes.slice(0, 8)
 })

@@ -104,7 +104,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 2. 30일 시나리오 예측 게임 카드 -->
+        <!-- 2. 역사/가상 시나리오 예측 게임 카드 -->
         <div 
           @click="handleScenarios"
           class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 relative overflow-hidden group hover:border-brand-secondary/30 transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(30,41,59,1)] cursor-pointer"
@@ -119,7 +119,7 @@ onMounted(async () => {
                   Survival Simulation
                 </div>
                 <h3 class="text-xl font-black text-slate-100 group-hover:text-brand-secondary transition-colors leading-tight">
-                  30일 시나리오 예측 게임 📈
+                  역사 & 가상 시나리오 예측 서바이벌 📈
                 </h3>
               </div>
               <div class="w-10 h-10 rounded-2xl bg-brand-secondary/10 border border-brand-secondary/20 flex items-center justify-center text-brand-secondary shrink-0 group-hover:scale-110 group-hover:bg-brand-secondary group-hover:text-slate-900 transition-all">
@@ -128,7 +128,7 @@ onMounted(async () => {
             </div>
             
             <p class="text-xs text-slate-400 leading-relaxed font-medium">
-              역사적 금융위기(IMF, 리먼 쇼크)부터 가상의 AI 버블 붕괴까지! 격변하는 시장 시나리오에서 단 30일간 자산을 굴려 살아남으세요.
+              역사적 금융위기(IMF, 리먼 쇼크)부터 가상의 미래 AI 대변혁까지! 격변하는 시장 시나리오의 흐름 속에서 끝까지 자산을 지켜내고 생존하세요.
             </p>
 
             <div class="p-4 rounded-2xl bg-slate-800/30 border border-white/5 text-xs text-slate-400 leading-normal">

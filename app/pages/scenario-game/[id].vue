@@ -205,7 +205,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 30일 완성 캔들 차트 (SVG 기반 부드러운 반응형) -->
+        <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
           <!-- Chart Title -->
           <div class="flex justify-between items-start mb-4">
