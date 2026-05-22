@@ -157,8 +157,17 @@ onMounted(async () => {
     <main v-if="scenario" class="max-w-md mx-auto px-6 py-6">
       <!-- Scenario Title -->
       <section class="mb-6">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border"
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <!-- 가상/역사 마크 -->
+          <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
+            :class="scenario.type === '가상' 
+              ? 'bg-purple-500/20 border-purple-500/30 text-purple-400' 
+              : 'bg-blue-500/20 border-blue-500/30 text-blue-400'"
+          >
+            {{ scenario.type }}
+          </span>
+          <!-- 난이도 마크 -->
+          <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
             :class="scenario.difficulty === '어려움' 
               ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
               : scenario.difficulty === '보통' 

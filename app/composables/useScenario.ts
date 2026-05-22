@@ -19,6 +19,7 @@ export interface Scenario {
   title: string
   subtitle: string
   difficulty: '어려움' | '보통' | '쉬움'
+  type: '역사' | '가상'
   indexName: 'S&P 500' | 'KOSPI' | 'NASDAQ'
   startDate: string
   endDate: string
@@ -37,6 +38,7 @@ export const useScenario = () => {
       title: '2008 글로벌 금융위기',
       subtitle: 'S&P 500 | 2008-09-01 ~ 2008-10-15',
       difficulty: '어려움',
+      type: '역사',
       indexName: 'S&P 500',
       startDate: '2008-09-01',
       endDate: '2008-10-15',
@@ -79,6 +81,7 @@ export const useScenario = () => {
       title: '2020 코로나 팬데믹 폭락',
       subtitle: 'KOSPI | 2020-03-02 ~ 2020-04-10',
       difficulty: '보통',
+      type: '역사',
       indexName: 'KOSPI',
       startDate: '2020-03-02',
       endDate: '2020-04-10',
@@ -117,6 +120,7 @@ export const useScenario = () => {
       title: '2026 DeepSeek 쇼크와 AI 버블론',
       subtitle: 'NASDAQ | 2026-01-15 ~ 2026-02-25',
       difficulty: '어려움',
+      type: '가상',
       indexName: 'NASDAQ',
       startDate: '2026-01-15',
       endDate: '2026-02-25',
@@ -157,6 +161,7 @@ export const useScenario = () => {
       title: '1997 IMF 외환위기',
       subtitle: 'KOSPI | 1997-10-01 ~ 1998-02-28',
       difficulty: '어려움',
+      type: '역사',
       indexName: 'KOSPI',
       startDate: '1997-10-01',
       endDate: '1998-02-28',
@@ -199,6 +204,7 @@ export const useScenario = () => {
       title: '2000 닷컴 버블 붕괴',
       subtitle: 'NASDAQ | 2000-03-01 ~ 2000-10-15',
       difficulty: '어려움',
+      type: '역사',
       indexName: 'NASDAQ',
       startDate: '2000-03-01',
       endDate: '2000-10-15',
@@ -241,6 +247,7 @@ export const useScenario = () => {
       title: '2025 러-우 전쟁 전격 종식 및 재건',
       subtitle: 'S&P 500 | 2025-06-01 ~ 2025-10-15',
       difficulty: '보통',
+      type: '역사',
       indexName: 'S&P 500',
       startDate: '2025-06-01',
       endDate: '2025-10-15',
@@ -284,6 +291,7 @@ export const useScenario = () => {
       title: '2026 이란-중동 전쟁 발발',
       subtitle: 'NASDAQ | 2026-09-01 ~ 2026-12-10',
       difficulty: '어려움',
+      type: '역사',
       indexName: 'NASDAQ',
       startDate: '2026-09-01',
       endDate: '2026-12-10',
@@ -328,6 +336,7 @@ export const useScenario = () => {
       title: '2028 메타버스 디바이스 혁명',
       subtitle: 'NASDAQ | 2028-03-01 ~ 2028-06-20',
       difficulty: '보통',
+      type: '가상',
       indexName: 'NASDAQ',
       startDate: '2028-03-01',
       endDate: '2028-06-20',
@@ -372,6 +381,7 @@ export const useScenario = () => {
       title: '2030 AGI 싱귤래리티와 노동의 종말',
       subtitle: 'NASDAQ | 2030-01-10 ~ 2030-05-20',
       difficulty: '어려움',
+      type: '가상',
       indexName: 'NASDAQ',
       startDate: '2030-01-10',
       endDate: '2030-05-20',
@@ -416,6 +426,7 @@ export const useScenario = () => {
       title: '2029 슈퍼 엘니뇨와 기후 리스크',
       subtitle: 'KOSPI | 2029-07-01 ~ 2029-10-10',
       difficulty: '보통',
+      type: '가상',
       indexName: 'KOSPI',
       startDate: '2029-07-01',
       endDate: '2029-10-10',

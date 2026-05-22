@@ -184,24 +184,35 @@ onMounted(async () => {
           >
             <!-- Badge Header -->
             <div class="flex items-center justify-between mb-4 gap-2">
-              <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
-              :class="item.difficulty === '어려움' 
-                ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
-                : item.difficulty === '보통' 
-                  ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' 
-                  : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'"
-            >
-              <div class="flex items-center gap-0.5">
-                <UIcon 
-                  v-for="n in 3" 
-                  :key="n" 
-                  name="i-heroicons-star-20-solid" 
-                  class="w-3 h-3"
-                  :class="n <= (item.difficulty === '어려움' ? 3 : item.difficulty === '보통' ? 2 : 1) ? '' : 'opacity-20'"
-                />
+              <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+                <!-- 가상/역사 마크 -->
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
+                  :class="item.type === '가상' 
+                    ? 'bg-purple-500/20 border-purple-500/30 text-purple-400' 
+                    : 'bg-blue-500/20 border-blue-500/30 text-blue-400'"
+                >
+                  {{ item.type }}
+                </span>
+                <!-- 난이도 마크 -->
+                <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
+                  :class="item.difficulty === '어려움' 
+                    ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
+                    : item.difficulty === '보통' 
+                      ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' 
+                      : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'"
+                >
+                  <div class="flex items-center gap-0.5">
+                    <UIcon 
+                      v-for="n in 3" 
+                      :key="n" 
+                      name="i-heroicons-star-20-solid" 
+                      class="w-3 h-3"
+                      :class="n <= (item.difficulty === '어려움' ? 3 : item.difficulty === '보통' ? 2 : 1) ? '' : 'opacity-20'"
+                    />
+                  </div>
+                  <span class="text-[9px] font-black uppercase tracking-wider ml-0.5">{{ item.difficulty }}</span>
+                </div>
               </div>
-              <span class="text-[9px] font-black uppercase tracking-wider ml-0.5">{{ item.difficulty }}</span>
-            </div>
               
               <!-- 도전 완료 여부 배지 (정답 수 / 총 문제 수 표시 추가) -->
               <div v-if="getAttempt(item.id)" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-400 shrink-0">
