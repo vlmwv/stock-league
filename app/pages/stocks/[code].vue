@@ -56,7 +56,7 @@
         <!-- 차트 섹션 (이력 탭에서만 보일지 고민하다가, 공통 정보로 상단에 작게 배치하거나 이력 탭에만 넣기로 함. 여기서는 상단 유지) -->
         <section class="glass-dark rounded-[2.5rem] p-6 border border-white/5 relative overflow-hidden">
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Price & Volume</h3>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">주가 및 거래량</h3>
             <div class="flex items-center gap-3">
               <!-- 마커 체크박스 -->
               <label class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
@@ -137,7 +137,7 @@
 
           <!-- 탭 콘텐츠: 주가 이력 -->
           <div v-if="activeTab === 'history'" class="space-y-4 animate-fade-in">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2">Price History</h3>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2">주가 이력</h3>
             <div class="space-y-3">
               <div v-for="item in priceHistory" :key="item.price_date" class="glass-dark rounded-2xl p-4 border border-white/5 flex flex-col gap-2">
                 <div class="flex items-center justify-between">
@@ -213,7 +213,7 @@
 
                   <div v-if="item.llm_summary" class="bg-indigo-500/[0.04] rounded-xl p-3.5 border border-white/5">
                     <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
-                      <span class="text-brand-primary/80 font-black mr-1.5 uppercase text-[9px]">AI Summary</span>
+                      <span class="text-brand-primary/80 font-black mr-1.5 uppercase text-[9px]">AI 요약</span>
                       {{ item.llm_summary }}
                     </p>
                   </div>
@@ -330,7 +330,7 @@
       <!-- 로딩 상태 -->
       <div v-else class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm text-slate-500 font-bold animate-pulse uppercase tracking-widest">Loading Stock Info...</p>
+        <p class="text-sm text-slate-500 font-bold animate-pulse uppercase tracking-widest">종목 정보 불러오는 중...</p>
       </div>
     </div>
   </div>
@@ -501,7 +501,7 @@ const volumeSeries = computed(() => {
       return {
         x: new Date(h.price_date).getTime(),
         y: h.volume || 0,
-        fillColor: isUp ? '#f87171' : '#818cf8'
+        fillColor: isUp ? '#ef4444' : '#3b82f6'
       }
     })
   }]
@@ -699,6 +699,25 @@ const chartOptions = computed(() => ({
     id: 'stock-candlestick',
     group: 'stock-charts',
     type: 'candlestick',
+    locales: [{
+      name: 'ko',
+      options: {
+        months: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        shortMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        days: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+        shortDays: ['일', '월', '화', '수', '목', '금', '토'],
+        toolbar: {
+          download: '이미지 다운로드',
+          selection: '선택 영역',
+          selectionZoom: '선택 영역 확대',
+          zoomIn: '확대',
+          zoomOut: '축소',
+          pan: '이동',
+          reset: '원래대로'
+        }
+      }
+    }],
+    defaultLocale: 'ko',
     toolbar: { 
       show: true,
       tools: {
@@ -727,8 +746,8 @@ const chartOptions = computed(() => ({
   plotOptions: {
     candlestick: {
       colors: {
-        upward: '#f87171',
-        downward: '#818cf8'
+        upward: '#ef4444',
+        downward: '#3b82f6'
       },
       wick: {
         useFillColor: true
@@ -736,7 +755,9 @@ const chartOptions = computed(() => ({
     }
   },
   grid: {
-    show: false,
+    show: true,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    strokeDashArray: 4,
     padding: { left: -10, right: 0, top: 0, bottom: 0 }
   },
   xaxis: {
@@ -765,7 +786,12 @@ const chartOptions = computed(() => ({
         fontSize: '10px',
         fontWeight: 600
       },
-      formatter: (val: number) => val >= 1000 ? (val / 1000).toLocaleString() + 'k' : val.toLocaleString(),
+      formatter: (val: number) => {
+        if (val >= 100000000) return (val / 100000000).toLocaleString() + '억'
+        if (val >= 10000) return (val / 10000).toLocaleString() + '만'
+        if (val >= 1000) return (val / 1000).toLocaleString() + '천'
+        return val.toLocaleString()
+      },
       minWidth: 65, // Y축 너비 고정하여 하단 차트와 완벽 매칭
       maxWidth: 65
     }
@@ -773,6 +799,17 @@ const chartOptions = computed(() => ({
   tooltip: {
     theme: 'dark',
     x: { format: 'MM월 dd일' },
+    y: {
+      title: {
+        formatter: (seriesName) => {
+          if (seriesName === 'Open') return '시가'
+          if (seriesName === 'High') return '고가'
+          if (seriesName === 'Low') return '저가'
+          if (seriesName === 'Close') return '종가'
+          return seriesName
+        }
+      }
+    },
     style: {
       fontSize: '10px'
     }
@@ -804,7 +841,9 @@ const volumeChartOptions = computed(() => ({
     }
   },
   grid: {
-    show: false,
+    show: true,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    strokeDashArray: 4,
     padding: { left: -10, right: 0, top: 0, bottom: 0 }
   },
   xaxis: {
@@ -845,8 +884,9 @@ const volumeChartOptions = computed(() => ({
         fontWeight: 600
       },
       formatter: (val: number) => {
-        if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M'
-        if (val >= 1000) return (val / 1000).toFixed(0) + 'K'
+        if (val >= 100000000) return (val / 100000000).toFixed(1) + '억'
+        if (val >= 10000) return (val / 10000).toFixed(0) + '만'
+        if (val >= 1000) return (val / 1000).toFixed(0) + '천'
         return val.toString()
       },
       minWidth: 65, // Y축 너비 고정하여 상단 차트와 완벽 매칭
@@ -856,6 +896,14 @@ const volumeChartOptions = computed(() => ({
   tooltip: {
     theme: 'dark',
     x: { format: 'MM월 dd일' },
+    y: {
+      title: {
+        formatter: (seriesName) => {
+          if (seriesName === 'Volume' || seriesName === '거래량') return '거래량'
+          return seriesName
+        }
+      }
+    },
     style: {
       fontSize: '10px'
     }

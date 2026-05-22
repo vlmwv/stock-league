@@ -58,6 +58,15 @@ const minMax = computed(() => {
   return { min: min - buffer, max: max + buffer }
 })
 
+const priceLabels = computed(() => {
+  const { min, max } = minMax.value
+  return {
+    y75: Math.round(max - 0.25 * (max - min)),
+    y50: Math.round(max - 0.5 * (max - min)),
+    y25: Math.round(max - 0.75 * (max - min))
+  }
+})
+
 const getX = (index: number) => {
   const total = visibleCandles.value.length
   const step = chartWidth / Math.max(total, 10)
@@ -219,7 +228,7 @@ onMounted(async () => {
         <div class="flex justify-between items-center bg-slate-800/40 border border-white/5 rounded-2xl p-4">
           <div>
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">게임 진행도</p>
-            <p class="text-sm font-black text-slate-200">Day {{ currentDay }} / {{ totalDays }}</p>
+            <p class="text-sm font-black text-slate-200">{{ currentDay }}일차 / {{ totalDays }}일</p>
           </div>
           <div class="text-right">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
@@ -231,18 +240,35 @@ onMounted(async () => {
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
           <!-- Chart Title -->
           <div class="flex justify-between items-start mb-4">
-            <span class="text-[10px] font-bold text-slate-500">PRICE HISTORY</span>
+            <span class="text-[10px] font-bold text-slate-500 tracking-widest">가격 변동 이력</span>
             <span class="text-xs font-mono font-black text-brand-primary">
-              종가: {{ visibleCandles[visibleCandles.length - 1]?.close.toLocaleString() }}
+              현재 종가: {{ visibleCandles[visibleCandles.length - 1]?.close.toLocaleString() }}원
             </span>
           </div>
 
           <!-- SVG Canvas -->
           <svg :width="chartWidth" :height="chartHeight + volumeHeight + 20" class="overflow-visible">
-            <!-- Grid Lines -->
-            <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" stroke="rgba(255,255,255,0.03)" />
-            <line x1="0" :y1="chartHeight * 0.5" :x2="chartWidth" :y2="chartHeight * 0.5" stroke="rgba(255,255,255,0.03)" />
-            <line x1="0" :y1="chartHeight * 0.75" :x2="chartWidth" :y2="chartHeight * 0.75" stroke="rgba(255,255,255,0.03)" stroke-dasharray="3" />
+            <!-- Grid Lines & Price Labels (Korean & Guidance) -->
+            <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" stroke="rgba(255,255,255,0.08)" />
+            <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y75.toLocaleString() }}원</text>
+            
+            <line x1="0" :y1="chartHeight * 0.5" :x2="chartWidth" :y2="chartHeight * 0.5" stroke="rgba(255,255,255,0.08)" />
+            <text :x="chartWidth" :y="chartHeight * 0.5 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y50.toLocaleString() }}원</text>
+            
+            <line x1="0" :y1="chartHeight * 0.75" :x2="chartWidth" :y2="chartHeight * 0.75" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3" />
+            <text :x="chartWidth" :y="chartHeight * 0.75 - 4" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ priceLabels.y25.toLocaleString() }}원</text>
+
+            <!-- Today Active Day Guidance Line -->
+            <line 
+              v-if="visibleCandles.length > 0"
+              :x1="getX(currentDay - 1)" 
+              y1="0" 
+              :x2="getX(currentDay - 1)" 
+              :y2="chartHeight + volumeHeight + 15" 
+              stroke="rgba(239, 68, 68, 0.25)" 
+              stroke-dasharray="3" 
+              stroke-width="1.5"
+            />
 
             <!-- Event Vertical lines & Markers -->
             <g v-for="event in scenario.events" :key="event.day">
@@ -252,7 +278,7 @@ onMounted(async () => {
                   y1="0" 
                   :x2="getX(event.day - 1)" 
                   :y2="chartHeight" 
-                  stroke="rgba(56, 189, 248, 0.2)" 
+                  stroke="rgba(56, 189, 248, 0.3)" 
                   stroke-dasharray="2" 
                 />
                 <!-- Event marker node -->
@@ -274,8 +300,8 @@ onMounted(async () => {
                 :y1="getY(candle.high)" 
                 :x2="getX(index)" 
                 :y2="getY(candle.low)" 
-                :stroke="candle.close >= candle.open ? '#f87171' : '#60a5fa'" 
-                stroke-width="1.5" 
+                :stroke="candle.close >= candle.open ? '#ef4444' : '#3b82f6'" 
+                stroke-width="1.8" 
               />
               <!-- Open-Close body -->
               <rect 
@@ -283,7 +309,9 @@ onMounted(async () => {
                 :y="Math.min(getY(candle.open), getY(candle.close))" 
                 width="8" 
                 :height="Math.max(Math.abs(getY(candle.open) - getY(candle.close)), 1)" 
-                :fill="candle.close >= candle.open ? '#f87171' : '#60a5fa'" 
+                :fill="candle.close >= candle.open ? '#ef4444' : '#3b82f6'" 
+                stroke="#0d1527"
+                stroke-width="1"
                 rx="1"
               />
             </g>
@@ -295,7 +323,7 @@ onMounted(async () => {
                 :y="chartHeight + 15 + (volumeHeight - getVolumeY(candle.volume))" 
                 width="6" 
                 :height="getVolumeY(candle.volume)" 
-                :fill="candle.close >= candle.open ? 'rgba(248,113,113,0.2)' : 'rgba(96,165,250,0.2)'" 
+                :fill="candle.close >= candle.open ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'" 
                 rx="0.5"
               />
             </g>
