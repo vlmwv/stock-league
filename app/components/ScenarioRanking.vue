@@ -66,7 +66,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-14 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
             <span class="text-xs font-black text-brand-primary">{{ topThree[1].score }}%</span>
-            <span class="text-[8px] font-bold text-slate-500">{{ topThree[1].correct_count }}승</span>
+            <span class="text-[8px] font-bold text-slate-500">{{ topThree[1].correct_count }} / {{ topThree[1].total_days || 30 }}</span>
           </div>
         </div>
 
@@ -87,7 +87,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-18 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
             <span class="text-sm font-black text-brand-primary">{{ topThree[0].score }}%</span>
-            <span class="text-[9px] font-black text-brand-primary/80">{{ topThree[0].correct_count }}승</span>
+            <span class="text-[9px] font-black text-brand-primary/80">{{ topThree[0].correct_count }} / {{ topThree[0].total_days || 30 }}</span>
           </div>
         </div>
 
@@ -107,7 +107,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-12 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
             <span class="text-xs font-black text-brand-primary">{{ topThree[2].score }}%</span>
-            <span class="text-[8px] font-bold text-slate-500">{{ topThree[2].correct_count }}승</span>
+            <span class="text-[8px] font-bold text-slate-500">{{ topThree[2].correct_count }} / {{ topThree[2].total_days || 30 }}</span>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ const formatDate = (dateStr: string) => {
           <!-- Wins / Attempts -->
           <div class="w-20 text-center shrink-0">
             <p class="text-[10px] font-bold text-slate-400">
-              <span class="text-rose-500">{{ rankingUser.correct_count }}승</span> / 30회
+              <span class="text-rose-500">{{ rankingUser.correct_count }}</span> / {{ rankingUser.total_days || 30 }}
             </p>
           </div>
 

@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
     .select(`
       score,
       correct_count,
+      total_days,
       completed_at,
       profiles (
         username,

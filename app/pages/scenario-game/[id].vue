@@ -158,11 +158,24 @@ onMounted(async () => {
       <!-- Scenario Title -->
       <section class="mb-6">
         <div class="flex items-center gap-2 mb-2">
-          <span class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
-            :class="scenario.difficulty === '어려움' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'"
+          <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border"
+            :class="scenario.difficulty === '어려움' 
+              ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
+              : scenario.difficulty === '보통' 
+                ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' 
+                : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'"
           >
-            {{ scenario.difficulty }}
-          </span>
+            <div class="flex items-center gap-0.5">
+              <UIcon 
+                v-for="n in 3" 
+                :key="n" 
+                name="i-heroicons-star-20-solid" 
+                class="w-3 h-3"
+                :class="n <= (scenario.difficulty === '어려움' ? 3 : scenario.difficulty === '보통' ? 2 : 1) ? '' : 'opacity-20'"
+              />
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-wider ml-0.5">{{ scenario.difficulty }}</span>
+          </div>
           <span class="text-[10px] font-bold text-slate-500">{{ totalDays }}일 스페셜</span>
         </div>
         <h2 class="text-2xl font-black text-slate-100">{{ scenario.title }}</h2>
