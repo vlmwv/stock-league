@@ -44,6 +44,9 @@ async function fixData() {
           const match = html.match(regex)
           if (match && match[1]) {
             realSector = match[1].trim()
+            if (realSector === '복합기업') {
+              realSector = '지주'
+            }
           }
         } catch (err: any) {
           console.warn(`Failed to crawl sector for ${s.stockName} (${s.itemCode}):`, err.message)
