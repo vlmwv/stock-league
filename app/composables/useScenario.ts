@@ -541,7 +541,7 @@ export const useScenario = () => {
 
   // 2. 로그인 유저의 시나리오 도전 내역 리스트 가져오기
   const fetchUserAttempts = async () => {
-    if (!user.value) return []
+    if (!user.value?.id) return []
     const { data, error } = await supabase
       .from('scenario_attempts')
       .select('scenario_id, score, correct_count, total_days, completed_at')
