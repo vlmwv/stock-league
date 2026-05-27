@@ -157,10 +157,11 @@ const handlePredict = async (prediction: 'up' | 'down') => {
     isFeedbackMode.value = false
     selectedPredict.value = null
     
-    if (currentDay.value < totalDays.value) {
+    if (currentDay.value < totalDays.value - 1) {
       currentDay.value++
     } else {
       // 최종 거래일 완료 시 최종 기록 Supabase 전송
+      currentDay.value++
       gameEnded.value = true
       await submitScore()
       activeTab.value = 'ranking'
@@ -264,7 +265,7 @@ onMounted(async () => {
       <!-- Tabs Navigation -->
       <div class="flex border-b border-white/5 mb-6">
         <button 
-          @click="activeTab = 'game'" 
+          @click="!hasAlreadyAttempted && (activeTab = 'game')" 
           :disabled="gameEnded && hasAlreadyAttempted"
           class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
           :class="[
@@ -284,7 +285,7 @@ onMounted(async () => {
       </div>
 
       <!-- TAB 1: GAME BOARD -->
-      <div v-if="activeTab === 'game'" class="space-y-6">
+      <div v-if="activeTab === 'game' && !hasAlreadyAttempted" class="space-y-6">
         <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
           <!-- Chart Title & Interactive OHLCV Dashboard -->
