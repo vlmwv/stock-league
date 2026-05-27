@@ -478,8 +478,12 @@ export const useStock = () => {
     
     let historyPrices: any[] = []
     if (stockIds.length > 0 && gameDates.length > 0) {
-      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
-      const searchStartDate = new Date(minDate)
+      const parseDateSafe = (dStr: string) => {
+        const parts = dStr.split('-')
+        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
+      }
+      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
+      const searchStartDate = new Date(minTime)
       searchStartDate.setDate(searchStartDate.getDate() - 10) 
       const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
 
@@ -492,33 +496,41 @@ export const useStock = () => {
       historyPrices = hpData || []
     }
 
-    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
-      // 추천 기준가(rec_price) 결정 로직 (fetchAiHistory와 동일)
-      const recPriceRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-      )
-      const sameDayRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-      )
-      
-      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
+    return (data || [])
+      .filter((ds: any) => ds.stocks)
+      .map((ds: any) => {
+        // 추천 기준가(rec_price) 결정 로직 (fetchAiHistory와 동일)
+        const recPriceRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+        )
+        const sameDayRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+        )
+        
+        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
+        if (!recPriceRecord && !sameDayRecord) {
+          return null
+        }
+        
+        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
 
-      return {
-        id: Number(ds.stocks.id),
-        daily_id: ds.id,
-        game_date: ds.game_date,
-        name: ds.stocks.name,
-        code: ds.stocks.code,
-        last_price: ds.stocks.last_price || 0,
-        change_amount: ds.stocks.change_amount || 0,
-        change_rate: ds.stocks.change_rate || 0,
-        ai_score: ds.ai_score || 0,
-        target_price: ds.target_price,
-        target_date: ds.target_date,
-        summary: decodeHtmlEntities(ds.llm_summary || ''),
-        rec_price: recPrice
-      }
-    })
+        return {
+          id: Number(ds.stocks.id),
+          daily_id: ds.id,
+          game_date: ds.game_date,
+          name: ds.stocks.name,
+          code: ds.stocks.code,
+          last_price: ds.stocks.last_price || 0,
+          change_amount: ds.stocks.change_amount || 0,
+          change_rate: ds.stocks.change_rate || 0,
+          ai_score: ds.ai_score || 0,
+          target_price: ds.target_price,
+          target_date: ds.target_date,
+          summary: decodeHtmlEntities(ds.llm_summary || ''),
+          rec_price: recPrice
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
   }, { immediate: false })
 
   const dailyStocks = computed(() => {
@@ -1712,8 +1724,12 @@ export const useStock = () => {
     if (stockIds.length > 0 && gameDates.length > 0) {
       // 모든 추천 항목의 기준가(전일 종가)를 찾기 위해 넉넉하게 최근 60일치 시세를 가져옵니다.
       // (주말/공휴일 등을 고려하여 추천일보다 이전인 데이터를 매칭하기 위함)
-      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
-      const searchStartDate = new Date(minDate)
+      const parseDateSafe = (dStr: string) => {
+        const parts = dStr.split('-')
+        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
+      }
+      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
+      const searchStartDate = new Date(minTime)
       searchStartDate.setDate(searchStartDate.getDate() - 10) // 최소 10일 전부터 조회
       const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
 
@@ -1729,53 +1745,61 @@ export const useStock = () => {
     const todayStr = getKstDate()
     const todayNum = new Date(todayStr).getTime()
 
-    const items = (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
-      // 추천 기준가(rec_price) 결정 로직: 
-      // game_date보다 이전 날짜 중 가장 최신 시세를 찾습니다. (이것이 추천 전일 종가)
-      const recPriceRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-      )
-      
-      // 만약 이전 시세가 없다면(신규 상장 등), 해당 날짜의 시세라도 찾아보고 그것도 없으면 현재가를 임시로 사용
-      const sameDayRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-      )
-      
-      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
-      const currentPrice = ds.stocks.last_price || 0
-      
-      // 누적 수익률 계산: (현재가 - 추천 시작가) / 추천 시작가 * 100
-      let cumulativeChangeRate = 0
-      if (recPrice > 0) {
-        cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
-      }
+    const items = (data || [])
+      .filter((ds: any) => ds.stocks)
+      .map((ds: any) => {
+        // 추천 기준가(rec_price) 결정 로직: 
+        // game_date보다 이전 날짜 중 가장 최신 시세를 찾습니다. (이것이 추천 전일 종가)
+        const recPriceRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+        )
+        
+        // 만약 이전 시세가 없다면(신규 상장 등), 해당 날짜의 시세라도 찾아봄
+        const sameDayRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+        )
+        
+        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
+        if (!recPriceRecord && !sameDayRecord) {
+          return null
+        }
+        
+        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
+        const currentPrice = ds.stocks.last_price || 0
+        
+        // 누적 수익률 계산: (현재가 - 추천 시작가) / 추천 시작가 * 100
+        let cumulativeChangeRate = 0
+        if (recPrice > 0) {
+          cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
+        }
 
-      // 경과 일수 계산
-      const gameDateNum = new Date(ds.game_date).getTime()
-      const diffTime = todayNum - gameDateNum
-      const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+        // 경과 일수 계산
+        const gameDateNum = new Date(ds.game_date).getTime()
+        const diffTime = todayNum - gameDateNum
+        const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-      return {
-        id: Number(ds.stocks.id),
-        daily_id: ds.id,
-        game_date: ds.game_date,
-        created_at: ds.created_at,
-        name: ds.stocks.name,
-        code: ds.stocks.code,
-        last_price: currentPrice,
-        change_amount: ds.stocks.change_amount || 0,
-        change_rate: ds.stocks.change_rate || 0,
-        ai_score: ds.ai_score || 0,
-        ai_result: ds.ai_result || 'pending',
-        status: ds.status || 'pending',
-        summary: decodeHtmlEntities(ds.llm_summary || ''),
-        rec_price: recPrice,
-        days_passed: daysPassed,
-        cumulative_change_rate: cumulativeChangeRate,
-        target_price: ds.target_price,
-        target_date: ds.target_date
-      }
-    })
+        return {
+          id: Number(ds.stocks.id),
+          daily_id: ds.id,
+          game_date: ds.game_date,
+          created_at: ds.created_at,
+          name: ds.stocks.name,
+          code: ds.stocks.code,
+          last_price: currentPrice,
+          change_amount: ds.stocks.change_amount || 0,
+          change_rate: ds.stocks.change_rate || 0,
+          ai_score: ds.ai_score || 0,
+          ai_result: ds.ai_result || 'pending',
+          status: ds.status || 'pending',
+          summary: decodeHtmlEntities(ds.llm_summary || ''),
+          rec_price: recPrice,
+          days_passed: daysPassed,
+          cumulative_change_rate: cumulativeChangeRate,
+          target_price: ds.target_price,
+          target_date: ds.target_date
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
 
     if (items.length > 0) {
       return { items, emptyReason: null as const }
@@ -1828,8 +1852,12 @@ export const useStock = () => {
     
     let historyPrices: any[] = []
     if (stockIds.length > 0 && gameDates.length > 0) {
-      const minDate = new Date(Math.min(...gameDates.map((d: string) => new Date(d).getTime())))
-      const searchStartDate = new Date(minDate)
+      const parseDateSafe = (dStr: string) => {
+        const parts = dStr.split('-')
+        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
+      }
+      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
+      const searchStartDate = new Date(minTime)
       searchStartDate.setDate(searchStartDate.getDate() - 10) 
       const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
 
@@ -1842,42 +1870,50 @@ export const useStock = () => {
       historyPrices = hpData || []
     }
 
-    return (data || []).filter((ds: any) => ds.stocks).map((ds: any) => {
-      const recPriceRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-      )
-      const sameDayRecord = historyPrices.find(hp => 
-        Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-      )
-      
-      const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || ds.stocks.last_price || 0
-      const currentPrice = ds.stocks.last_price || 0
-      
-      let cumulativeChangeRate = 0
-      if (recPrice > 0) {
-        cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
-      }
+    return (data || [])
+      .filter((ds: any) => ds.stocks)
+      .map((ds: any) => {
+        const recPriceRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
+        )
+        const sameDayRecord = historyPrices.find(hp => 
+          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
+        )
+        
+        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
+        if (!recPriceRecord && !sameDayRecord) {
+          return null
+        }
+        
+        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
+        const currentPrice = ds.stocks.last_price || 0
+        
+        let cumulativeChangeRate = 0
+        if (recPrice > 0) {
+          cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
+        }
 
-      return {
-        id: Number(ds.stocks.id),
-        daily_id: ds.id,
-        game_date: ds.game_date,
-        created_at: ds.created_at,
-        name: ds.stocks.name,
-        code: ds.stocks.code,
-        sector: ds.stocks.sector || '-',
-        last_price: currentPrice,
-        change_amount: ds.stocks.change_amount || 0,
-        change_rate: ds.stocks.change_rate || 0,
-        ai_score: ds.ai_score || 0,
-        ai_result: ds.ai_result || 'pending',
-        target_price: ds.target_price,
-        target_date: ds.target_date,
-        summary: decodeHtmlEntities(ds.llm_summary || ''),
-        rec_price: recPrice,
-        cumulative_change_rate: cumulativeChangeRate
-      }
-    })
+        return {
+          id: Number(ds.stocks.id),
+          daily_id: ds.id,
+          game_date: ds.game_date,
+          created_at: ds.created_at,
+          name: ds.stocks.name,
+          code: ds.stocks.code,
+          sector: ds.stocks.sector || '-',
+          last_price: currentPrice,
+          change_amount: ds.stocks.change_amount || 0,
+          change_rate: ds.stocks.change_rate || 0,
+          ai_score: ds.ai_score || 0,
+          ai_result: ds.ai_result || 'pending',
+          target_price: ds.target_price,
+          target_date: ds.target_date,
+          summary: decodeHtmlEntities(ds.llm_summary || ''),
+          rec_price: recPrice,
+          cumulative_change_rate: cumulativeChangeRate
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
   }
 
   return {

@@ -269,6 +269,38 @@ const openDetailModal = (cell: any) => {
   detailModalOpen.value = true
 }
 
+// 오늘 날짜 문자열 (YYYY-MM-DD)
+const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+// 주말 및 공휴일 여부 체크
+const isWeekendOrHoliday = (cell: any) => {
+  if (!cell.dateStr) return false
+  const day = new Date(cell.dateStr).getDay()
+  return day === 0 || day === 6 || !!cell.holidayName
+}
+
+// 수익률에 따른 카드 동적 클래스 반환
+const getCellBgClass = (cell: any) => {
+  if (!cell.day) return 'bg-slate-950/20 opacity-30 pointer-events-none'
+  
+  if (isWeekendOrHoliday(cell)) {
+    return 'bg-slate-950/40 opacity-60 border-dashed border-white/5'
+  }
+  
+  if (cell.summaryInfo) {
+    const rate = cell.summaryInfo.repStockRate
+    if (rate > 0) {
+      return 'bg-gradient-to-br from-rose-500/10 via-slate-900/40 to-slate-900/10 border-rose-500/20 hover:border-rose-500/40 hover:from-rose-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(244,63,94,0.05)]'
+    } else if (rate < 0) {
+      return 'bg-gradient-to-br from-indigo-500/10 via-slate-900/40 to-slate-900/10 border-indigo-500/20 hover:border-indigo-500/40 hover:from-indigo-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(99,102,241,0.05)] font-black'
+    } else {
+      return 'bg-gradient-to-br from-slate-500/5 via-slate-900/40 to-slate-900/10 border-white/10 hover:border-white/20 cursor-pointer'
+    }
+  }
+  
+  return 'bg-slate-900/15 border-white/5 hover:bg-slate-900/25'
+}
+
 onMounted(() => {
   loadMonthlyData()
 })
@@ -334,23 +366,22 @@ onMounted(() => {
       </div>
 
       <!-- 날짜 그리드 -->
-      <div class="grid grid-cols-7 divide-x divide-y divide-white/5 bg-slate-900/10">
+      <div class="grid grid-cols-7 gap-2 p-3 bg-slate-950/20">
         <div 
           v-for="(cell, index) in calendarCells" 
           :key="index"
           :class="[
-            'min-h-[120px] p-3 flex flex-col justify-between transition-all relative group border-t border-l border-white/5 first:border-t-0',
-            cell.day ? 'bg-slate-900/10' : 'bg-slate-950/10 pointer-events-none',
-            cell.summaryInfo ? 'cursor-pointer hover:bg-white/5' : ''
+            'min-h-[135px] p-3 flex flex-col justify-between transition-all duration-300 relative group border rounded-2xl overflow-hidden hover:scale-[1.02] hover:z-20 hover:shadow-2xl',
+            getCellBgClass(cell)
           ]"
           @click="openDetailModal(cell)"
         >
           <!-- 날짜 숫자 및 공휴일 표시 -->
-          <div class="flex justify-between items-baseline w-full gap-1">
+          <div class="flex justify-between items-center w-full gap-1">
             <!-- 공휴일 텍스트가 있으면 좌측에 표시 -->
             <span 
               v-if="cell.day && cell.holidayName" 
-              class="text-[9px] font-black text-rose-500/80 tracking-tighter truncate max-w-[70%]"
+              class="text-[9px] font-black text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded tracking-tighter truncate max-w-[70%]"
               :title="cell.holidayName"
             >
               {{ cell.holidayName }}
@@ -359,11 +390,13 @@ onMounted(() => {
             
             <span 
               v-if="cell.day" 
-              class="text-xs font-black ml-auto"
+              class="text-xs font-black w-6 h-6 flex items-center justify-center rounded-full transition-all"
               :class="[
-                (cell.dateStr && new Date(cell.dateStr).getDay() === 0) || cell.holidayName ? 'text-rose-500/90' : '',
-                cell.dateStr && new Date(cell.dateStr).getDay() === 6 && !cell.holidayName ? 'text-indigo-400/80' : '',
-                !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) && !cell.holidayName ? 'text-slate-500' : ''
+                cell.dateStr === todayStr ? 'bg-brand-primary text-slate-950 font-black shadow-[0_0_10px_rgba(242,180,46,0.4)]' : [
+                  (cell.dateStr && new Date(cell.dateStr).getDay() === 0) || cell.holidayName ? 'text-rose-500 font-extrabold' : '',
+                  cell.dateStr && new Date(cell.dateStr).getDay() === 6 && !cell.holidayName ? 'text-indigo-400 font-extrabold' : '',
+                  !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) && !cell.holidayName ? 'text-slate-400' : ''
+                ]
               ]"
             >
               {{ cell.day }}
@@ -371,11 +404,11 @@ onMounted(() => {
           </div>
 
           <!-- 추천 요약 카드 (있을 때만 노출) -->
-          <div v-if="cell.summaryInfo" class="mt-2 space-y-1.5 w-full relative z-10">
-            <!-- 테마 바 (마우스 호버 시 툴팁을 제공하는 title 속성 적용 및 글자 크기 최적화) -->
-            <div class="flex items-center gap-1.5 bg-brand-primary/10 border-l-2 border-brand-primary rounded-r-lg px-1.5 py-0.5 overflow-hidden">
+          <div v-if="cell.summaryInfo" class="mt-2 space-y-2 w-full relative z-10">
+            <!-- 테마 배지 (둥글고 세련된 컴팩트 캡슐 배지) -->
+            <div class="flex items-center">
               <span 
-                class="text-[9px] font-black text-brand-primary tracking-tight truncate leading-tight w-full"
+                class="text-[9px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 rounded-md px-1.5 py-0.5 tracking-tight truncate leading-tight"
                 :title="cell.summaryInfo.theme"
               >
                 {{ cell.summaryInfo.theme }}
@@ -383,25 +416,30 @@ onMounted(() => {
             </div>
 
             <!-- 대표 종목 및 등락률 -->
-            <div class="flex items-center justify-between gap-1 px-1">
+            <div class="flex items-center justify-between gap-1">
               <span 
-                class="text-[11px] font-bold text-slate-300 truncate leading-tight"
+                class="text-[11px] font-extrabold text-slate-200 truncate leading-tight max-w-[65%]"
                 :title="cell.summaryInfo.repStockName"
               >
                 {{ cell.summaryInfo.repStockName }}
               </span>
               <span 
-                class="text-[10px] font-black tracking-tight shrink-0"
-                :class="cell.summaryInfo.repStockRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                class="text-[10px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded"
+                :class="[
+                  cell.summaryInfo.repStockRate >= 0 
+                    ? 'text-rose-400 bg-rose-500/5' 
+                    : 'text-indigo-400 bg-indigo-500/5'
+                ]"
               >
-                {{ cell.summaryInfo.repStockRate >= 0 ? '+' : '' }}{{ cell.summaryInfo.repStockRate }}%
+                <span class="text-[8px]">{{ cell.summaryInfo.repStockRate >= 0 ? '▲' : '▼' }}</span>
+                {{ Math.abs(cell.summaryInfo.repStockRate) }}%
               </span>
             </div>
 
-            <!-- 종목수 및 승리 비율 (직관적이고 짧은 용어로 개선하여 짤림 방지) -->
-            <div class="px-1 pt-0.5 flex items-center justify-between text-[9px] font-bold text-slate-500">
-              <span class="text-brand-primary/80">AI추천 {{ cell.summaryInfo.totalCount }}개</span>
-              <span class="text-rose-400/90 font-black">{{ cell.summaryInfo.winCount }}개 적중</span>
+            <!-- 종목수 및 승리 비율 (깔끔한 미니 배지 조합) -->
+            <div class="pt-1.5 flex items-center justify-between text-[9px] font-bold border-t border-white/5">
+              <span class="text-slate-400">AI추천 <strong class="text-brand-primary">{{ cell.summaryInfo.totalCount }}</strong></span>
+              <span class="text-rose-400 font-extrabold">적중 <strong class="text-rose-400">{{ cell.summaryInfo.winCount }}</strong></span>
             </div>
           </div>
         </div>
