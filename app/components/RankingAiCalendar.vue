@@ -10,6 +10,119 @@ const currentMonth = ref(today.getMonth() + 1) // 1-indexed
 const loading = ref(true)
 const monthlyHistory = ref<any[]>([])
 
+// 연도 옵션 계산 (2024년 ~ 현재 + 2년)
+const yearOptions = computed(() => {
+  const startYear = 2024
+  const endYear = today.getFullYear() + 2
+  const options = []
+  for (let y = startYear; y <= endYear; y++) {
+    options.push(y)
+  }
+  return options
+})
+
+// 한국 주요 공휴일 정의 (2024년 ~ 2028년)
+const KOREAN_HOLIDAYS: Record<string, string> = {
+  // 2024년
+  '2024-01-01': '신정',
+  '2024-02-09': '설날 연휴',
+  '2024-02-10': '설날',
+  '2024-02-11': '설날 연휴',
+  '2024-02-12': '대체공휴일',
+  '2024-03-01': '삼일절',
+  '2024-04-10': '총선일',
+  '2024-05-05': '어린이날',
+  '2024-05-06': '대체공휴일',
+  '2024-05-15': '부처님오신날',
+  '2024-06-06': '현충일',
+  '2024-08-15': '광복절',
+  '2024-09-16': '추석 연휴',
+  '2024-09-17': '추석',
+  '2024-09-18': '추석 연휴',
+  '2024-10-03': '개천절',
+  '2024-10-09': '한글날',
+  '2024-12-25': '성탄절',
+
+  // 2025년
+  '2025-01-01': '신정',
+  '2025-01-28': '설날 연휴',
+  '2025-01-29': '설날',
+  '2025-01-30': '설날 연휴',
+  '2025-03-01': '삼일절',
+  '2025-03-03': '대체공휴일',
+  '2025-05-05': '어린이날/부처님오신날',
+  '2025-05-06': '대체공휴일',
+  '2025-06-06': '현충일',
+  '2025-08-15': '광복절',
+  '2025-10-03': '개천절',
+  '2025-10-05': '추석 연휴',
+  '2025-10-06': '추석/대체공휴일',
+  '2025-10-07': '추석 연휴',
+  '2025-10-08': '대체공휴일',
+  '2025-10-09': '한글날',
+  '2025-12-25': '성탄절',
+
+  // 2026년
+  '2026-01-01': '신정',
+  '2026-02-16': '설날 연휴',
+  '2026-02-17': '설날',
+  '2026-02-18': '설날 연휴',
+  '2026-03-01': '삼일절',
+  '2026-03-02': '대체공휴일',
+  '2026-05-05': '어린이날',
+  '2026-05-24': '부처님오신날',
+  '2026-05-25': '대체공휴일',
+  '2026-06-06': '현충일',
+  '2026-08-15': '광복절',
+  '2026-08-17': '대체공휴일',
+  '2026-09-24': '추석 연휴',
+  '2026-09-25': '추석',
+  '2026-09-26': '추석 연휴',
+  '2026-10-03': '개천절',
+  '2026-10-05': '대체공휴일',
+  '2026-10-09': '한글날',
+  '2026-12-25': '성탄절',
+
+  // 2027년
+  '2027-01-01': '신정',
+  '2027-02-06': '설날 연휴',
+  '2027-02-07': '설날',
+  '2027-02-08': '설날 연휴',
+  '2027-02-09': '대체공휴일',
+  '2027-03-01': '삼일절',
+  '2027-05-05': '어린이날',
+  '2027-05-13': '부처님오신날',
+  '2027-06-06': '현충일',
+  '2027-06-07': '대체공휴일',
+  '2027-08-15': '광복절',
+  '2027-08-16': '대체공휴일',
+  '2027-09-14': '추석 연휴',
+  '2027-09-15': '추석',
+  '2027-09-16': '추석 연휴',
+  '2027-10-03': '개천절',
+  '2027-10-04': '대체공휴일',
+  '2027-10-09': '한글날',
+  '2027-10-11': '대체공휴일',
+  '2027-12-25': '성탄절',
+
+  // 2028년
+  '2028-01-01': '신정',
+  '2028-01-26': '설날 연휴',
+  '2028-01-27': '설날',
+  '2028-01-28': '설날 연휴',
+  '2028-03-01': '삼일절',
+  '2028-05-02': '부처님오신날',
+  '2028-05-05': '어린이날',
+  '2028-06-06': '현충일',
+  '2028-08-15': '광복절',
+  '2028-10-02': '추석 연휴',
+  '2028-10-03': '추석/개천절',
+  '2028-10-04': '추석 연휴',
+  '2028-10-05': '대체공휴일',
+  '2028-10-09': '한글날',
+  '2028-12-25': '성탄절'
+}
+
 // 날짜별 데이터 그룹화
 const historyByDate = computed(() => {
   const map = new Map<string, any[]>()
@@ -59,11 +172,12 @@ const calendarCells = computed(() => {
       totalCount: number
       winCount: number
     } | null
+    holidayName: string | null
   }> = []
   
   // 1일 시작 전 빈 칸 채우기
   for (let i = 0; i < firstDayOfWeek; i++) {
-    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null })
+    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null, holidayName: null })
   }
   
   // 해당 월의 날짜 채우기
@@ -95,12 +209,16 @@ const calendarCells = computed(() => {
       }
     }
     
+    // 한국 공휴일 정보 획득
+    const holidayName = KOREAN_HOLIDAYS[dateStr] || null
+    
     cells.push({
       day: d,
       dateStr,
       isCurrentMonth: true,
       items: dayItems,
-      summaryInfo
+      summaryInfo,
+      holidayName
     })
   }
   
@@ -108,7 +226,7 @@ const calendarCells = computed(() => {
   const totalCells = Math.ceil(cells.length / 7) * 7
   const fillCount = totalCells - cells.length
   for (let i = 0; i < fillCount; i++) {
-    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null })
+    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null, holidayName: null })
   }
   
   return cells
@@ -159,15 +277,38 @@ onMounted(() => {
 <template>
   <div class="animate-fade-in space-y-6">
     <!-- 달력 헤더부 -->
-    <div class="flex items-center justify-between bg-slate-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
-      <h2 class="text-2xl font-black text-slate-100 tracking-tight flex items-baseline gap-2">
-        <span>{{ currentYear }}년</span>
-        <span class="text-brand-primary">{{ currentMonth }}월</span>
-      </h2>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
+      <!-- 년/월 선택 드롭다운 -->
+      <div class="flex items-center gap-2">
+        <div class="relative">
+          <select 
+            v-model="currentYear" 
+            @change="loadMonthlyData"
+            class="bg-slate-950/60 border border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+          >
+            <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}년</option>
+          </select>
+          <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+        </div>
+
+        <div class="relative">
+          <select 
+            v-model="currentMonth" 
+            @change="loadMonthlyData"
+            class="bg-slate-950/60 border border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-brand-primary appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+          >
+            <option v-for="month in 12" :key="month" :value="month">{{ month }}월</option>
+          </select>
+          <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-primary pointer-events-none" />
+        </div>
+      </div>
+
+      <!-- 이전/오늘/다음 네비게이션 -->
       <div class="flex items-center gap-1.5 bg-slate-950/50 p-1 rounded-2xl border border-white/5">
         <button 
           @click="prevMonth"
           class="w-9 h-9 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 active:scale-95 transition-all flex items-center justify-center"
+          title="이전 달"
         >
           <UIcon name="i-heroicons-chevron-left" class="w-5 h-5" />
         </button>
@@ -180,6 +321,7 @@ onMounted(() => {
         <button 
           @click="nextMonth"
           class="w-9 h-9 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 active:scale-95 transition-all flex items-center justify-center"
+          title="다음 달"
         >
           <UIcon name="i-heroicons-chevron-right" class="w-5 h-5" />
         </button>
@@ -217,15 +359,25 @@ onMounted(() => {
           ]"
           @click="openDetailModal(cell)"
         >
-          <!-- 날짜 숫자 -->
-          <div class="flex justify-end w-full">
+          <!-- 날짜 숫자 및 공휴일 표시 -->
+          <div class="flex justify-between items-baseline w-full gap-1">
+            <!-- 공휴일 텍스트가 있으면 좌측에 표시 -->
+            <span 
+              v-if="cell.day && cell.holidayName" 
+              class="text-[9px] font-black text-rose-500/80 tracking-tighter truncate max-w-[70%]"
+              :title="cell.holidayName"
+            >
+              {{ cell.holidayName }}
+            </span>
+            <span v-else></span>
+            
             <span 
               v-if="cell.day" 
-              class="text-xs font-black"
+              class="text-xs font-black ml-auto"
               :class="[
-                cell.dateStr && new Date(cell.dateStr).getDay() === 0 ? 'text-rose-500/70' : '',
-                cell.dateStr && new Date(cell.dateStr).getDay() === 6 ? 'text-indigo-400/70' : '',
-                !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) ? 'text-slate-500' : ''
+                (cell.dateStr && new Date(cell.dateStr).getDay() === 0) || cell.holidayName ? 'text-rose-500/90' : '',
+                cell.dateStr && new Date(cell.dateStr).getDay() === 6 && !cell.holidayName ? 'text-indigo-400/80' : '',
+                !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) && !cell.holidayName ? 'text-slate-500' : ''
               ]"
             >
               {{ cell.day }}
@@ -234,16 +386,22 @@ onMounted(() => {
 
           <!-- 추천 요약 카드 (있을 때만 노출) -->
           <div v-if="cell.summaryInfo" class="mt-2 space-y-1.5 w-full relative z-10">
-            <!-- 테마 바 -->
-            <div class="flex items-center gap-1.5 bg-brand-primary/10 border-l-2 border-brand-primary rounded-r-lg px-2 py-1 overflow-hidden">
-              <span class="text-[10px] font-black text-brand-primary tracking-tight truncate leading-tight w-full">
+            <!-- 테마 바 (마우스 호버 시 툴팁을 제공하는 title 속성 적용 및 글자 크기 최적화) -->
+            <div class="flex items-center gap-1.5 bg-brand-primary/10 border-l-2 border-brand-primary rounded-r-lg px-1.5 py-0.5 overflow-hidden">
+              <span 
+                class="text-[9px] font-black text-brand-primary tracking-tight truncate leading-tight w-full"
+                :title="cell.summaryInfo.theme"
+              >
                 {{ cell.summaryInfo.theme }}
               </span>
             </div>
 
             <!-- 대표 종목 및 등락률 -->
             <div class="flex items-center justify-between gap-1 px-1">
-              <span class="text-[11px] font-bold text-slate-300 truncate leading-tight">
+              <span 
+                class="text-[11px] font-bold text-slate-300 truncate leading-tight"
+                :title="cell.summaryInfo.repStockName"
+              >
                 {{ cell.summaryInfo.repStockName }}
               </span>
               <span 
@@ -254,10 +412,10 @@ onMounted(() => {
               </span>
             </div>
 
-            <!-- 종목수 및 승리 비율 -->
-            <div class="px-1 pt-0.5 flex items-center justify-between text-[9px] font-bold text-slate-600">
-              <span>S급추적</span>
-              <span>{{ cell.summaryInfo.totalCount }}종목 · {{ cell.summaryInfo.winCount }}/{{ cell.summaryInfo.totalCount }}승</span>
+            <!-- 종목수 및 승리 비율 (직관적이고 짧은 용어로 개선하여 짤림 방지) -->
+            <div class="px-1 pt-0.5 flex items-center justify-between text-[9px] font-bold text-slate-500">
+              <span class="text-brand-primary/80">AI추천 {{ cell.summaryInfo.totalCount }}개</span>
+              <span class="text-rose-400/90 font-black">{{ cell.summaryInfo.winCount }}개 적중</span>
             </div>
           </div>
         </div>
