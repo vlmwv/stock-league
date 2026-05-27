@@ -183,6 +183,19 @@ const submitScore = async () => {
   }
 }
 
+// 7. 게임 상태 초기화 (재도전)
+const resetGame = () => {
+  currentDay.value = 7
+  correctCount.value = 0
+  predictions.value = []
+  gameEnded.value = false
+  selectedPredict.value = null
+  isFeedbackMode.value = false
+  isCorrect.value = false
+  isSubmitting.value = false
+  activeTab.value = 'game'
+}
+
 const formatPrice = (price: number | undefined) => {
   if (price === undefined) return ''
   if (scenario.value?.etfName === 'KODEX 200') {
@@ -496,6 +509,16 @@ onMounted(async () => {
               <span class="text-sm font-black tracking-widest">상승 예측</span>
             </button>
           </div>
+          <!-- 진행 중 유저에게만 노출되는 처음부터 다시 시작 버튼 -->
+          <div v-if="!hasAlreadyAttempted && currentDay > 7" class="text-center pt-2">
+            <button 
+              @click="confirm('처음부터 다시 도전하시겠습니까?') && resetGame()"
+              class="inline-flex items-center gap-1 text-[11px] font-black text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-0 cursor-pointer"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
+              처음부터 다시 도전하기
+            </button>
+          </div>
         </div>
 
         <!-- 최초 도전 완료 시 안내 메시지 -->
@@ -503,9 +526,20 @@ onMounted(async () => {
           <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-400" />
           <h3 class="text-lg font-black text-slate-100">{{ totalDays }}일 도전 시뮬레이션 종료!</h3>
           <p class="text-xs text-slate-400 px-8 leading-relaxed">
-            축하합니다! 최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / (totalDays > 7 ? totalDays - 7 : totalDays)) * 100) }}%)</span> 입니다.<br>
-            귀하의 점수가 참여랭킹 보드에 안전하게 보관되었습니다.
+            최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / (totalDays > 7 ? totalDays - 7 : totalDays)) * 100) }}%)</span> 입니다.
           </p>
+          
+          <div class="px-6 flex flex-col gap-2">
+            <!-- 기록 저장 실패 또는 미등록 시 재도전 버튼 제공 -->
+            <button 
+              @click="resetGame"
+              class="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all active:scale-95 border border-white/10 bg-slate-800 text-slate-200 hover:bg-slate-700"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="w-4 h-4" />
+              처음부터 재도전하기
+            </button>
+            <p class="text-[10px] text-slate-500">기록 저장에 오류가 발생했거나 점수를 갱신하고 싶다면 재도전해 보세요.</p>
+          </div>
         </div>
       </div>
 
