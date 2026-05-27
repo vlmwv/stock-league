@@ -21,6 +21,12 @@ const getAttempt = (scenarioId: number) => {
 }
 
 const handleChallenge = (scenarioId: number) => {
+  if (!user.value) {
+    if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+      router.push('/login')
+    }
+    return
+  }
   router.push(`/scenario-game/${scenarioId}`)
 }
 

@@ -196,6 +196,14 @@ onMounted(async () => {
     router.push('/daily') // 잘못된 접근 시 회귀
     return
   }
+  if (!user.value) {
+    if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+      router.push('/login')
+    } else {
+      router.push('/game')
+    }
+    return
+  }
   await checkAttemptStatus()
 })
 </script>
