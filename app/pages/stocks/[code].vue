@@ -214,7 +214,7 @@
                   <div v-if="item.llm_summary" class="bg-indigo-500/[0.04] rounded-xl p-3.5 border border-white/5">
                     <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
                       <span class="text-brand-primary/80 font-black mr-1.5 uppercase text-[9px]">AI 요약</span>
-                      {{ item.llm_summary }}
+                      {{ cleanLlmSummary(item.llm_summary) }}
                     </p>
                   </div>
                 </div>
@@ -337,7 +337,7 @@
 </template>
 
 <script setup lang="ts">
-import { repairNewsUrl } from '~/utils/stock'
+import { repairNewsUrl, cleanLlmSummary } from '~/utils/stock'
 
 const route = useRoute()
 const router = useRouter()

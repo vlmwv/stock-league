@@ -371,7 +371,7 @@ onMounted(() => {
           v-for="(cell, index) in calendarCells" 
           :key="index"
           :class="[
-            'min-h-[135px] p-3 flex flex-col justify-between transition-all duration-300 relative group border rounded-2xl overflow-hidden hover:scale-[1.02] hover:z-20 hover:shadow-2xl',
+            'min-h-[142px] p-2.5 flex flex-col justify-between transition-all duration-300 relative group border rounded-2xl overflow-hidden hover:scale-[1.02] hover:z-20 hover:shadow-2xl',
             getCellBgClass(cell)
           ]"
           @click="openDetailModal(cell)"
@@ -404,7 +404,7 @@ onMounted(() => {
           </div>
 
           <!-- 추천 요약 카드 (있을 때만 노출) -->
-          <div v-if="cell.summaryInfo" class="mt-2 space-y-2 w-full relative z-10">
+          <div v-if="cell.summaryInfo" class="mt-1.5 space-y-1.5 w-full relative z-10">
             <!-- 테마 배지 (둥글고 세련된 컴팩트 캡슐 배지) -->
             <div class="flex items-center">
               <span 
@@ -418,13 +418,13 @@ onMounted(() => {
             <!-- 대표 종목 및 등락률 -->
             <div class="flex items-center justify-between gap-1">
               <span 
-                class="text-[11px] font-extrabold text-slate-200 truncate leading-tight max-w-[65%]"
+                class="text-[10px] font-extrabold text-slate-200 truncate leading-tight max-w-[65%]"
                 :title="cell.summaryInfo.repStockName"
               >
                 {{ cell.summaryInfo.repStockName }}
               </span>
               <span 
-                class="text-[10px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded"
+                class="text-[9px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded"
                 :class="[
                   cell.summaryInfo.repStockRate >= 0 
                     ? 'text-rose-400 bg-rose-500/5' 
@@ -437,9 +437,9 @@ onMounted(() => {
             </div>
 
             <!-- 종목수 및 승리 비율 (깔끔한 미니 배지 조합) -->
-            <div class="pt-1.5 flex items-center justify-between text-[9px] font-bold border-t border-white/5">
-              <span class="text-slate-400">AI추천 <strong class="text-brand-primary">{{ cell.summaryInfo.totalCount }}</strong></span>
-              <span class="text-rose-400 font-extrabold">적중 <strong class="text-rose-400">{{ cell.summaryInfo.winCount }}</strong></span>
+            <div class="pt-1 flex items-center justify-between text-[9px] font-bold border-t border-white/5">
+              <span class="text-slate-400">추천 <strong class="text-brand-primary">{{ cell.summaryInfo.totalCount }}</strong></span>
+              <span class="text-rose-400">적중 <strong class="text-rose-400">{{ cell.summaryInfo.winCount }}</strong></span>
             </div>
           </div>
         </div>
@@ -447,9 +447,12 @@ onMounted(() => {
     </div>
 
     <!-- 하단 헬퍼 가이드 -->
-    <div class="text-center py-2">
+    <div class="text-center py-2 space-y-1">
       <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">
         날짜 클릭 → S급추적 상세
+      </p>
+      <p class="text-[9.5px] text-slate-500 font-bold">
+        ※ 퍼센테이지(%)는 해당 날짜 AI 추천 대표 종목의 누적 수익률을 의미합니다.
       </p>
     </div>
 

@@ -68,5 +68,15 @@ export const isEtf = (name: string): boolean => {
   const upperName = (name || '').toUpperCase()
   return etfKeywords.some(keyword => upperName.includes(keyword))
 }
+/**
+ * AI 요약 텍스트에서 불필요한 "(GEMINI 요약)", "[GEMINI 요약]" 등의 접두사를 제거합니다.
+ * @param text 원본 요약 텍스트
+ * @returns 정제된 요약 텍스트
+ */
+export const cleanLlmSummary = (text: string): string => {
+  if (!text) return ''
+  return text.replace(/^\s*(?:\[|\()GEMINI 요약(?:\]|\))\s*/gi, '').trim()
+}
+
 
 

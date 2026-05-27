@@ -54,7 +54,7 @@
           <span class="text-xs font-black text-brand-primary uppercase tracking-widest">AI SUMMARY</span>
         </div>
         <p class="text-sm text-slate-300 leading-relaxed font-medium">
-          {{ item.llm_summary }}
+          {{ cleanLlmSummary(item.llm_summary) }}
         </p>
       </div>
     </div>
@@ -64,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { cleanLlmSummary } from '~/utils/stock'
+
 defineProps<{
   item: any
   isHearted: boolean
