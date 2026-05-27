@@ -484,7 +484,7 @@ onMounted(async () => {
           </div>
           <div class="text-right">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
-            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ hasAlreadyAttempted ? totalDays : predictions.length }}회</p>
+            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ hasAlreadyAttempted ? (totalDays > 7 ? totalDays - 7 : totalDays) : predictions.length }}회</p>
           </div>
         </div>
 
