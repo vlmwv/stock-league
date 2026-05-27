@@ -277,7 +277,7 @@ onMounted(() => {
 <template>
   <div class="animate-fade-in space-y-6">
     <!-- 달력 헤더부 -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
+    <div class="flex items-center justify-between bg-slate-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
       <!-- 년/월 선택 드롭다운 -->
       <div class="flex items-center gap-2">
         <div class="relative">
@@ -303,29 +303,15 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 이전/오늘/다음 네비게이션 -->
-      <div class="flex items-center gap-1.5 bg-slate-950/50 p-1 rounded-2xl border border-white/5">
-        <button 
-          @click="prevMonth"
-          class="w-9 h-9 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 active:scale-95 transition-all flex items-center justify-center"
-          title="이전 달"
-        >
-          <UIcon name="i-heroicons-chevron-left" class="w-5 h-5" />
-        </button>
-        <button 
-          @click="goToday"
-          class="px-4 h-9 rounded-xl hover:bg-white/5 text-xs font-black text-slate-400 hover:text-brand-primary active:scale-95 transition-all flex items-center justify-center uppercase tracking-widest"
-        >
-          오늘
-        </button>
-        <button 
-          @click="nextMonth"
-          class="w-9 h-9 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 active:scale-95 transition-all flex items-center justify-center"
-          title="다음 달"
-        >
-          <UIcon name="i-heroicons-chevron-right" class="w-5 h-5" />
-        </button>
-      </div>
+      <!-- 단일 초기화 버튼 -->
+      <button 
+        @click="goToday"
+        class="px-4 h-9 rounded-2xl bg-slate-950/50 border border-white/5 hover:bg-white/5 text-xs font-black text-slate-400 hover:text-brand-primary active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+        title="오늘 날짜로 초기화"
+      >
+        <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
+        <span>초기화</span>
+      </button>
     </div>
 
     <!-- 로딩 인디케이터 -->
