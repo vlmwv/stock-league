@@ -1,7 +1,7 @@
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
+  const user = event.context.user
   if (!user) {
     throw createError({
       statusCode: 401,
@@ -21,8 +21,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // 동적 최종 정답률 계산 (소수점 둘째 자리 반올림)
+  // 예측은 7일차부터 시작하므로 실제 예측을 수행한 일수는 (totalDays - 7) 일입니다.
   const totalDays = Number(rawTotalDays || 30)
-  const score = Math.round((correctCount / totalDays) * 10000) / 100
+  const playDays = totalDays > 7 ? totalDays - 7 : totalDays
+  const score = Math.round((correctCount / playDays) * 10000) / 100
 
   const { data, error } = await (client as any)
     .from('scenario_attempts')

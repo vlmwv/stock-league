@@ -544,7 +544,7 @@ export const useScenario = () => {
     if (!user.value) return []
     const { data, error } = await supabase
       .from('scenario_attempts')
-      .select('scenario_id, score, correct_count, completed_at')
+      .select('scenario_id, score, correct_count, total_days, completed_at')
       .eq('user_id', user.value.id)
 
     if (error) {
@@ -581,7 +581,8 @@ export const useScenario = () => {
       return { success: true, data }
     } catch (err: any) {
       console.error('[useScenario] submitScenarioAttempt error:', err)
-      return { success: false, message: err.statusMessage || '기록 저장 중 오류가 발생했습니다.' }
+      const errorMsg = err.data?.message || err.data?.statusMessage || err.statusMessage || '기록 저장 중 오류가 발생했습니다.'
+      return { success: false, message: errorMsg }
     }
   }
 

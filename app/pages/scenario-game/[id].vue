@@ -503,7 +503,7 @@ onMounted(async () => {
           <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-400" />
           <h3 class="text-lg font-black text-slate-100">{{ totalDays }}일 도전 시뮬레이션 종료!</h3>
           <p class="text-xs text-slate-400 px-8 leading-relaxed">
-            축하합니다! 최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / totalDays) * 100) }}%)</span> 입니다.<br>
+            축하합니다! 최종 스코어는 <span class="text-emerald-400 font-black">{{ correctCount }}승 ({{ Math.round((correctCount / (totalDays > 7 ? totalDays - 7 : totalDays)) * 100) }}%)</span> 입니다.<br>
             귀하의 점수가 참여랭킹 보드에 안전하게 보관되었습니다.
           </p>
         </div>
