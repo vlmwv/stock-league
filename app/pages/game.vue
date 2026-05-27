@@ -256,7 +256,7 @@ onMounted(async () => {
                 :name="getAttempt(item.id) ? 'i-heroicons-trophy-20-solid' : 'i-heroicons-play-20-solid'" 
                 class="w-4 h-4" 
               />
-              {{ getAttempt(item.id) ? '글로벌 랭킹 조회' : '시나리오 도전하기' }}
+              {{ getAttempt(item.id) ? '참여랭킹 조회' : '시나리오 도전하기' }}
             </button>
           </div>
         </div>

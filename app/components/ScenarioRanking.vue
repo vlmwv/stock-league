@@ -32,7 +32,7 @@ const formatDate = (dateStr: string) => {
     <div class="flex justify-between items-center mb-6">
       <h3 class="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
         <UIcon name="i-heroicons-trophy" class="w-6 h-6 text-brand-primary" />
-        글로벌 실시간 랭킹
+        실시간 참여랭킹
       </h3>
       <button 
         @click="refresh" 

@@ -570,8 +570,12 @@ export const useScenario = () => {
   // 4. 게임 최종 완료 기록 저장하기
   const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const data = await $fetch('/api/scenarios/attempt', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: { scenarioId, correctCount, totalDays }
       })
       return { success: true, data }
