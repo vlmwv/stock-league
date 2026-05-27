@@ -22,10 +22,7 @@ export default defineEventHandler(async (event) => {
       completed_at,
       profiles (
         username,
-        full_name,
-        display_name_type,
-        avatar_url,
-        gender
+        avatar_url
       )
     `)
     .eq('scenario_id', Number(scenarioId))
