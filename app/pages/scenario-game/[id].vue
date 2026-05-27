@@ -34,6 +34,7 @@ const checkAttemptStatus = async () => {
     hasAlreadyAttempted.value = true
     correctCount.value = found.correct_count
     gameEnded.value = true
+    currentDay.value = totalDays.value // 완료 유저는 전체 차트를 한눈에 보도록 최종 일수로 세팅
     activeTab.value = 'ranking' // 완료된 유저는 랭킹 탭으로 즉시 강제 이동
   }
 }
@@ -265,13 +266,9 @@ onMounted(async () => {
       <!-- Tabs Navigation -->
       <div class="flex border-b border-white/5 mb-6">
         <button 
-          @click="!hasAlreadyAttempted && (activeTab = 'game')" 
-          :disabled="gameEnded && hasAlreadyAttempted"
+          @click="activeTab = 'game'" 
           class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
-          :class="[
-            activeTab === 'game' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300',
-            gameEnded && hasAlreadyAttempted ? 'opacity-30 cursor-not-allowed' : ''
-          ]"
+          :class="activeTab === 'game' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300'"
         >
           게임 도전
         </button>
@@ -285,7 +282,7 @@ onMounted(async () => {
       </div>
 
       <!-- TAB 1: GAME BOARD -->
-      <div v-if="activeTab === 'game' && !hasAlreadyAttempted" class="space-y-6">
+      <div v-if="activeTab === 'game'" class="space-y-6">
         <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
           <!-- Chart Title & Interactive OHLCV Dashboard -->
@@ -462,28 +459,30 @@ onMounted(async () => {
           </div>
           <div class="text-right">
             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
-            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ predictions.length }}회</p>
+            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ hasAlreadyAttempted ? totalDays : predictions.length }}회</p>
           </div>
         </div>
 
-        <!-- 예측 입력 영역 -->
-        <div v-if="currentDay < totalDays" class="space-y-4">
-          <p class="text-center text-xs font-black text-slate-400 tracking-wider">내일 이 주가의 방향은 어떻게 될까요?</p>
+        <!-- 예측 입력 영역 (이미 완료된 상태면 비활성화 상태로 노출) -->
+        <div v-if="currentDay < totalDays || hasAlreadyAttempted" class="space-y-4">
+          <p class="text-center text-xs font-black text-slate-400 tracking-wider">
+            {{ hasAlreadyAttempted ? '이미 참여가 완료된 시나리오입니다.' : '내일 이 주가의 방향은 어떻게 될까요?' }}
+          </p>
           <div class="flex gap-4">
             <button 
               @click="handlePredict('down')"
-              :disabled="isFeedbackMode"
+              :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-blue-500/20 text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 active:scale-95"
-              :class="{ 'opacity-50 grayscale': isFeedbackMode }"
+              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
             >
               <UIcon name="i-heroicons-arrow-trending-down" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">하락 예측</span>
             </button>
             <button 
               @click="handlePredict('up')"
-              :disabled="isFeedbackMode"
+              :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 active:scale-95"
-              :class="{ 'opacity-50 grayscale': isFeedbackMode }"
+              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
             >
               <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">상승 예측</span>
@@ -491,8 +490,8 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 이미 도전한 사람 진입 차단 및 완료 메시지 -->
-        <div v-else class="text-center py-6 glass-dark rounded-3xl border border-white/5 space-y-4">
+        <!-- 최초 도전 완료 시 안내 메시지 -->
+        <div v-else-if="!hasAlreadyAttempted" class="text-center py-6 glass-dark rounded-3xl border border-white/5 space-y-4">
           <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-400" />
           <h3 class="text-lg font-black text-slate-100">{{ totalDays }}일 도전 시뮬레이션 종료!</h3>
           <p class="text-xs text-slate-400 px-8 leading-relaxed">
