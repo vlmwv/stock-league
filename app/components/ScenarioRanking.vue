@@ -13,7 +13,10 @@ const { data: rankings, pending, refresh } = useAsyncData(`scenarioRankings-${pr
 })
 
 const topThree = computed(() => (rankings.value as any[])?.slice(0, 3) || [])
-const listRankings = computed(() => (rankings.value as any[])?.slice(3) || [])
+const listRankings = computed(() => (rankings.value as any[]) || [])
+
+// 실제 예측 참여 횟수: 7일치 초기 데이터는 예측 대상이 아니므로 분모에서 제외
+const getPlayDays = (totalDays: number) => totalDays > 7 ? totalDays - 7 : totalDays
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
@@ -66,7 +69,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-14 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
             <span class="text-xs font-black text-brand-primary">{{ topThree[1].score }}%</span>
-            <span class="text-[8px] font-bold text-slate-500">{{ topThree[1].correct_count }} / {{ topThree[1].total_days || 30 }}</span>
+            <span class="text-[8px] font-bold text-slate-500">{{ topThree[1].correct_count }} / {{ getPlayDays(topThree[1].total_days || 30) }}</span>
           </div>
         </div>
 
@@ -87,7 +90,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-18 w-full bg-gradient-to-t from-brand-primary/20 to-brand-primary/5 rounded-t-2xl border-t border-x border-brand-primary/20 flex flex-col items-center justify-center">
             <span class="text-sm font-black text-brand-primary">{{ topThree[0].score }}%</span>
-            <span class="text-[9px] font-black text-brand-primary/80">{{ topThree[0].correct_count }} / {{ topThree[0].total_days || 30 }}</span>
+            <span class="text-[9px] font-black text-brand-primary/80">{{ topThree[0].correct_count }} / {{ getPlayDays(topThree[0].total_days || 30) }}</span>
           </div>
         </div>
 
@@ -107,7 +110,7 @@ const formatDate = (dateStr: string) => {
           </p>
           <div class="h-12 w-full bg-gradient-to-t from-slate-800/80 to-slate-800/20 rounded-t-2xl border-t border-x border-white/5 flex flex-col items-center justify-center">
             <span class="text-xs font-black text-brand-primary">{{ topThree[2].score }}%</span>
-            <span class="text-[8px] font-bold text-slate-500">{{ topThree[2].correct_count }} / {{ topThree[2].total_days || 30 }}</span>
+            <span class="text-[8px] font-bold text-slate-500">{{ topThree[2].correct_count }} / {{ getPlayDays(topThree[2].total_days || 30) }}</span>
           </div>
         </div>
       </div>
@@ -128,7 +131,7 @@ const formatDate = (dateStr: string) => {
         >
           <!-- Rank -->
           <div class="w-8 flex justify-center text-xs font-black text-slate-400">
-            {{ index + 4 }}
+            {{ index + 1 }}
           </div>
 
           <!-- Profile Info -->
@@ -148,7 +151,7 @@ const formatDate = (dateStr: string) => {
           <!-- Wins / Attempts -->
           <div class="w-20 text-center shrink-0">
             <p class="text-[10px] font-bold text-slate-400">
-              <span class="text-rose-500">{{ rankingUser.correct_count }}</span> / {{ rankingUser.total_days || 30 }}
+              <span class="text-rose-500">{{ rankingUser.correct_count }}</span> / {{ getPlayDays(rankingUser.total_days || 30) }}
             </p>
           </div>
 
