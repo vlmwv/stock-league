@@ -48,6 +48,9 @@ const visibleCandles = computed(() => {
 const chartWidth = 340
 const chartHeight = 180
 const volumeHeight = 50
+const paddingLeft = 12
+const paddingRight = 48
+const plotWidth = chartWidth - paddingLeft - paddingRight
 
 const minMax = computed(() => {
   const candles = visibleCandles.value
@@ -71,8 +74,8 @@ const priceLabels = computed(() => {
 
 const getX = (index: number) => {
   const total = visibleCandles.value.length
-  const step = chartWidth / Math.max(total, 10)
-  return index * step + step / 2
+  const step = plotWidth / Math.max(total, 10)
+  return paddingLeft + index * step + step / 2
 }
 
 const getY = (price: number) => {
@@ -101,45 +104,24 @@ const activeCandleIndex = computed(() => {
   return visibleCandles.value.length - 1
 })
 
-// 전일 종가 대비 당일 종가 기준으로 색상을 결정하는 헬퍼 함수
+// 당일 시가 대비 당일 종가 기준으로 색상을 결정하는 헬퍼 함수 (양봉/음봉)
 const getCandleColor = (index: number) => {
   const candles = visibleCandles.value
   if (candles.length === 0 || !candles[index]) return '#ef4444'
-  if (index === 0) {
-    return candles[index].close >= candles[index].open ? '#ef4444' : '#3b82f6'
-  }
-  const prev = candles[index - 1]
-  if (!prev) return '#ef4444'
-  const prevClose = prev.close
-  const currClose = candles[index].close
-  return currClose >= prevClose ? '#ef4444' : '#3b82f6'
+  return candles[index].close >= candles[index].open ? '#ef4444' : '#3b82f6'
 }
 
 const getVolumeColor = (index: number) => {
   const candles = visibleCandles.value
   if (candles.length === 0 || !candles[index]) return 'rgba(239,68,68,0.45)'
-  if (index === 0) {
-    return candles[index].close >= candles[index].open ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'
-  }
-  const prev = candles[index - 1]
-  if (!prev) return 'rgba(239,68,68,0.45)'
-  const prevClose = prev.close
-  const currClose = candles[index].close
-  return currClose >= prevClose ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'
+  return candles[index].close >= candles[index].open ? 'rgba(239,68,68,0.45)' : 'rgba(59,130,246,0.45)'
 }
 
 const activeCandleColorClass = computed(() => {
   const index = activeCandleIndex.value
   const candles = visibleCandles.value
   if (candles.length === 0 || !candles[index]) return 'text-rose-400'
-  if (index === 0) {
-    return candles[index].close >= candles[index].open ? 'text-rose-400' : 'text-blue-400'
-  }
-  const prev = candles[index - 1]
-  if (!prev) return 'text-rose-400'
-  const prevClose = prev.close
-  const currClose = candles[index].close
-  return currClose >= prevClose ? 'text-rose-400' : 'text-blue-400'
+  return candles[index].close >= candles[index].open ? 'text-rose-400' : 'text-blue-400'
 })
 
 // 5. 오늘의 뉴스 및 힌트 텍스트 추출
@@ -158,8 +140,8 @@ const handlePredict = async (prediction: 'up' | 'down') => {
   const tomorrowCandle = scenario.value?.candles[currentDay.value]
   if (!todayCandle || !tomorrowCandle) return
   
-  // 실제 등락 확인
-  const isUp = tomorrowCandle.close >= todayCandle.close
+  // 실제 등락 확인 (당일 시가 대비 종가 기준으로 정답 판정 일치)
+  const isUp = tomorrowCandle.close >= tomorrowCandle.open
   const actual = isUp ? 'up' : 'down'
   
   isCorrect.value = prediction === actual
@@ -424,9 +406,9 @@ onMounted(async () => {
             <!-- Hover detection pillars -->
             <g v-for="(candle, index) in visibleCandles" :key="'hover-' + index">
               <rect 
-                :x="getX(index) - (chartWidth / Math.max(visibleCandles.length, 10)) / 2"
+                :x="getX(index) - (plotWidth / Math.max(visibleCandles.length, 10)) / 2"
                 y="0"
-                :width="chartWidth / Math.max(visibleCandles.length, 10)"
+                :width="plotWidth / Math.max(visibleCandles.length, 10)"
                 :height="chartHeight + volumeHeight + 20"
                 fill="transparent"
                 class="cursor-pointer hover:fill-white/5 transition-colors duration-150"

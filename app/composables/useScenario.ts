@@ -45,31 +45,37 @@ export const useScenario = () => {
       startDate: '2008-09-01',
       endDate: '2008-10-15',
       description: '리먼 브러더스 파산으로 시작된 역사적 금융 대폭락 시나리오. 공포의 소용돌이에서 SPY ETF의 상승과 하락을 맞히고 살아남을 수 있을까요?',
-      candles: Array.from({ length: 144 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 140
-        let offset = 0
-        if (i < 40) {
-          offset = -0.3 * i
-        } else if (i < 80) {
-          offset = -12 - 0.7 * (i - 40)
-        } else if (i < 110) {
-          offset = -40 - 1.5 * (i - 80)
-        } else {
-          offset = -85 + 0.8 * (i - 110)
+        let prevClose = basePrice
+        for (let i = 0; i < 144; i++) {
+          let offset = 0
+          if (i < 40) {
+            offset = -0.3 * i
+          } else if (i < 80) {
+            offset = -12 - 0.7 * (i - 40)
+          } else if (i < 110) {
+            offset = -40 - 1.5 * (i - 80)
+          } else {
+            offset = -85 + 0.8 * (i - 110)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.5) * 4))
+          const open = i === 0 ? Math.round(close + (Math.cos(i) * 2)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 1.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 1.8))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(1500000 + Math.abs(Math.sin(i) * 1200000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.5) * 4)
-        const open = close + (Math.cos(i) * 2)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.8)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(1500000 + Math.abs(Math.sin(i) * 1200000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 30, title: '리먼 브러더스 파산 의혹 제기', description: '미국 4대 투자은행 리먼 브러더스의 부도 위기 루머가 월가를 덮치며 투자 심리가 급격히 냉각됩니다.', importance: 'medium' },
         { day: 65, title: '리먼 브러더스 파산 보호 신청', description: '역사상 최대 규모인 6,130억 달러의 부채를 안고 파산 신청을 단행하며 글로벌 증시가 패닉에 빠집니다.', importance: 'high' },
@@ -89,27 +95,33 @@ export const useScenario = () => {
       startDate: '2020-03-02',
       endDate: '2020-04-10',
       description: '바이러스 공포가 전 세계 금융시장을 잠식하며 KODEX 200 ETF가 한 달 만에 -35% 폭락 후 극적인 V자 반등을 거둔 기적의 매수 기회 시나리오입니다.',
-      candles: Array.from({ length: 102 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 30000
-        let offset = 0
-        if (i < 40) {
-          offset = -250 * i
-        } else {
-          offset = -10000 + 170 * (i - 40)
+        let prevClose = basePrice
+        for (let i = 0; i < 102; i++) {
+          let offset = 0
+          if (i < 40) {
+            offset = -250 * i
+          } else {
+            offset = -10000 + 170 * (i - 40)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.4) * 630))
+          const open = i === 0 ? Math.round(close - (i < 40 ? -170 : 110) + (Math.cos(i) * 350)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 420))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 490))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(2500000 + Math.abs(Math.cos(i) * 1800000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.4) * 630)
-        const open = close - (i < 40 ? -170 : 110) + (Math.cos(i) * 350)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 420)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 490)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(2500000 + Math.abs(Math.cos(i) * 1800000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 15, title: '국내 코로나 확진자 급격한 확산', description: '지역사회 감염 우려가 폭증하면서 외국인 투매와 함께 코스피 2,000선이 붕괴됩니다.', importance: 'medium' },
         { day: 30, title: 'WHO 코로나 팬데믹 공식 선언', description: '세계보건기구가 팬데믹을 선언하며 글로벌 공급망 마비 공포에 코스피 사이드카 및 서킷브레이커가 발동됩니다.', importance: 'high' },
@@ -129,29 +141,35 @@ export const useScenario = () => {
       startDate: '2026-01-15',
       endDate: '2026-02-25',
       description: '중국 AI 모델 DeepSeek의 파괴적 가성비 발표로 엔비디아가 급락하고 빅테크의 AI 인프라 고평가 거품론이 터졌던 초긴장 상태의 QQQ ETF 시뮬레이션입니다.',
-      candles: Array.from({ length: 20 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 450
-        let offset = 0
-        if (i < 8) {
-          offset = -7 * i
-        } else if (i < 15) {
-          offset = -56 + 5 * (i - 8)
-        } else {
-          offset = -21 + 0.8 * (i - 15)
+        let prevClose = basePrice
+        for (let i = 0; i < 20; i++) {
+          let offset = 0
+          if (i < 8) {
+            offset = -7 * i
+          } else if (i < 15) {
+            offset = -56 + 5 * (i - 8)
+          } else {
+            offset = -21 + 0.8 * (i - 15)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 1.2) * 5))
+          const open = i === 0 ? Math.round(close + (Math.cos(i * 1.1) * 4)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 4.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 5))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(4500000 + Math.abs(Math.sin(i) * 2500000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 1.2) * 5)
-        const open = close + (Math.cos(i * 1.1) * 4)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 4.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 5)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(4500000 + Math.abs(Math.sin(i) * 2500000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 3, title: 'DeepSeek-V3 저비용 고성능 발표', description: '미국 빅테크 대비 100분의 1 비용으로 학습 가능한 모델이 깜짝 발표되며 인프라 독점 의문이 제기됩니다.', importance: 'high' },
         { day: 8, title: '엔비디아 사상 최대 하루 17% 폭락', description: '하드웨어 수요 둔화 루머와 고평가 논란에 칩 대장주 엔비디아가 무너지며 나스닥 기술주들이 도미노 폭락합니다.', importance: 'high' },
@@ -171,31 +189,37 @@ export const useScenario = () => {
       startDate: '1997-10-01',
       endDate: '1998-02-28',
       description: '대기업 연쇄 부도와 외환보유고 고갈로 한보철강, 기아차 등이 무너지고 IMF 구제금융을 신청하게 되는 국가 부도의 날 시나리오입니다. (KODEX 200 가상 매칭)',
-      candles: Array.from({ length: 120 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 9000
-        let offset = 0
-        if (i < 65) {
-          offset = -64 * i
-        } else if (i < 88) {
-          offset = -4200 - 42 * (i - 65)
-        } else if (i < 110) {
-          offset = -5180 + (Math.sin((i - 88) * 0.5) * 280)
-        } else {
-          offset = -5180 + 210 * (i - 110)
+        let prevClose = basePrice
+        for (let i = 0; i < 120; i++) {
+          let offset = 0
+          if (i < 65) {
+            offset = -64 * i
+          } else if (i < 88) {
+            offset = -4200 - 42 * (i - 65)
+          } else if (i < 110) {
+            offset = -5180 + (Math.sin((i - 88) * 0.5) * 280)
+          } else {
+            offset = -5180 + 210 * (i - 110)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.6) * 210))
+          const open = i === 0 ? Math.round(close + (Math.cos(i) * 140)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 112))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 140))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(1200000 + Math.abs(Math.sin(i) * 900000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.6) * 210)
-        const open = close + (Math.cos(i) * 140)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 112)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 140)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(1200000 + Math.abs(Math.sin(i) * 900000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 15, title: '한보철강 및 기아자동차 부도 도미노', description: '대기업들의 연쇄 부실 대출이 드러나며 금융권 전체의 신용 경색이 시작되고 외국인 자금이 빠르게 이탈합니다.', importance: 'medium' },
         { day: 42, title: '대한민국 국가 신용등급 강등', description: '세계 3대 신용평가사들이 한국의 신용등급을 투자 부적격 수준으로 연쇄 강등하고, 환율이 폭등합니다.', importance: 'high' },
@@ -215,31 +239,37 @@ export const useScenario = () => {
       startDate: '2000-03-01',
       endDate: '2000-10-15',
       description: '실적 없이 기대감만으로 폭등했던 인터넷 벤처 기업들의 거품이 한순간에 꺼지며 QQQ ETF가 무참히 폭락했던 역사적인 닷컴 붕괴 시나리오입니다.',
-      candles: Array.from({ length: 140 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 120
-        let offset = 0
-        if (i < 35) {
-          offset = -0.42 * i
-        } else if (i < 92) {
-          offset = -15 - 0.6 * (i - 35)
-        } else if (i < 125) {
-          offset = -49 - 0.75 * (i - 92)
-        } else {
-          offset = -74 + 0.25 * (i - 125)
+        let prevClose = basePrice
+        for (let i = 0; i < 140; i++) {
+          let offset = 0
+          if (i < 35) {
+            offset = -0.42 * i
+          } else if (i < 92) {
+            offset = -15 - 0.6 * (i - 35)
+          } else if (i < 125) {
+            offset = -49 - 0.75 * (i - 92)
+          } else {
+            offset = -74 + 0.25 * (i - 125)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.4) * 2.5))
+          const open = i === 0 ? Math.round(close + (Math.cos(i * 0.9) * 2)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 1.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 1.75))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(3000000 + Math.abs(Math.cos(i) * 2000000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.4) * 2.5)
-        const open = close + (Math.cos(i * 0.9) * 2)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.75)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(3000000 + Math.abs(Math.cos(i) * 2000000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 10, title: '닷컴 기업 수익성 의문론 제기', description: '매출 없이 광고비만 지출하는 닷컴 기업들의 실태가 고발되며 맹목적 투기 열풍에 찬물이 끼얹어집니다.', importance: 'medium' },
         { day: 35, title: '마이크로소프트 반독점법 위반 판결', description: '미 법원의 독과점 판결로 규제 공포가 확산되며 대형 기술주 투매와 나스닥 패닉 셀링이 시작됩니다.', importance: 'high' },
@@ -259,33 +289,39 @@ export const useScenario = () => {
       startDate: '2025-06-01',
       endDate: '2025-10-15',
       description: '수년간 원자재 인플레이션을 자극하던 러-우 전쟁이 평화 협정으로 극적 휴전되면서 시작되는 글로벌 인프라 대재건 호재 시나리오입니다. (SPY ETF)',
-      candles: Array.from({ length: 100 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 490
-        let offset = 0
-        if (i < 12) {
-          offset = Math.sin(i * 1.5) * 4
-        } else if (i < 35) {
-          offset = 0.87 * (i - 12)
-        } else if (i < 62) {
-          offset = 20 + 1.5 * (i - 35)
-        } else if (i < 85) {
-          offset = 60.5 + 0.6 * (i - 62)
-        } else {
-          offset = 74.3 + 1.0 * (i - 85)
+        let prevClose = basePrice
+        for (let i = 0; i < 100; i++) {
+          let offset = 0
+          if (i < 12) {
+            offset = Math.sin(i * 1.5) * 4
+          } else if (i < 35) {
+            offset = 0.87 * (i - 12)
+          } else if (i < 62) {
+            offset = 20 + 1.5 * (i - 35)
+          } else if (i < 85) {
+            offset = 60.5 + 0.6 * (i - 62)
+          } else {
+            offset = 74.3 + 1.0 * (i - 85)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.8) * 3.5))
+          const open = i === 0 ? Math.round(close - 1.5 + (Math.cos(i) * 2)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 1.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 1.8))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(2000000 + Math.abs(Math.sin(i) * 1200000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.8) * 3.5)
-        const open = close - 1.5 + (Math.cos(i) * 2)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 1.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 1.8)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(2000000 + Math.abs(Math.sin(i) * 1200000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 12, title: '비밀 평화회담 개최 합의 외신 보도', description: '양측 대표단이 전격 합의에 접근했다는 특종 보도가 흘러나오며 지정학적 리스크가 해소되기 시작합니다.', importance: 'medium' },
         { day: 35, title: '공식 5개국 평화휴전 협정 조인', description: '마침내 전격적인 휴전 선언이 공식 보도되며 전쟁 종식 선언과 함께 증시가 강력한 상승 축포를 쏩니다.', importance: 'high' },
@@ -304,33 +340,39 @@ export const useScenario = () => {
       startDate: '2026-09-01',
       endDate: '2026-12-10',
       description: '호르무즈 해협 봉쇄와 중동발 전면 확전으로 유가가 폭등하고 3차 오일쇼크 우려가 테크 증시를 덮치는 블랙 스완 QQQ ETF 가상 시나리오입니다.',
-      candles: Array.from({ length: 90 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 440
-        let offset = 0
-        if (i < 8) {
-          offset = Math.cos(i) * 2.5
-        } else if (i < 25) {
-          offset = -1.75 * (i - 8)
-        } else if (i < 48) {
-          offset = -29.75 - 2.275 * (i - 25)
-        } else if (i < 72) {
-          offset = -82.075 + (Math.sin(i * 0.7) * 6.25)
-        } else {
-          offset = -82.075 + 1.625 * (i - 72)
+        let prevClose = basePrice
+        for (let i = 0; i < 90; i++) {
+          let offset = 0
+          if (i < 8) {
+            offset = Math.cos(i) * 2.5
+          } else if (i < 25) {
+            offset = -1.75 * (i - 8)
+          } else if (i < 48) {
+            offset = -29.75 - 2.275 * (i - 25)
+          } else if (i < 72) {
+            offset = -82.075 + (Math.sin(i * 0.7) * 6.25)
+          } else {
+            offset = -82.075 + 1.625 * (i - 72)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.9) * 3))
+          const open = i === 0 ? Math.round(close + (Math.cos(i * 1.2) * 2.5)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 2))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 2.25))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(4000000 + Math.abs(Math.sin(i) * 2800000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.9) * 3)
-        const open = close + (Math.cos(i * 1.2) * 2.5)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 2)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 2.25)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(4000000 + Math.abs(Math.sin(i) * 2800000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 8, title: '호르무즈 해협 유조선 격침 봉쇄', description: '물류 요충지인 해협 통행이 일시 차단되며 공급망 훼손 공포에 유가가 하루 8% 폭등 랠리를 시작합니다.', importance: 'medium' },
         { day: 25, title: '중동 다국적군 대규모 공습 및 미군 참전', description: '이스라엘-이란 전면 충돌과 강대국 무력 개입이 선포되며, 안전자산 선호 심리가 가파르게 쏠립니다.', importance: 'high' },
@@ -350,33 +392,39 @@ export const useScenario = () => {
       startDate: '2028-03-01',
       endDate: '2028-06-20',
       description: '경량 스마트 글래스가 스마트폰을 전면 대체하며 글로벌 가상현실 생태계와 부품 시장이 폭발적으로 급성장하는 QQQ ETF 가상 미래 시나리오입니다.',
-      candles: Array.from({ length: 110 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 460
-        let offset = 0
-        if (i < 15) {
-          offset = Math.sin(i * 0.5) * 2
-        } else if (i < 40) {
-          offset = 1.3 * (i - 15)
-        } else if (i < 65) {
-          offset = 32.5 + 1.7 * (i - 40)
-        } else if (i < 90) {
-          offset = 75 - 2.9 * (i - 65)
-        } else {
-          offset = 2.5 + 5.0 * (i - 90)
+        let prevClose = basePrice
+        for (let i = 0; i < 110; i++) {
+          let offset = 0
+          if (i < 15) {
+            offset = Math.sin(i * 0.5) * 2
+          } else if (i < 40) {
+            offset = 1.3 * (i - 15)
+          } else if (i < 65) {
+            offset = 32.5 + 1.7 * (i - 40)
+          } else if (i < 90) {
+            offset = 75 - 2.9 * (i - 65)
+          } else {
+            offset = 2.5 + 5.0 * (i - 90)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.6) * 3.75))
+          const open = i === 0 ? Math.round(close - 0.75 + (Math.cos(i) * 3)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 2.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 2.75))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(3500000 + Math.abs(Math.cos(i) * 2200000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.6) * 3.75)
-        const open = close - 0.75 + (Math.cos(i) * 3)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 2.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 2.75)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(3500000 + Math.abs(Math.cos(i) * 2200000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 15, title: '경량 스마트 글래스 전격 통합 공개', description: '폰 없이 일상 대화와 업무를 홀로그램으로 소화하는 초소형 렌즈 안경이 대히트 치며 테크주 랠리가 시작됩니다.', importance: 'medium' },
         { day: 40, title: '메타버스 원격 근무 출퇴근 법제화', description: '선진국 주요 오피스 기업들이 가상현실 출퇴근을 도입하며 메타버스 생태계 주식들이 폭발적으로 급등합니다.', importance: 'high' },
@@ -396,33 +444,39 @@ export const useScenario = () => {
       startDate: '2030-01-10',
       endDate: '2030-05-20',
       description: '인간의 지능을 완전히 아득히 뛰어넘은 초지능 인공지능(AGI)의 등장으로 초래된 생산성 대폭발과 대규모 실업난 속 SOXX 반도체 ETF 기반의 초변동성 미래 시나리오입니다.',
-      candles: Array.from({ length: 130 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 550
-        let offset = 0
-        if (i < 12) {
-          offset = 1.5 * i
-        } else if (i < 45) {
-          offset = 18 + 2.5 * (i - 12)
-        } else if (i < 75) {
-          offset = 100.5 - 6.25 * (i - 45)
-        } else if (i < 100) {
-          offset = -87 + (Math.sin(i * 1.1) * 15)
-        } else {
-          offset = -87 + 4.5 * (i - 100)
+        let prevClose = basePrice
+        for (let i = 0; i < 130; i++) {
+          let offset = 0
+          if (i < 12) {
+            offset = 1.5 * i
+          } else if (i < 45) {
+            offset = 18 + 2.5 * (i - 12)
+          } else if (i < 75) {
+            offset = 100.5 - 6.25 * (i - 45)
+          } else if (i < 100) {
+            offset = -87 + (Math.sin(i * 1.1) * 15)
+          } else {
+            offset = -87 + 4.5 * (i - 100)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 1.5) * 7.5))
+          const open = i === 0 ? Math.round(close + (Math.cos(i * 1.3) * 6.25)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 5.5))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 6))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(6000000 + Math.abs(Math.sin(i) * 4500000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 1.5) * 7.5)
-        const open = close + (Math.cos(i * 1.3) * 6.25)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 5.5)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 6)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(6000000 + Math.abs(Math.sin(i) * 4500000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 12, title: 'OpenAI 초지능 모델 Omega 전격 공개', description: '스스로 학습하고 소프트웨어를 재설계하는 완전한 AGI 모델 Omega 발표에 전 세계 테크 빅테크가 폭증합니다.', importance: 'high' },
         { day: 45, title: '주요 50개 대기업 화이트칼라 감원 시작', description: 'AGI 기반 업무 자동화로 하루아침에 대규모 구조조정이 현실화되자 소비 위축 우려로 증시가 공포의 폭락을 개시합니다.', importance: 'high' },
@@ -442,33 +496,39 @@ export const useScenario = () => {
       startDate: '2029-07-01',
       endDate: '2029-10-10',
       description: '초대형 폭염 가뭄으로 글로벌 식량 자재 가격이 폭등하고, 수자원 부족으로 인한 반도체 공장 위기가 찾아오는 KODEX 200 ETF 가상 기후 위기 시나리오입니다.',
-      candles: Array.from({ length: 100 }, (_, i) => {
+      candles: (() => {
+        const list: CandleData[] = []
         const basePrice = 36000
-        let offset = 0
-        if (i < 10) {
-          offset = Math.sin(i) * 280
-        } else if (i < 30) {
-          offset = -126 * (i - 10)
-        } else if (i < 55) {
-          offset = -2520 + 33 * (i - 30)
-        } else if (i < 80) {
-          offset = -1680 - 210 * (i - 55)
-        } else {
-          offset = -6930 + 245 * (i - 80)
+        let prevClose = basePrice
+        for (let i = 0; i < 100; i++) {
+          let offset = 0
+          if (i < 10) {
+            offset = Math.sin(i) * 280
+          } else if (i < 30) {
+            offset = -126 * (i - 10)
+          } else if (i < 55) {
+            offset = -2520 + 33 * (i - 30)
+          } else if (i < 80) {
+            offset = -1680 - 210 * (i - 55)
+          } else {
+            offset = -6930 + 245 * (i - 80)
+          }
+          const close = Math.round(basePrice + offset + (Math.sin(i * 0.8) * 420))
+          const open = i === 0 ? Math.round(close + (Math.cos(i) * 350)) : prevClose
+          const high = Math.max(open, close) + Math.round(Math.abs(Math.sin(i) * 210))
+          const low = Math.min(open, close) - Math.round(Math.abs(Math.cos(i) * 280))
+          prevClose = close
+          list.push({
+            date: `Day ${i + 1}`,
+            open,
+            high,
+            low,
+            close,
+            volume: Math.round(1800000 + Math.abs(Math.cos(i) * 1000000))
+          })
         }
-        const close = basePrice + offset + (Math.sin(i * 0.8) * 420)
-        const open = close + (Math.cos(i) * 350)
-        const high = Math.max(open, close) + Math.abs(Math.sin(i) * 210)
-        const low = Math.min(open, close) - Math.abs(Math.cos(i) * 280)
-        return {
-          date: `Day ${i + 1}`,
-          open: Math.round(open),
-          high: Math.round(high),
-          low: Math.round(low),
-          close: Math.round(close),
-          volume: Math.round(1800000 + Math.abs(Math.cos(i) * 1000000))
-        }
-      }),
+        return list
+      })(),
       events: [
         { day: 10, title: '태평양 해수면 엘니뇨 역대 최고 온도 달성', description: '슈퍼 엘니뇨 기후 경보가 공식 발효되며 밀, 커피 등 농산물 원자재 가격이 상한가 폭등 랠리를 펼칩니다.', importance: 'medium' },
         { day: 30, title: '식량 수출국 자국 보호무역 전격 선포', description: '주요 농업 강국들이 기후 대재앙에 대비해 수출 전면 차단을 결단하며, 국내 밥상물가 폭등과 인플레이션 쇼크가 덮칩니다.', importance: 'high' },
