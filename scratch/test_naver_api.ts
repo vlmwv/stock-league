@@ -1,26 +1,29 @@
-async function test() {
-  const urls = [
-    'https://m.stock.naver.com/api/sections?page=1&pageSize=50',
-    'https://m.stock.naver.com/api/industry/list',
-    'https://m.stock.naver.com/api/theme/list',
-    'https://m.stock.naver.com/api/stocks/marketValue/KOSPI?page=1&pageSize=5'
-  ]
+import dotenv from 'dotenv'
 
-  for (const url of urls) {
-    try {
-      console.log(`\nTesting URL: ${url}`)
-      const res = await fetch(url)
-      if (res.ok) {
-        const data = await res.json()
-        console.log(`Success! Data type: ${typeof data}`)
-        console.log('Sample data:', JSON.stringify(data).substring(0, 500))
-      } else {
-        console.log(`Failed! Status: ${res.status}`)
-      }
-    } catch (err: any) {
-      console.log(`Error: ${err.message}`)
+dotenv.config()
+
+async function run() {
+  const codes = '005930,000660,373220,035420,035720'
+  const naverApiUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${codes}`
+  
+  console.log(`Fetching from Naver API: ${naverApiUrl}`)
+  try {
+    const response = await fetch(naverApiUrl)
+    if (!response.ok) {
+      console.error(`Error status: ${response.status}`)
+      return
     }
+    const data = await response.json()
+    console.log('API Response structure (top-level keys):', Object.keys(data))
+    if (data.datas) {
+      console.log('Samsung Electronics:', JSON.stringify(data.datas[0], null, 2))
+      console.log('SK Hynix:', JSON.stringify(data.datas[1], null, 2))
+    } else {
+      console.log('No datas array found in response:', data)
+    }
+  } catch (error) {
+    console.error('Fetch error:', error)
   }
 }
 
-test()
+run()

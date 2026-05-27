@@ -885,12 +885,7 @@ const volumeChartOptions = computed(() => ({
         fontSize: '10px',
         fontWeight: 600
       },
-      formatter: (val: number) => {
-        if (val >= 100000000) return (val / 100000000).toFixed(1) + '억'
-        if (val >= 10000) return (val / 10000).toFixed(0) + '만'
-        if (val >= 1000) return (val / 1000).toFixed(0) + '천'
-        return val.toString()
-      },
+      formatter: () => '',
       minWidth: 65, // Y축 너비 고정하여 상단 차트와 완벽 매칭
       maxWidth: 65
     }
