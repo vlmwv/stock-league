@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
   const publicRoutes = [
     '/api/hall-of-fame',
     '/api/rankings',
+    '/api/scenarios/rankings',
     '/api/stocks',
     '/api/_nuxt_icon'
   ]
