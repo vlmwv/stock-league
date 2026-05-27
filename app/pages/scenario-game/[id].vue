@@ -303,18 +303,6 @@ onMounted(async () => {
 
       <!-- TAB 1: GAME BOARD -->
       <div v-if="activeTab === 'game'" class="space-y-6">
-        <!-- Dashboard Top Info -->
-        <div class="flex justify-between items-center bg-slate-800/40 border border-white/5 rounded-2xl p-4">
-          <div>
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">게임 진행도</p>
-            <p class="text-sm font-black text-slate-200">{{ currentDay }}일차 / {{ totalDays }}일</p>
-          </div>
-          <div class="text-right">
-            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
-            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ predictions.length }}회</p>
-          </div>
-        </div>
-
         <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
         <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
           <!-- Chart Title & Interactive OHLCV Dashboard -->
@@ -481,6 +469,18 @@ onMounted(async () => {
             <h4 class="text-sm font-black text-slate-300 mb-1.5">특별한 외부 거시 이슈가 감지되지 않았습니다.</h4>
             <p class="text-xs text-slate-500 leading-relaxed">캔들스틱의 꼬리와 거래량 지표의 패턴을 심도 있게 분석하여 다음 날 상승할지 하락할지 결정해 보세요.</p>
           </template>
+        </div>
+
+        <!-- Dashboard Top Info -->
+        <div class="flex justify-between items-center bg-slate-800/40 border border-white/5 rounded-2xl p-4">
+          <div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">게임 진행도</p>
+            <p class="text-sm font-black text-slate-200">{{ currentDay }}일차 / {{ totalDays }}일</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">현재 맞춘 개수</p>
+            <p class="text-sm font-black text-emerald-400">{{ correctCount }}승 / {{ predictions.length }}회</p>
+          </div>
         </div>
 
         <!-- 예측 입력 영역 -->
