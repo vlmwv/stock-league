@@ -217,6 +217,10 @@ onMounted(async () => {
     }
     return
   }
+  
+  // 이전 게임 상태의 찌꺼기를 방지하기 위해 진입 시 기본 리셋을 먼저 수행
+  resetGame()
+  
   await checkAttemptStatus()
 })
 </script>
