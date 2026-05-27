@@ -1,4 +1,4 @@
-import { serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const url = getRequestURL(event)
@@ -25,7 +25,27 @@ export default defineEventHandler(async (event) => {
 
   // 인증이 필요한 요청에 대해 세션 검증
   try {
-    const user = await serverSupabaseUser(event)
+    let user = null
+    
+    // 1. Authorization 헤더가 있는 경우 Bearer 토큰 직접 검증 수행
+    const authHeader = getRequestHeader(event, 'authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      try {
+        const client = await serverSupabaseClient(event)
+        const { data: { user: authUser }, error } = await client.auth.getUser(token)
+        if (!error && authUser) {
+          user = authUser
+        }
+      } catch (err) {
+        console.error('[AuthMiddleware] Header token verification fail:', err)
+      }
+    }
+    
+    // 2. 헤더에 토큰이 없거나 검증에 실패한 경우 기존 쿠키 기반 세션 사용
+    if (!user) {
+      user = await serverSupabaseUser(event)
+    }
     
     if (!user || !user.id) {
       console.warn(`[AuthMiddleware] Unauthorized access attempt to ${url.pathname}`)
