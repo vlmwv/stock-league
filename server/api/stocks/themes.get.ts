@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
   for (const stock of stocks) {
     const sector = stock.sector?.trim()
-    if (!sector) continue // 섹터 정보가 없는 종목은 테마 집계에서 제외합니다.
+    if (!sector || sector === '-') continue // 섹터 정보가 없거나 '-'인 종목은 테마 집계에서 제외합니다.
 
     if (!themesMap.has(sector)) {
       themesMap.set(sector, {
