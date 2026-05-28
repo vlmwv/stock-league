@@ -518,7 +518,6 @@ const loadIndicators = async () => {
 // 탭 감시 및 필요한 데이터 동적 로드
 watch(activeTab, (newTab) => {
   if (newTab === 'stock') {
-    fetchThemes()
     loadMarketIndices()
   } else if (newTab === 'news' && newsItems.value.length === 0) {
     loadNews()
