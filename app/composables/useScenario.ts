@@ -542,16 +542,19 @@ export const useScenario = () => {
   // 2. 로그인 유저의 시나리오 도전 내역 리스트 가져오기
   const fetchUserAttempts = async () => {
     if (!user.value?.id) return []
-    const { data, error } = await supabase
-      .from('scenario_attempts')
-      .select('scenario_id, score, correct_count, total_days, completed_at')
-      .eq('user_id', user.value.id)
+    try {
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      if (!token) return []
 
-    if (error) {
-      console.error('[useScenario] fetchUserAttempts error:', error.message)
+      const data = await $fetch('/api/scenarios/attempts', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      return (data as any[]) || []
+    } catch (err) {
+      console.error('[useScenario] fetchUserAttempts error:', err)
       return []
     }
-    return data || []
   }
 
   // 3. 특정 시나리오의 랭킹 리스트 가져오기
