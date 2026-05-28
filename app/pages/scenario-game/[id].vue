@@ -487,33 +487,33 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 예측 입력 영역 (진행 중인 경우에만 노출) -->
-        <div v-if="currentDay < totalDays && !hasAlreadyAttempted" class="space-y-4">
+        <!-- 예측 입력 영역 -->
+        <div v-if="currentDay < totalDays || hasAlreadyAttempted" class="space-y-4">
           <p class="text-center text-xs font-black text-slate-400 tracking-wider">
-            내일 이 주가의 방향은 어떻게 될까요?
+            {{ hasAlreadyAttempted ? '이미 참여가 완료된 시나리오입니다.' : '내일 이 주가의 방향은 어떻게 될까요?' }}
           </p>
           <div class="flex gap-4">
             <button 
               @click="handlePredict('down')"
-              :disabled="isFeedbackMode"
+              :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-blue-500/20 text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 active:scale-95"
-              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode }"
+              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
             >
               <UIcon name="i-heroicons-arrow-trending-down" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">하락 예측</span>
             </button>
             <button 
               @click="handlePredict('up')"
-              :disabled="isFeedbackMode"
+              :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 active:scale-95"
-              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode }"
+              :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
             >
               <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">상승 예측</span>
             </button>
           </div>
           <!-- 진행 중 유저에게만 노출되는 처음부터 다시 시작 버튼 -->
-          <div v-if="currentDay > 7" class="text-center pt-2">
+          <div v-if="!hasAlreadyAttempted && currentDay > 7" class="text-center pt-2">
             <button 
               @click="confirm('처음부터 다시 도전하시겠습니까?') && resetGame()"
               class="inline-flex items-center gap-1 text-[11px] font-black text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-0 cursor-pointer"
@@ -525,7 +525,7 @@ onMounted(async () => {
         </div>
 
         <!-- 도전 완료 시 안내 카드 (이미 참여했거나 방금 완료한 경우) -->
-        <div v-else class="text-center py-6 glass-dark rounded-3xl border border-white/5 space-y-4">
+        <div v-if="hasAlreadyAttempted || (gameEnded && currentDay >= totalDays)" class="text-center py-6 glass-dark rounded-3xl border border-white/5 space-y-4">
           <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-400" />
           <h3 class="text-lg font-black text-slate-100">{{ totalDays }}일 도전 시뮬레이션 종료!</h3>
           <p class="text-xs text-slate-400 px-8 leading-relaxed">
