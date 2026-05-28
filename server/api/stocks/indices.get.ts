@@ -12,6 +12,7 @@ const FALLBACK_INDICES = [
   { region: '미국', name: 'S&P 500', value: 5137.08, changeRate: 0.85 },
   { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
   { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 },
+  { region: '미국', name: '필라델피아 반도체', value: 5240.50, changeRate: 1.15 },
   { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
   { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
 ]
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event) => {
     const kospiRaw = domesticRes?.datas?.find((d: any) => d.itemCode === 'KOSPI')
     const kosdaqRaw = domesticRes?.datas?.find((d: any) => d.itemCode === 'KOSDAQ')
 
-    // B. 해외 지수 조회 (S&P 500: .INX, NASDAQ: .IXIC, Dow Jones: .DJI) - 네이버 해외 지수 API
+    // B. 해외 지수 조회 (S&P 500, NASDAQ, Dow Jones, SOX) - 네이버 해외 지수 API
     const fetchWorldIndex = async (symbol: string) => {
       try {
         const url = `https://api.stock.naver.com/index/${symbol}/basic`
@@ -62,10 +63,11 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const [spxRes, nasRes, djiRes] = await Promise.all([
+    const [spxRes, nasRes, djiRes, soxRes] = await Promise.all([
       fetchWorldIndex('.INX'),
       fetchWorldIndex('.IXIC'),
-      fetchWorldIndex('.DJI')
+      fetchWorldIndex('.DJI'),
+      fetchWorldIndex('.SOX')
     ])
 
     // C. 데이터 조립 및 가공
@@ -101,16 +103,22 @@ export default defineEventHandler(async (event) => {
         changeRate: djiRes?.fluctuationsRatio ? parseFloat(djiRes.fluctuationsRatio) : FALLBACK_INDICES[4].changeRate
       },
       {
+        region: '미국',
+        name: '필라델피아 반도체',
+        value: soxRes?.closePrice ? parseFloat(soxRes.closePrice.replace(/,/g, '')) : FALLBACK_INDICES[5].value,
+        changeRate: soxRes?.fluctuationsRatio ? parseFloat(soxRes.fluctuationsRatio) : FALLBACK_INDICES[5].changeRate
+      },
+      {
         region: '외환',
         name: '원/달러 환율',
-        value: FALLBACK_INDICES[5].value,
-        changeRate: FALLBACK_INDICES[5].changeRate
+        value: FALLBACK_INDICES[6].value,
+        changeRate: FALLBACK_INDICES[6].changeRate
       },
       {
         region: '원자재',
         name: 'WTI 원유',
-        value: FALLBACK_INDICES[6].value,
-        changeRate: FALLBACK_INDICES[6].changeRate
+        value: FALLBACK_INDICES[7].value,
+        changeRate: FALLBACK_INDICES[7].changeRate
       }
     ]
 

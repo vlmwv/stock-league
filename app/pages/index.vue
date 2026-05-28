@@ -39,13 +39,13 @@
           </span>
         </div>
 
-        <!-- 가로 스크롤 대신 한 화면에 두 줄로 꽉 차게 들어오는 그리드 대시보드 -->
-        <div class="grid grid-cols-3 gap-2 px-1">
+        <!-- 가로 스크롤 대신 한 화면에 두 줄로 꽉 차게 들어오는 그리드 대시보드 (6열 배치 활용) -->
+        <div class="grid grid-cols-6 gap-2 px-1">
           <div 
             v-for="(indexItem, idx) in marketIndices" 
             :key="indexItem.name"
             class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[82px] transition-all hover:bg-white/[0.04]"
-            :class="idx === 6 ? 'col-span-3 flex-row items-center justify-between min-h-[42px] py-2 px-4' : ''"
+            :class="idx >= 6 ? 'col-span-3 flex-row items-center justify-between min-h-[46px] py-2.5 px-4' : 'col-span-2'"
           >
             <!-- 백그라운드 그라데이션 광채 -->
             <div 
@@ -53,8 +53,8 @@
               :class="indexItem.changeRate >= 0 ? 'bg-rose-500/10' : 'bg-indigo-500/10'"
             ></div>
 
-            <!-- 일반 카드 레이아웃 (1~6번째 아이템) -->
-            <template v-if="idx !== 6">
+            <!-- 일반 카드 레이아웃 (1~6번째 아이템: 주가지수 6개) -->
+            <template v-if="idx < 6">
               <div class="relative z-10 flex flex-col gap-0.5">
                 <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none">{{ indexItem.region }}</span>
                 <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-tight truncate mt-0.5">{{ indexItem.name }}</h4>
@@ -76,21 +76,21 @@
               </div>
             </template>
 
-            <!-- 7번째 가로형 특수 레이아웃 (WTI 원유) -->
+            <!-- 7, 8번째 가로형 와이드 레이아웃 (환율, WTI 원유) -->
             <template v-else>
               <div class="relative z-10 flex items-center gap-2">
                 <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none bg-slate-800 px-1.5 py-0.5 rounded">{{ indexItem.region }}</span>
-                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-none">{{ indexItem.name }}</h4>
+                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-none truncate max-w-[80px]">{{ indexItem.name }}</h4>
               </div>
-              <div class="relative z-10 flex items-center gap-3 font-mono">
-                <span class="text-xs font-black text-slate-50 tracking-tighter">
-                  {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}$
+              <div class="relative z-10 flex items-center gap-1.5 font-mono">
+                <span class="text-[11px] font-black text-slate-50 tracking-tighter">
+                  {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}{{ indexItem.name.includes('환율') ? '원' : '$' }}
                 </span>
                 <span 
                   class="text-[9px] font-black tracking-tighter flex items-center leading-none"
                   :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                 >
-                  <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2.5 h-2.5 mr-0.5" />
+                  <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2 h-2 mr-0.5" />
                   {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
                 </span>
               </div>
@@ -332,13 +332,14 @@ const selectedTheme = ref<any>(null)
 const indicesSource = ref<'api' | 'fallback' | 'loading'>('loading')
 const isFetchingIndices = ref(false)
 
-// 목업 지수 데이터 (기본값 및 폴백용 - 외환/원자재 포함)
+// 목업 지수 데이터 (기본값 및 폴백용 - 외환/원자재/반도체 포함)
 const marketIndices = ref([
   { region: '대한민국', name: 'KOSPI', value: 2654.21, changeRate: 1.20 },
   { region: '대한민국', name: 'KOSDAQ', value: 875.40, changeRate: -0.40 },
   { region: '미국', name: 'S&P 500', value: 5137.08, changeRate: 0.85 },
   { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
   { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 },
+  { region: '미국', name: '필라델피아 반도체', value: 5240.50, changeRate: 1.15 },
   { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
   { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
 ])
