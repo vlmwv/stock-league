@@ -27,7 +27,14 @@ const activeTab = ref<'game' | 'ranking'>('game')
 
 // 1. 이미 완료한 도전 이력이 있는지 검증
 const checkAttemptStatus = async () => {
-  if (!user.value) return
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabaseClient = useSupabaseClient()
+    const { data } = await supabaseClient.auth.getUser()
+    currentUser = data?.user
+  }
+  if (!currentUser) return
+
   const attempts = await fetchUserAttempts() as any[]
   const found = attempts.find(a => a.scenario_id === scenarioId)
   if (found) {
@@ -133,7 +140,15 @@ const todayEvent = computed(() => {
 // 5. 예측 제출 로직
 const handlePredict = async (prediction: 'up' | 'down') => {
   if (isFeedbackMode.value || gameEnded.value || hasAlreadyAttempted.value) return
-  if (!user.value?.id) {
+  
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabase = useSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    currentUser = data?.user
+  }
+
+  if (!currentUser?.id) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
       router.push('/login')
     }
@@ -218,8 +233,15 @@ onMounted(async () => {
   // 이전 게임 상태의 찌꺼기를 방지하기 위해 진입 시 기본 리셋을 먼저 수행
   resetGame()
 
-  // user가 이미 로드된 상태면 즉시 도전 이력 확인
-  if (user.value?.id) {
+  // user가 이미 로드된 상태면 즉시 도전 이력 확인 (비동기 지연 복구 크로스체크 포함)
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabaseClient = useSupabaseClient()
+    const { data } = await supabaseClient.auth.getUser()
+    currentUser = data?.user
+  }
+
+  if (currentUser?.id) {
     await checkAttemptStatus()
   }
 })

@@ -23,8 +23,15 @@ const getAttempt = (scenarioId: number) => {
   return userAttempts.value.find(a => a.scenario_id === scenarioId)
 }
 
-const handleChallenge = (scenarioId: number) => {
-  if (!user.value) {
+const handleChallenge = async (scenarioId: number) => {
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabase = useSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    currentUser = data?.user
+  }
+
+  if (!currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
       router.push('/login')
     }
