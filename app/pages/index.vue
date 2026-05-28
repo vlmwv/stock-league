@@ -39,62 +39,42 @@
           </span>
         </div>
 
-        <!-- 가로 스크롤 대신 한 화면에 두 줄로 꽉 차게 들어오는 그리드 대시보드 (6열 배치 활용) -->
-        <div class="grid grid-cols-6 gap-2 px-1">
+        <!-- 가로 스크롤 대신 한 화면에 2행 4열로 꽉 차게 들어오는 그리드 대시보드 (4열 배치 활용) -->
+        <div class="grid grid-cols-4 gap-1.5 px-1">
           <div 
-            v-for="(indexItem, idx) in marketIndices" 
+            v-for="indexItem in marketIndices" 
             :key="indexItem.name"
-            class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[82px] transition-all hover:bg-white/[0.04]"
-            :class="idx >= 6 ? 'col-span-3 flex-row items-center justify-between min-h-[46px] py-2.5 px-4' : 'col-span-2'"
+            class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[68px] transition-all hover:bg-white/[0.04]"
           >
             <!-- 백그라운드 그라데이션 광채 -->
             <div 
-              class="absolute -top-10 -right-10 w-16 h-16 blur-xl rounded-full transition-opacity duration-500"
+              class="absolute -top-10 -right-10 w-14 h-14 blur-xl rounded-full transition-opacity duration-500"
               :class="indexItem.changeRate >= 0 ? 'bg-rose-500/10' : 'bg-indigo-500/10'"
             ></div>
 
-            <!-- 일반 카드 레이아웃 (1~6번째 아이템: 주가지수 6개) -->
-            <template v-if="idx < 6">
-              <div class="relative z-10 flex flex-col gap-0.5">
-                <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none">{{ indexItem.region }}</span>
-                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-tight truncate mt-0.5">{{ indexItem.name }}</h4>
-              </div>
-              <div class="relative z-10 flex flex-col mt-1.5 leading-none">
-                <span class="text-xs font-mono font-black text-slate-50 tracking-tighter">
-                  {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}
-                  <span class="text-[8px] text-slate-400 font-bold ml-0.5">
-                    {{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
-                  </span>
-                </span>
-                <span 
-                  class="text-[9px] font-black tracking-tighter flex items-center mt-1 leading-none"
-                  :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                >
-                  <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2.5 h-2.5 mr-0.5" />
-                  {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
-                </span>
-              </div>
-            </template>
+            <!-- 1라인: 지수명 (한 줄로 깔끔하게 노출) -->
+            <div class="relative z-10 flex flex-col min-w-0">
+              <span class="text-[7px] font-black text-slate-500 tracking-wider leading-none uppercase">{{ indexItem.region }}</span>
+              <h4 class="text-[9px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-tight truncate mt-0.5">
+                {{ indexItem.name === '필라델피아 반도체' ? '필라반도체' : indexItem.name }}
+              </h4>
+            </div>
 
-            <!-- 7, 8번째 가로형 와이드 레이아웃 (환율, WTI 원유) -->
-            <template v-else>
-              <div class="relative z-10 flex items-center gap-2">
-                <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none bg-slate-800 px-1.5 py-0.5 rounded">{{ indexItem.region }}</span>
-                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-none truncate max-w-[80px]">{{ indexItem.name }}</h4>
-              </div>
-              <div class="relative z-10 flex items-center gap-1.5 font-mono">
-                <span class="text-[11px] font-black text-slate-50 tracking-tighter">
-                  {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}{{ indexItem.name.includes('환율') ? '원' : '$' }}
-                </span>
-                <span 
-                  class="text-[9px] font-black tracking-tighter flex items-center leading-none"
-                  :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                >
-                  <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2 h-2 mr-0.5" />
-                  {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
-                </span>
-              </div>
-            </template>
+            <!-- 2라인: 지수 값 & 변동율 (한 줄로 수평 정렬) -->
+            <div class="relative z-10 flex items-baseline justify-between mt-1.5 min-w-0 gap-1 leading-none">
+              <!-- 지수 값 -->
+              <span class="text-[10px] font-mono font-black text-slate-50 tracking-tighter truncate leading-none flex-shrink-0">
+                {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 0 : 0, maximumFractionDigits: 1 }) }}{{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
+              </span>
+              <!-- 변동율 -->
+              <span 
+                class="text-[8px] font-mono font-black tracking-tighter flex items-center leading-none flex-shrink-0"
+                :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+              >
+                <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-1.5 h-1.5 mr-0.5 flex-shrink-0" />
+                {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
+              </span>
+            </div>
           </div>
         </div>
       </section>
