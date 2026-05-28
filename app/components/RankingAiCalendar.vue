@@ -281,24 +281,24 @@ const isWeekendOrHoliday = (cell: any) => {
 
 // 수익률에 따른 카드 동적 클래스 반환
 const getCellBgClass = (cell: any) => {
-  if (!cell.day) return 'bg-slate-950/20 opacity-30 pointer-events-none'
+  if (!cell.day) return 'bg-slate-100/50 dark:bg-slate-950/20 opacity-30 pointer-events-none'
   
   if (isWeekendOrHoliday(cell)) {
-    return 'bg-slate-950/40 opacity-60 border-dashed border-white/5'
+    return 'bg-slate-100/70 dark:bg-slate-950/40 opacity-60 border-dashed border-slate-200 dark:border-white/5'
   }
   
   if (cell.summaryInfo) {
     const rate = cell.summaryInfo.repStockRate
     if (rate > 0) {
-      return 'bg-gradient-to-br from-rose-500/10 via-slate-900/40 to-slate-900/10 border-rose-500/20 hover:border-rose-500/40 hover:from-rose-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(244,63,94,0.05)]'
+      return 'bg-gradient-to-br from-rose-50/90 via-rose-100/30 to-slate-50/50 dark:from-rose-500/10 dark:via-slate-900/40 dark:to-slate-900/10 border-rose-200 dark:border-rose-500/20 hover:border-rose-400 dark:hover:border-rose-500/40 hover:from-rose-100/50 dark:hover:from-rose-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(244,63,94,0.05)]'
     } else if (rate < 0) {
-      return 'bg-gradient-to-br from-indigo-500/10 via-slate-900/40 to-slate-900/10 border-indigo-500/20 hover:border-indigo-500/40 hover:from-indigo-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(99,102,241,0.05)] font-black'
+      return 'bg-gradient-to-br from-indigo-50/90 via-indigo-100/30 to-slate-50/50 dark:from-indigo-500/10 dark:via-slate-900/40 dark:to-slate-900/10 border-indigo-200 dark:border-indigo-500/20 hover:border-indigo-400 dark:hover:border-indigo-500/40 hover:from-indigo-100/50 dark:hover:from-indigo-500/15 cursor-pointer shadow-[inset_0_1px_1px_rgba(99,102,241,0.05)]'
     } else {
-      return 'bg-gradient-to-br from-slate-500/5 via-slate-900/40 to-slate-900/10 border-white/10 hover:border-white/20 cursor-pointer'
+      return 'bg-gradient-to-br from-slate-50 via-slate-100/30 to-slate-50 dark:from-slate-500/5 dark:via-slate-900/40 dark:to-slate-900/10 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 cursor-pointer'
     }
   }
   
-  return 'bg-slate-900/15 border-white/5 hover:bg-slate-900/25'
+  return 'bg-white/90 dark:bg-slate-900/15 border-slate-200/60 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-900/25'
 }
 
 onMounted(() => {
@@ -309,25 +309,25 @@ onMounted(() => {
 <template>
   <div class="animate-fade-in space-y-6">
     <!-- 달력 헤더부 -->
-    <div class="flex items-center justify-between bg-slate-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
+    <div class="flex items-center justify-between bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-3xl p-5 backdrop-blur-md">
       <!-- 년/월 선택 드롭다운 -->
       <div class="flex items-center gap-2">
         <div class="relative">
           <select 
             v-model="currentYear" 
             @change="loadMonthlyData"
-            class="bg-slate-950/60 border border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+            class="bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
           >
             <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}년</option>
           </select>
-          <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <UIcon name="i-heroicons-chevron-down-20-solid" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
         </div>
 
         <div class="relative">
           <select 
             v-model="currentMonth" 
             @change="loadMonthlyData"
-            class="bg-slate-950/60 border border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-brand-primary appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+            class="bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-brand-primary appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
           >
             <option v-for="month in 12" :key="month" :value="month">{{ month }}월</option>
           </select>
@@ -338,7 +338,7 @@ onMounted(() => {
       <!-- 단일 초기화 버튼 -->
       <button 
         @click="goToday"
-        class="px-4 h-9 rounded-2xl bg-slate-950/50 border border-white/5 hover:bg-white/5 text-xs font-black text-slate-400 hover:text-brand-primary active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+        class="px-4 h-9 rounded-2xl bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-black text-slate-600 dark:text-slate-400 hover:text-brand-primary active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
         title="오늘 날짜로 초기화"
       >
         <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
@@ -353,20 +353,20 @@ onMounted(() => {
     </div>
 
     <!-- 달력 본문 그리드 -->
-    <div v-else class="glass-dark border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+    <div v-else class="bg-white/70 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-md">
       <!-- 요일 헤더 -->
-      <div class="grid grid-cols-7 bg-slate-950/40 border-b border-white/5 text-center py-4">
+      <div class="grid grid-cols-7 bg-slate-50 dark:bg-slate-950/40 border-b border-slate-200/80 dark:border-white/5 text-center py-4">
         <span class="text-xs font-black text-rose-500 tracking-wider">일</span>
-        <span class="text-xs font-black text-slate-500 tracking-wider">월</span>
-        <span class="text-xs font-black text-slate-500 tracking-wider">화</span>
-        <span class="text-xs font-black text-slate-500 tracking-wider">수</span>
-        <span class="text-xs font-black text-slate-500 tracking-wider">목</span>
-        <span class="text-xs font-black text-slate-500 tracking-wider">금</span>
-        <span class="text-xs font-black text-indigo-400 tracking-wider">토</span>
+        <span class="text-xs font-black text-slate-600 dark:text-slate-500 tracking-wider">월</span>
+        <span class="text-xs font-black text-slate-600 dark:text-slate-500 tracking-wider">화</span>
+        <span class="text-xs font-black text-slate-600 dark:text-slate-500 tracking-wider">수</span>
+        <span class="text-xs font-black text-slate-600 dark:text-slate-500 tracking-wider">목</span>
+        <span class="text-xs font-black text-slate-600 dark:text-slate-500 tracking-wider">금</span>
+        <span class="text-xs font-black text-indigo-600 dark:text-indigo-400 tracking-wider">토</span>
       </div>
 
       <!-- 날짜 그리드 -->
-      <div class="grid grid-cols-7 gap-2 p-3 bg-slate-950/20">
+      <div class="grid grid-cols-7 gap-2 p-3 bg-slate-100/50 dark:bg-slate-950/20">
         <div 
           v-for="(cell, index) in calendarCells" 
           :key="index"
@@ -394,8 +394,8 @@ onMounted(() => {
               :class="[
                 cell.dateStr === todayStr ? 'bg-brand-primary text-slate-950 font-black shadow-[0_0_10px_rgba(242,180,46,0.4)]' : [
                   (cell.dateStr && new Date(cell.dateStr).getDay() === 0) || cell.holidayName ? 'text-rose-500 font-extrabold' : '',
-                  cell.dateStr && new Date(cell.dateStr).getDay() === 6 && !cell.holidayName ? 'text-indigo-400 font-extrabold' : '',
-                  !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) && !cell.holidayName ? 'text-slate-400' : ''
+                  cell.dateStr && new Date(cell.dateStr).getDay() === 6 && !cell.holidayName ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : '',
+                  !(cell.dateStr && (new Date(cell.dateStr).getDay() === 0 || new Date(cell.dateStr).getDay() === 6)) && !cell.holidayName ? 'text-slate-700 dark:text-slate-400' : ''
                 ]
               ]"
             >
@@ -408,7 +408,7 @@ onMounted(() => {
             <!-- 테마 배지 (둥글고 세련된 컴팩트 캡슐 배지) -->
             <div class="flex items-center">
               <span 
-                class="text-[9px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 rounded-md px-1.5 py-0.5 tracking-tight truncate leading-tight"
+                class="text-[9px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 rounded-md px-1.5 py-0.5 tracking-tight truncate leading-tight whitespace-nowrap max-w-[90%]"
                 :title="cell.summaryInfo.theme"
               >
                 {{ cell.summaryInfo.theme }}
@@ -418,17 +418,17 @@ onMounted(() => {
             <!-- 대표 종목 및 등락률 -->
             <div class="flex items-center justify-between gap-1">
               <span 
-                class="text-[10px] font-extrabold text-slate-200 truncate leading-tight max-w-[65%]"
+                class="text-[10px] font-extrabold text-slate-800 dark:text-slate-200 truncate leading-tight max-w-[62%] whitespace-nowrap"
                 :title="cell.summaryInfo.repStockName"
               >
                 {{ cell.summaryInfo.repStockName }}
               </span>
               <span 
-                class="text-[9px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded"
+                class="text-[9px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded whitespace-nowrap"
                 :class="[
                   cell.summaryInfo.repStockRate >= 0 
-                    ? 'text-rose-400 bg-rose-500/5' 
-                    : 'text-indigo-400 bg-indigo-500/5'
+                    ? 'text-rose-500 dark:text-rose-400 bg-rose-500/5' 
+                    : 'text-indigo-500 dark:text-indigo-400 bg-indigo-500/5'
                 ]"
               >
                 <span class="text-[8px]">{{ cell.summaryInfo.repStockRate >= 0 ? '▲' : '▼' }}</span>
@@ -436,10 +436,19 @@ onMounted(() => {
               </span>
             </div>
 
-            <!-- 종목수 및 승리 비율 (깔끔한 미니 배지 조합) -->
-            <div class="pt-1 flex items-center justify-between text-[9px] font-bold border-t border-white/5">
-              <span class="text-slate-400">추천 <strong class="text-brand-primary">{{ cell.summaryInfo.totalCount }}</strong></span>
-              <span class="text-rose-400">적중 <strong class="text-rose-400">{{ cell.summaryInfo.winCount }}</strong></span>
+            <!-- 종목수 및 승리 비율 (모바일 최적화 미니 배지 조합) -->
+            <div class="pt-1 flex items-center justify-between text-[9px] font-black border-t border-slate-200 dark:border-white/5">
+              <span class="text-slate-600 dark:text-slate-400 whitespace-nowrap">🎯 {{ cell.summaryInfo.winCount }}/{{ cell.summaryInfo.totalCount }}</span>
+              <span 
+                class="px-1 py-0.25 rounded text-[8px] font-extrabold whitespace-nowrap"
+                :class="[
+                  (cell.summaryInfo.winCount / cell.summaryInfo.totalCount) >= 0.5 
+                    ? 'text-rose-500 bg-rose-500/10' 
+                    : 'text-slate-500 bg-slate-500/10 dark:text-slate-400'
+                ]"
+              >
+                {{ Math.round((cell.summaryInfo.winCount / cell.summaryInfo.totalCount) * 100) }}%
+              </span>
             </div>
           </div>
         </div>
@@ -448,10 +457,10 @@ onMounted(() => {
 
     <!-- 하단 헬퍼 가이드 -->
     <div class="text-center py-2 space-y-1">
-      <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+      <p class="text-[10px] font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest">
         날짜 클릭 → S급추적 상세
       </p>
-      <p class="text-[9.5px] text-slate-500 font-bold">
+      <p class="text-[9.5px] text-slate-500 dark:text-slate-600 font-bold">
         ※ 퍼센테이지(%)는 해당 날짜 AI 추천 대표 종목의 누적 수익률을 의미합니다.
       </p>
     </div>
