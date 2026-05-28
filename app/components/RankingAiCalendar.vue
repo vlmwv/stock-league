@@ -143,6 +143,8 @@ const loadMonthlyData = async () => {
   try {
     const data = await fetchAiHistoryMonthly(currentYear.value, currentMonth.value)
     monthlyHistory.value = data
+    // 데이터 로드 완료 후 기본 셀 선택
+    setTimeout(selectDefaultCell, 50)
   } catch (error) {
     console.error('[RankingAiCalendar] Failed to load monthly AI history:', error)
   } finally {
@@ -263,10 +265,35 @@ const goToday = () => {
 const detailModalOpen = ref(false)
 const selectedCell = ref<any>(null)
 
+// 선택된 날짜 상세 패널 상태
+const activeDateCell = ref<any>(null)
+
+// 데이터가 들어있는 오늘 또는 가장 빠른 셀 기본 선택
+const selectDefaultCell = () => {
+  if (calendarCells.value && calendarCells.value.length > 0) {
+    const todayCell = calendarCells.value.find(c => c.dateStr === todayStr && c.summaryInfo)
+    if (todayCell) {
+      activeDateCell.value = todayCell
+      return
+    }
+    const dataCell = calendarCells.value.find(c => c.summaryInfo)
+    if (dataCell) {
+      activeDateCell.value = dataCell
+    } else {
+      activeDateCell.value = null
+    }
+  }
+}
+
 const openDetailModal = (cell: any) => {
   if (!cell.summaryInfo) return
   selectedCell.value = cell
   detailModalOpen.value = true
+}
+
+const handleCellClick = (cell: any) => {
+  if (!cell.summaryInfo) return
+  activeDateCell.value = cell
 }
 
 // 오늘 날짜 문자열 (YYYY-MM-DD)
@@ -371,10 +398,11 @@ onMounted(() => {
           v-for="(cell, index) in calendarCells" 
           :key="index"
           :class="[
-            'min-h-[142px] p-2.5 flex flex-col justify-between transition-all duration-300 relative group border rounded-2xl overflow-hidden hover:scale-[1.02] hover:z-20 hover:shadow-2xl',
-            getCellBgClass(cell)
+            'min-h-[110px] p-2.5 flex flex-col justify-between transition-all duration-300 relative group border rounded-2xl overflow-hidden hover:scale-[1.02] hover:z-20 hover:shadow-2xl cursor-pointer',
+            getCellBgClass(cell),
+            activeDateCell?.dateStr === cell.dateStr ? 'ring-2 ring-brand-primary border-brand-primary dark:ring-2 dark:ring-brand-primary z-20 shadow-lg' : ''
           ]"
-          @click="openDetailModal(cell)"
+          @click="handleCellClick(cell)"
         >
           <!-- 날짜 숫자 및 공휴일 표시 -->
           <div class="flex justify-between items-center w-full gap-1">
@@ -403,62 +431,94 @@ onMounted(() => {
             </span>
           </div>
 
-          <!-- 추천 요약 카드 (있을 때만 노출) -->
-          <div v-if="cell.summaryInfo" class="mt-1.5 space-y-1.5 w-full relative z-10">
-            <!-- 테마 배지 (둥글고 세련된 컴팩트 캡슐 배지) -->
-            <div class="flex items-center">
-              <span 
-                class="text-[9px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 rounded-md px-1.5 py-0.5 tracking-tight truncate leading-tight whitespace-nowrap max-w-[90%]"
-                :title="cell.summaryInfo.theme"
-              >
-                {{ cell.summaryInfo.theme }}
-              </span>
-            </div>
+          <!-- 추천 요약 카드 (극도로 간소화된 모던 뱃지 - 잘림 0%) -->
+          <div v-if="cell.summaryInfo" class="mt-2 w-full flex flex-col items-center gap-1.5 relative z-10">
+            <!-- 대표 수익률 표시 (기호와 숫자만 깔끔하게) -->
+            <span 
+              class="text-[9.5px] font-black tracking-tight flex items-center gap-0.5 px-2 py-0.5 rounded-lg shadow-sm"
+              :class="[
+                cell.summaryInfo.repStockRate >= 0 
+                  ? 'text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-500/10 border border-rose-200/50 dark:border-rose-500/20' 
+                  : 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/10 border border-indigo-200/50 dark:border-indigo-500/20'
+              ]"
+            >
+              {{ cell.summaryInfo.repStockRate >= 0 ? '▲' : '▼' }}{{ Math.abs(cell.summaryInfo.repStockRate) }}%
+            </span>
 
-            <!-- 대표 종목 및 등락률 -->
-            <div class="flex items-center justify-between gap-1">
-              <span 
-                class="text-[10px] font-extrabold text-slate-800 dark:text-slate-200 truncate leading-tight max-w-[62%] whitespace-nowrap"
-                :title="cell.summaryInfo.repStockName"
-              >
-                {{ cell.summaryInfo.repStockName }}
-              </span>
-              <span 
-                class="text-[9px] font-black tracking-tight shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded whitespace-nowrap"
-                :class="[
-                  cell.summaryInfo.repStockRate >= 0 
-                    ? 'text-rose-500 dark:text-rose-400 bg-rose-500/5' 
-                    : 'text-indigo-500 dark:text-indigo-400 bg-indigo-500/5'
-                ]"
-              >
-                <span class="text-[8px]">{{ cell.summaryInfo.repStockRate >= 0 ? '▲' : '▼' }}</span>
-                {{ Math.abs(cell.summaryInfo.repStockRate) }}%
-              </span>
-            </div>
-
-            <!-- 종목수 및 승리 비율 (모바일 최적화 미니 배지 조합) -->
-            <div class="pt-1 flex items-center justify-between text-[9px] font-black border-t border-slate-200 dark:border-white/5">
-              <span class="text-slate-600 dark:text-slate-400 whitespace-nowrap">🎯 {{ cell.summaryInfo.winCount }}/{{ cell.summaryInfo.totalCount }}</span>
-              <span 
-                class="px-1 py-0.25 rounded text-[8px] font-extrabold whitespace-nowrap"
-                :class="[
-                  (cell.summaryInfo.winCount / cell.summaryInfo.totalCount) >= 0.5 
-                    ? 'text-rose-500 bg-rose-500/10' 
-                    : 'text-slate-500 bg-slate-500/10 dark:text-slate-400'
-                ]"
-              >
-                {{ Math.round((cell.summaryInfo.winCount / cell.summaryInfo.totalCount) * 100) }}%
-              </span>
-            </div>
+            <!-- 적중 현황 미니 인디케이터 -->
+            <span class="text-[8.5px] font-extrabold text-slate-500 dark:text-slate-400 opacity-90">
+              🎯 {{ cell.summaryInfo.winCount }}/{{ cell.summaryInfo.totalCount }}
+            </span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- 선택된 날짜 상세 패널 (글씨 짤림 없는 시원하고 예쁜 뷰) -->
+    <div 
+      v-if="activeDateCell && activeDateCell.summaryInfo" 
+      class="bg-white/90 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 shadow-xl backdrop-blur-md animate-fade-in space-y-4"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 pb-3">
+        <h4 class="text-sm font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <UIcon name="i-heroicons-calendar" class="w-4 h-4 text-brand-primary" />
+          {{ activeDateCell.dateStr }} AI 추천 분석
+        </h4>
+        <span class="text-[10px] font-black text-brand-primary bg-brand-primary/10 border border-brand-primary/20 rounded-lg px-2.5 py-0.5">
+          🎯 적중률 {{ Math.round((activeDateCell.summaryInfo.winCount / activeDateCell.summaryInfo.totalCount) * 100) }}%
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">대표 테마</p>
+          <p class="text-sm font-black text-slate-800 dark:text-slate-100">
+            {{ activeDateCell.summaryInfo.theme }}
+          </p>
+        </div>
+        <div class="space-y-1">
+          <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">추천/적중 수</p>
+          <p class="text-sm font-black text-slate-800 dark:text-slate-100">
+            총 {{ activeDateCell.summaryInfo.totalCount }}개 중 <span class="text-rose-500 dark:text-rose-400 font-extrabold">{{ activeDateCell.summaryInfo.winCount }}개 적중</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-white/5 rounded-2xl p-4 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">대표 종목</p>
+          <p class="text-sm font-black text-slate-800 dark:text-slate-200 truncate mt-0.5">
+            {{ activeDateCell.summaryInfo.repStockName }}
+          </p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <span 
+            class="text-xs font-black px-2.5 py-1 rounded-lg inline-flex items-center gap-0.5 shadow-sm"
+            :class="[
+              activeDateCell.summaryInfo.repStockRate >= 0 
+                ? 'text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-500/10' 
+                : 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/10'
+            ]"
+          >
+            {{ activeDateCell.summaryInfo.repStockRate >= 0 ? '▲' : '▼' }} {{ Math.abs(activeDateCell.summaryInfo.repStockRate) }}%
+          </span>
+        </div>
+      </div>
+
+      <!-- 상세 종목 전체보기 버튼 (클릭 시 기존 고화질 모달 오픈) -->
+      <button 
+        @click="openDetailModal(activeDateCell)"
+        class="w-full h-12 rounded-2xl bg-brand-primary text-slate-950 font-black hover:bg-brand-primary/95 active:scale-[0.98] transition-all text-xs flex items-center justify-center gap-1.5 shadow animate-fade-in"
+      >
+        <UIcon name="i-heroicons-document-magnifying-glass" class="w-4 h-4" />
+        <span>상세 분석 리포트 전체보기</span>
+      </button>
+    </div>
+
     <!-- 하단 헬퍼 가이드 -->
     <div class="text-center py-2 space-y-1">
       <p class="text-[10px] font-black text-slate-600 dark:text-slate-500 uppercase tracking-widest">
-        날짜 클릭 → S급추적 상세
+        날짜 클릭 → 하단 상세 정보 확인
       </p>
       <p class="text-[9.5px] text-slate-500 dark:text-slate-600 font-bold">
         ※ 퍼센테이지(%)는 해당 날짜 AI 추천 대표 종목의 누적 수익률을 의미합니다.
