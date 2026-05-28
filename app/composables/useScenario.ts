@@ -544,16 +544,16 @@ export const useScenario = () => {
   const fetchUserAttempts = async () => {
     if (!user.value?.id) return []
     try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData?.session?.access_token
-      if (!token) {
-        console.warn('[useScenario] No active session token found.')
+      const { data, error } = await supabase
+        .from('scenario_attempts')
+        .select('scenario_id, score, correct_count, total_days, completed_at')
+        .eq('user_id', user.value.id)
+
+      if (error) {
+        console.error('[useScenario] fetchUserAttempts DB Error:', error.message)
         return []
       }
-      const data = await $fetch('/api/scenarios/attempts', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      return (data as any[]) || []
+      return data || []
     } catch (err) {
       console.error('[useScenario] fetchUserAttempts error:', err)
       return []
@@ -563,6 +563,7 @@ export const useScenario = () => {
   // 3. 특정 시나리오의 랭킹 리스트 가져오기
   const fetchScenarioRankings = async (scenarioId: number) => {
     try {
+      // 랭킹은 scenario_attempts와 profiles를 조합해서 랭킹 형태로 직접 서버 API나 클라이언트 쿼리로 가져옴
       const data = await $fetch('/api/scenarios/rankings', {
         query: { scenarioId }
       })
@@ -575,22 +576,44 @@ export const useScenario = () => {
 
   // 4. 게임 최종 완료 기록 저장하기
   const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
+    if (!user.value?.id) {
+      return { success: false, message: '로그인이 필요합니다.' }
+    }
+    const playDays = totalDays > 7 ? totalDays - 7 : totalDays
+    const score = Math.round((correctCount / playDays) * 10000) / 100
+
     try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData?.session?.access_token
-      if (!token) {
-        return { success: false, message: '로그인이 필요합니다.' }
+      // 중복 도전 검사
+      const { data: existing, error: existError } = await supabase
+        .from('scenario_attempts')
+        .select('id')
+        .eq('user_id', user.value.id)
+        .eq('scenario_id', scenarioId)
+        .maybeSingle()
+
+      if (existError) throw existError
+      if (existing) {
+        return { success: false, message: '이미 도전이 완료된 시나리오입니다.' }
       }
-      const data = await $fetch('/api/scenarios/attempt', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: { scenarioId, correctCount, totalDays }
-      })
+
+      // 점수 저장
+      const { data, error } = await supabase
+        .from('scenario_attempts')
+        .insert({
+          user_id: user.value.id,
+          scenario_id: scenarioId,
+          correct_count: correctCount,
+          score: score,
+          total_days: totalDays
+        })
+        .select()
+        .single()
+
+      if (error) throw error
       return { success: true, data }
     } catch (err: any) {
       console.error('[useScenario] submitScenarioAttempt error:', err)
-      const errorMsg = err.data?.message || err.data?.statusMessage || err.statusMessage || '기록 저장 중 오류가 발생했습니다.'
-      return { success: false, message: errorMsg }
+      return { success: false, message: err.message || '기록 저장 중 오류가 발생했습니다.' }
     }
   }
 
