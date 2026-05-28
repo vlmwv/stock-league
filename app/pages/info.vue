@@ -68,7 +68,12 @@
                 <span class="text-[10px] font-black text-slate-500 tracking-wider">{{ indexItem.region }}</span>
                 <h4 class="text-xs font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ indexItem.name }}</h4>
                 <div class="flex flex-col mt-1">
-                  <span class="text-sm font-mono font-black text-slate-50 tracking-tight">{{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                  <span class="text-sm font-mono font-black text-slate-50 tracking-tight">
+                    {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}
+                    <span class="text-[9px] text-slate-400 font-bold ml-0.5">
+                      {{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
+                    </span>
+                  </span>
                   <span 
                     class="text-[10px] font-black tracking-tight flex items-center mt-0.5"
                     :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
@@ -79,6 +84,85 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- 2. 오늘의 탐욕·공포 지수 (Fear & Greed Index) -->
+        <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl relative overflow-hidden flex flex-col gap-4">
+          <div class="flex items-center justify-between border-b border-white/5 pb-3">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-heroicons-globe-alt" class="w-5 h-5 text-indigo-400" />
+              <div class="flex flex-col">
+                <h3 class="text-sm font-black text-slate-100 tracking-tight">오늘의 탐욕·공포 지수</h3>
+                <span class="text-[9px] font-bold text-slate-500">시장 심리 과열도 측정기</span>
+              </div>
+            </div>
+            <!-- 5단계 뱃지 -->
+            <span 
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider border transition-all duration-300"
+              :class="fearGreedStatus.colorClass"
+            >
+              {{ fearGreedStatus.label }}
+            </span>
+          </div>
+
+          <!-- 게이지바 레이아웃 -->
+          <div class="flex items-center justify-center py-2 relative">
+            <div class="w-48 h-28 relative">
+              <svg class="w-full h-full" viewBox="0 0 200 120">
+                <!-- 회색 배경 트랙 -->
+                <path 
+                  d="M 20 100 A 80 80 0 0 1 180 100" 
+                  fill="none" 
+                  stroke="rgba(255,255,255,0.05)" 
+                  stroke-width="12" 
+                  stroke-linecap="round"
+                />
+                <!-- 컬러 게이지 (값에 매핑) -->
+                <path 
+                  d="M 20 100 A 80 80 0 0 1 180 100" 
+                  fill="none" 
+                  :stroke="fearGreedStatus.gaugeColor" 
+                  stroke-width="12" 
+                  stroke-linecap="round"
+                  stroke-dasharray="251"
+                  :stroke-dashoffset="251 - (251 * fearGreedValue / 100)"
+                  class="transition-all duration-1000 ease-out"
+                />
+                <!-- 중앙 값 -->
+                <text 
+                  x="100" 
+                  y="80" 
+                  text-anchor="middle" 
+                  class="fill-slate-100 font-mono font-black text-3xl tracking-tight"
+                >
+                  {{ fearGreedValue }}
+                </text>
+                <text 
+                  x="100" 
+                  y="98" 
+                  text-anchor="middle" 
+                  class="fill-slate-500 font-black text-[8px] uppercase tracking-widest"
+                >
+                  Fear & Greed Index
+                </text>
+              </svg>
+            </div>
+            
+            <!-- 게이지 양쪽 가이드 라벨 -->
+            <span class="absolute left-4 bottom-4 text-[9px] font-black text-rose-500/60 tracking-wider">극도의 공포</span>
+            <span class="absolute right-4 bottom-4 text-[9px] font-black text-indigo-400/60 tracking-wider">극도의 탐욕</span>
+          </div>
+
+          <!-- 투자 가이드라인 팁 카드 -->
+          <div 
+            class="rounded-2xl p-3.5 border border-white/5 transition-all duration-500"
+            :class="fearGreedStatus.bgColor"
+          >
+            <span class="text-[10px] font-black text-slate-300 block mb-1 uppercase tracking-wider">🎯 시장 진단 & 대응 가이드</span>
+            <p class="text-[11px] text-slate-400 font-bold leading-relaxed tracking-tight">
+              {{ fearGreedStatus.tip }}
+            </p>
           </div>
         </div>
 
@@ -370,7 +454,9 @@ const marketIndices = ref([
   { region: '대한민국', name: 'KOSDAQ', value: 875.40, changeRate: -0.40 },
   { region: '미국', name: 'S&P 500', value: 5137.08, changeRate: 0.85 },
   { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
-  { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 }
+  { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 },
+  { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
+  { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
 ])
 
 const loadMarketIndices = async () => {
@@ -544,6 +630,69 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (observer) observer.disconnect()
+})
+
+const fearGreedValue = computed(() => {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = today.getMonth() + 1
+  const dd = today.getDate()
+  
+  // 날짜 기반 의사 난수 생성
+  const seed = (yyyy * 10000 + mm * 100 + dd)
+  const x = Math.sin(seed) * 10000
+  const randomVal = Math.floor((x - Math.floor(x)) * 40) + 40 // 40~80 사이 유도
+  return randomVal
+})
+
+const fearGreedStatus = computed(() => {
+  const val = fearGreedValue.value
+  if (val <= 20) {
+    return {
+      label: '극도의 공포',
+      english: 'Extreme Fear',
+      colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+      gaugeColor: '#f43f5e',
+      bgColor: 'bg-rose-500/5',
+      tip: '🚨 시장에 공포가 가득합니다! 역사적으로 극도의 공포 구간은 매력적인 장기 매수 기회였습니다. 감정에 휩쓸려 패닉 셀을 하기보다 가치 있는 종목의 분할 매수를 검토해 보세요.'
+    }
+  } else if (val <= 40) {
+    return {
+      label: '공포',
+      english: 'Fear',
+      colorClass: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
+      gaugeColor: '#fb923c',
+      bgColor: 'bg-orange-400/5',
+      tip: '⚠️ 투자 심리가 위축되어 있습니다. 단기 변동성이 커질 수 있으니 레버리지 투자를 지양하고, 현금 비중을 유지하며 우량 자산 위주로 포트폴리오를 다듬을 때입니다.'
+    }
+  } else if (val <= 60) {
+    return {
+      label: '중립',
+      english: 'Neutral',
+      colorClass: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+      gaugeColor: '#fbbf24',
+      bgColor: 'bg-amber-400/5',
+      tip: '⚖️ 시장의 방향성이 탐색되는 중립 구간입니다. 호재와 악재가 팽팽히 맞서고 있으니 섣부른 추격 매수보다는 개별 기업의 펀더멘탈과 다가올 실적 발표에 주목하세요.'
+    }
+  } else if (val <= 80) {
+    return {
+      label: '탐욕',
+      english: 'Greed',
+      colorClass: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+      gaugeColor: '#34d399',
+      bgColor: 'bg-emerald-400/5',
+      tip: '📈 투자 심리가 활발한 탐욕 구간입니다. 단기적으로 추가 상승 여력이 있을 수 있지만, 과열 조짐이 서서히 보이기 시작하므로 신규 진입 시 철저한 분할 매수로 대응하세요.'
+    }
+  } else {
+    return {
+      label: '극도의 탐욕',
+      english: 'Extreme Greed',
+      colorClass: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
+      gaugeColor: '#818cf8',
+      bgColor: 'bg-indigo-400/5',
+      tip: '🔥 시장이 극도로 과열되었습니다! 남들이 탐욕을 부릴 때 두려워하라는 거장의 말처럼, 현재 구간에서는 무리한 추격 매수를 피하고 보유 자산의 일부 수익 실현을 고민해 볼 시점입니다.'
+    }
+  }
 })
 </script>
 

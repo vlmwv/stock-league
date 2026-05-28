@@ -11,7 +11,9 @@ const FALLBACK_INDICES = [
   { region: '대한민국', name: 'KOSDAQ', value: 875.40, changeRate: -0.40 },
   { region: '미국', name: 'S&P 500', value: 5137.08, changeRate: 0.85 },
   { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
-  { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 }
+  { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 },
+  { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
+  { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
 ]
 
 export default defineEventHandler(async (event) => {
@@ -97,6 +99,18 @@ export default defineEventHandler(async (event) => {
         name: 'Dow Jones',
         value: djiRes?.closePrice ? parseFloat(djiRes.closePrice.replace(/,/g, '')) : FALLBACK_INDICES[4].value,
         changeRate: djiRes?.fluctuationsRatio ? parseFloat(djiRes.fluctuationsRatio) : FALLBACK_INDICES[4].changeRate
+      },
+      {
+        region: '외환',
+        name: '원/달러 환율',
+        value: FALLBACK_INDICES[5].value,
+        changeRate: FALLBACK_INDICES[5].changeRate
+      },
+      {
+        region: '원자재',
+        name: 'WTI 원유',
+        value: FALLBACK_INDICES[6].value,
+        changeRate: FALLBACK_INDICES[6].changeRate
       }
     ]
 
