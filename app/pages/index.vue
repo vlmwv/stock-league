@@ -39,38 +39,62 @@
           </span>
         </div>
 
-        <!-- 가로 스크롤 가능한 지수 슬라이더 -->
-        <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1 snap-x scroll-smooth">
+        <!-- 가로 스크롤 대신 한 화면에 두 줄로 꽉 차게 들어오는 그리드 대시보드 -->
+        <div class="grid grid-cols-3 gap-2 px-1">
           <div 
-            v-for="indexItem in marketIndices" 
+            v-for="(indexItem, idx) in marketIndices" 
             :key="indexItem.name"
-            class="snap-start flex-shrink-0 w-36 glass-dark border border-white/5 rounded-2xl p-3.5 relative overflow-hidden group shadow-lg"
+            class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[82px] transition-all hover:bg-white/[0.04]"
+            :class="idx === 6 ? 'col-span-3 flex-row items-center justify-between min-h-[42px] py-2 px-4' : ''"
           >
             <!-- 백그라운드 그라데이션 광채 -->
             <div 
-              class="absolute -top-12 -right-12 w-20 h-20 blur-2xl rounded-full transition-opacity duration-500"
+              class="absolute -top-10 -right-10 w-16 h-16 blur-xl rounded-full transition-opacity duration-500"
               :class="indexItem.changeRate >= 0 ? 'bg-rose-500/10' : 'bg-indigo-500/10'"
             ></div>
 
-            <div class="relative z-10 flex flex-col gap-2">
-              <span class="text-[10px] font-black text-slate-500 tracking-wider">{{ indexItem.region }}</span>
-              <h4 class="text-xs font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ indexItem.name }}</h4>
-              <div class="flex flex-col mt-1">
-                <span class="text-sm font-mono font-black text-slate-50 tracking-tight">
+            <!-- 일반 카드 레이아웃 (1~6번째 아이템) -->
+            <template v-if="idx !== 6">
+              <div class="relative z-10 flex flex-col gap-0.5">
+                <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none">{{ indexItem.region }}</span>
+                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-tight truncate mt-0.5">{{ indexItem.name }}</h4>
+              </div>
+              <div class="relative z-10 flex flex-col mt-1.5 leading-none">
+                <span class="text-xs font-mono font-black text-slate-50 tracking-tighter">
                   {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}
-                  <span class="text-[9px] text-slate-400 font-bold ml-0.5">
+                  <span class="text-[8px] text-slate-400 font-bold ml-0.5">
                     {{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
                   </span>
                 </span>
                 <span 
-                  class="text-[10px] font-black tracking-tight flex items-center mt-0.5"
+                  class="text-[9px] font-black tracking-tighter flex items-center mt-1 leading-none"
                   :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
                 >
                   <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2.5 h-2.5 mr-0.5" />
                   {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
                 </span>
               </div>
-            </div>
+            </template>
+
+            <!-- 7번째 가로형 특수 레이아웃 (WTI 원유) -->
+            <template v-else>
+              <div class="relative z-10 flex items-center gap-2">
+                <span class="text-[8px] font-black text-slate-500 tracking-wider leading-none bg-slate-800 px-1.5 py-0.5 rounded">{{ indexItem.region }}</span>
+                <h4 class="text-[10px] font-black text-slate-200 group-hover:text-brand-primary transition-colors leading-none">{{ indexItem.name }}</h4>
+              </div>
+              <div class="relative z-10 flex items-center gap-3 font-mono">
+                <span class="text-xs font-black text-slate-50 tracking-tighter">
+                  {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}$
+                </span>
+                <span 
+                  class="text-[9px] font-black tracking-tighter flex items-center leading-none"
+                  :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                >
+                  <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2.5 h-2.5 mr-0.5" />
+                  {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
+                </span>
+              </div>
+            </template>
           </div>
         </div>
       </section>
