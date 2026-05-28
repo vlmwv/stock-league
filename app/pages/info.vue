@@ -82,48 +82,7 @@
           </div>
         </div>
 
-        <!-- 거래량 상위 종목 TOP 5 -->
-        <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl">
-          <div class="flex items-center gap-2 mb-4">
-            <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5 text-emerald-400" />
-            <h3 class="text-sm font-black text-slate-100 tracking-tight">거래량 상위 종목 TOP 5</h3>
-          </div>
 
-          <div v-if="isLoadingStocks" class="flex justify-center py-6">
-            <div class="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <div v-else-if="volumeStocks.length === 0" class="text-center py-6 text-xs text-slate-500">
-            데이터가 없습니다.
-          </div>
-          <div v-else class="space-y-2">
-            <div 
-              v-for="(stock, idx) in volumeStocks" 
-              :key="stock.id"
-              @click="navigateTo('/stocks/' + stock.code)"
-              class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <span 
-                  class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black"
-                  :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-500'"
-                >
-                  {{ idx + 1 }}
-                </span>
-                <div class="min-w-0">
-                  <h4 class="text-xs font-black text-slate-100 truncate group-hover:text-brand-primary transition-colors leading-tight">{{ stock.name }}</h4>
-                  <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider">{{ stock.code }}</span>
-                </div>
-              </div>
-
-              <div class="text-right flex-shrink-0">
-                <p class="text-xs font-black text-slate-100 font-mono">{{ stock.last_price.toLocaleString() }}원</p>
-                <p class="text-[9px] text-slate-500 font-bold leading-none mt-0.5 font-mono">
-                  {{ formatVolume(stock.volume) }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- 3. 투자 꿀팁 & 금융 상식 (Interactive Accordion) -->
         <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl relative overflow-hidden">
@@ -400,8 +359,6 @@ const toggleAccordion = (section: 'tax' | 'etf' | 'manager') => {
 }
 
 // 1. 주식 정보 데이터 바인딩
-const volumeStocks = ref<any[]>([])
-const isLoadingStocks = ref(false)
 
 // 실시간 지수 데이터 소스 상태 ('api' | 'fallback' | 'loading')
 const indicesSource = ref<'api' | 'fallback' | 'loading'>('loading')
@@ -435,28 +392,7 @@ const loadMarketIndices = async () => {
   }
 }
 
-const formatVolume = (vol: number) => {
-  if (!vol) return '0주'
-  if (vol >= 100000000) {
-    return `${(vol / 100000000).toFixed(1)}억 주`
-  }
-  if (vol >= 10000) {
-    return `${(vol / 10000).toFixed(0)}만 주`
-  }
-  return `${vol.toLocaleString()}주`
-}
 
-const loadStockRankings = async () => {
-  try {
-    isLoadingStocks.value = true
-    const volumeRes = await fetchStocksWithStats('volume', 1, 5)
-    volumeStocks.value = volumeRes.data || []
-  } catch (error) {
-    console.error('Failed to load stock rankings:', error)
-  } finally {
-    isLoadingStocks.value = false
-  }
-}
 
 // 2. 최신 뉴스 데이터 바인딩
 const newsItems = ref<any[]>([])
@@ -582,7 +518,6 @@ const loadIndicators = async () => {
 // 탭 감시 및 필요한 데이터 동적 로드
 watch(activeTab, (newTab) => {
   if (newTab === 'stock') {
-    loadStockRankings()
     fetchThemes()
     loadMarketIndices()
   } else if (newTab === 'news' && newsItems.value.length === 0) {
