@@ -12,8 +12,9 @@ export default defineEventHandler(async (event) => {
   const token = authHeader.substring(7)
 
   // Supabase Admin 클라이언트로 유저 검증
-  const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL || ''
-  const serviceRoleKey = process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || ''
+  const config = useRuntimeConfig()
+  const supabaseUrl = config.public.supabase.url
+  const serviceRoleKey = config.supabaseServiceRoleKey
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   })
