@@ -15,7 +15,7 @@ const router = useRouter()
 // 로그인이 완료되면 자동 리다이렉트
 watchEffect(() => {
   if (user.value) {
-    router.replace('/')
+    window.location.href = '/'
   }
 })
 

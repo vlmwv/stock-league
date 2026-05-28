@@ -162,7 +162,7 @@ const handleEmailLogin = async () => {
         throw signInError
       }
     } else {
-      router.replace('/')
+      window.location.href = '/'
     }
   } catch (error: any) {
     alert(error.message)

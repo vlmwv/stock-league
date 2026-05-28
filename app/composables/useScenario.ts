@@ -543,9 +543,13 @@ export const useScenario = () => {
   // 2. 로그인 유저의 시나리오 도전 내역 리스트 가져오기
   const fetchUserAttempts = async () => {
     if (!user.value?.id) return []
-    const token = session.value?.access_token
-    if (!token) return []
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        console.warn('[useScenario] No active session token found.')
+        return []
+      }
       const data = await $fetch('/api/scenarios/attempts', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -571,11 +575,12 @@ export const useScenario = () => {
 
   // 4. 게임 최종 완료 기록 저장하기
   const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
-    const token = session.value?.access_token
-    if (!token) {
-      return { success: false, message: '로그인이 필요합니다.' }
-    }
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        return { success: false, message: '로그인이 필요합니다.' }
+      }
       const data = await $fetch('/api/scenarios/attempt', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

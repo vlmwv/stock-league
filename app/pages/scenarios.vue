@@ -9,7 +9,10 @@ const userAttempts = ref<any[]>([])
 const pending = ref(true)
 
 const loadAttempts = async () => {
-  if (!user.value) return
+  if (!user.value) {
+    pending.value = false
+    return
+  }
   pending.value = true
   userAttempts.value = await fetchUserAttempts()
   pending.value = false
@@ -30,9 +33,15 @@ const handleChallenge = (scenarioId: number) => {
   router.push(`/scenario-game/${scenarioId}`)
 }
 
-onMounted(async () => {
-  await loadAttempts()
-})
+// Supabase 세션이 비동기로 완료되는 타이밍에 대응하여 유저 도전 이력을 자동으로 로딩
+watch(user, async (newUser) => {
+  if (newUser?.id) {
+    await loadAttempts()
+  } else {
+    userAttempts.value = []
+    pending.value = false
+  }
+}, { immediate: true })
 </script>
 
 <template>
