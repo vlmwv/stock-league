@@ -35,57 +35,7 @@
 
       <!-- 1. 주식 정보 탭 -->
       <section v-if="activeTab === 'stock'" class="px-4 space-y-8 animate-fade-in pb-10">
-        <!-- 주요 시장 지수 -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="text-sm font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-              글로벌 시장 지수
-            </h3>
-            <span 
-              class="text-[10px] font-bold transition-all duration-300 flex items-center gap-1"
-              :class="indicesSource === 'api' ? 'text-emerald-400 font-extrabold' : 'text-slate-500'"
-            >
-              <span v-if="indicesSource === 'api'" class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
-              {{ indicesSource === 'api' ? '실시간 반영' : indicesSource === 'loading' ? '지수 로딩 중...' : '실시간 모사' }}
-            </span>
-          </div>
 
-          <!-- 가로 스크롤 가능한 지수 슬라이더 -->
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1 snap-x scroll-smooth">
-            <div 
-              v-for="indexItem in marketIndices" 
-              :key="indexItem.name"
-              class="snap-start flex-shrink-0 w-36 glass-dark border border-white/5 rounded-2xl p-3.5 relative overflow-hidden group shadow-lg"
-            >
-              <!-- 백그라운드 그라데이션 광채 -->
-              <div 
-                class="absolute -top-12 -right-12 w-20 h-20 blur-2xl rounded-full transition-opacity duration-500"
-                :class="indexItem.changeRate >= 0 ? 'bg-rose-500/10' : 'bg-indigo-500/10'"
-              ></div>
-
-              <div class="relative z-10 flex flex-col gap-2">
-                <span class="text-[10px] font-black text-slate-500 tracking-wider">{{ indexItem.region }}</span>
-                <h4 class="text-xs font-black text-slate-100 group-hover:text-brand-primary transition-colors">{{ indexItem.name }}</h4>
-                <div class="flex flex-col mt-1">
-                  <span class="text-sm font-mono font-black text-slate-50 tracking-tight">
-                    {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 1 : 2, maximumFractionDigits: 2 }) }}
-                    <span class="text-[9px] text-slate-400 font-bold ml-0.5">
-                      {{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
-                    </span>
-                  </span>
-                  <span 
-                    class="text-[10px] font-black tracking-tight flex items-center mt-0.5"
-                    :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                  >
-                    <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-2.5 h-2.5 mr-0.5" />
-                    {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- 2. 오늘의 탐욕·공포 지수 (Fear & Greed Index) -->
         <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl relative overflow-hidden flex flex-col gap-4">
@@ -444,39 +394,7 @@ const toggleAccordion = (section: 'tax' | 'etf' | 'manager') => {
 
 // 1. 주식 정보 데이터 바인딩
 
-// 실시간 지수 데이터 소스 상태 ('api' | 'fallback' | 'loading')
-const indicesSource = ref<'api' | 'fallback' | 'loading'>('loading')
-const isFetchingIndices = ref(false)
 
-// 목업 지수 데이터 (기본값 및 폴백용)
-const marketIndices = ref([
-  { region: '대한민국', name: 'KOSPI', value: 2654.21, changeRate: 1.20 },
-  { region: '대한민국', name: 'KOSDAQ', value: 875.40, changeRate: -0.40 },
-  { region: '미국', name: 'S&P 500', value: 5137.08, changeRate: 0.85 },
-  { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
-  { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 },
-  { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
-  { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
-])
-
-const loadMarketIndices = async () => {
-  if (isFetchingIndices.value) return
-  try {
-    isFetchingIndices.value = true
-    const res = await $fetch<any>('/api/stocks/indices')
-    if (res && res.success && res.data) {
-      marketIndices.value = res.data
-      indicesSource.value = res.source
-    } else {
-      indicesSource.value = 'fallback'
-    }
-  } catch (error) {
-    console.error('Failed to load real-time market indices:', error)
-    indicesSource.value = 'fallback'
-  } finally {
-    isFetchingIndices.value = false
-  }
-}
 
 
 
@@ -603,9 +521,7 @@ const loadIndicators = async () => {
 
 // 탭 감시 및 필요한 데이터 동적 로드
 watch(activeTab, (newTab) => {
-  if (newTab === 'stock') {
-    loadMarketIndices()
-  } else if (newTab === 'news' && newsItems.value.length === 0) {
+  if (newTab === 'news' && newsItems.value.length === 0) {
     loadNews()
   } else if (newTab === 'indicators' && indicators.value.length === 0) {
     loadIndicators()
