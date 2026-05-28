@@ -133,6 +133,12 @@ const todayEvent = computed(() => {
 // 5. 예측 제출 로직
 const handlePredict = async (prediction: 'up' | 'down') => {
   if (isFeedbackMode.value || gameEnded.value || hasAlreadyAttempted.value) return
+  if (!user.value?.id) {
+    if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+      router.push('/login')
+    }
+    return
+  }
   
   selectedPredict.value = prediction
   
@@ -208,19 +214,21 @@ onMounted(async () => {
     router.push('/daily') // 잘못된 접근 시 회귀
     return
   }
-  if (!user.value) {
-    if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-      router.push('/login')
-    } else {
-      router.push('/game')
-    }
-    return
-  }
-  
+
   // 이전 게임 상태의 찌꺼기를 방지하기 위해 진입 시 기본 리셋을 먼저 수행
   resetGame()
-  
-  await checkAttemptStatus()
+
+  // user가 이미 로드된 상태면 즉시 도전 이력 확인
+  if (user.value?.id) {
+    await checkAttemptStatus()
+  }
+})
+
+// Supabase 세션이 비동기로 로드되는 경우를 대비: user가 로드되면 도전 이력 확인
+watch(user, async (newUser) => {
+  if (newUser?.id && !hasAlreadyAttempted.value && !gameEnded.value) {
+    await checkAttemptStatus()
+  }
 })
 </script>
 
