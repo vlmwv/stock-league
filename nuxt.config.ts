@@ -49,6 +49,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 런타임에 서버에서만 사용할 수 있는 비공개 환경 변수 추가
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
+    twelveDataApiKey: process.env.NUXT_TWELVE_DATA_API_KEY || '',
     supabaseServiceRoleKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://ninanoai.com',

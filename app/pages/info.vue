@@ -42,7 +42,13 @@
               <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
               글로벌 시장 지수
             </h3>
-            <span class="text-[10px] font-bold text-slate-500">실시간 모사</span>
+            <span 
+              class="text-[10px] font-bold transition-all duration-300 flex items-center gap-1"
+              :class="indicesSource === 'api' ? 'text-emerald-400 font-extrabold' : 'text-slate-500'"
+            >
+              <span v-if="indicesSource === 'api'" class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
+              {{ indicesSource === 'api' ? '실시간 반영' : indicesSource === 'loading' ? '지수 로딩 중...' : '실시간 모사' }}
+            </span>
           </div>
 
           <!-- 가로 스크롤 가능한 지수 슬라이더 -->
@@ -397,7 +403,11 @@ const toggleAccordion = (section: 'tax' | 'etf' | 'manager') => {
 const volumeStocks = ref<any[]>([])
 const isLoadingStocks = ref(false)
 
-// 목업 지수 데이터
+// 실시간 지수 데이터 소스 상태 ('api' | 'fallback' | 'loading')
+const indicesSource = ref<'api' | 'fallback' | 'loading'>('loading')
+const isFetchingIndices = ref(false)
+
+// 목업 지수 데이터 (기본값 및 폴백용)
 const marketIndices = ref([
   { region: '대한민국', name: 'KOSPI', value: 2654.21, changeRate: 1.20 },
   { region: '대한민국', name: 'KOSDAQ', value: 875.40, changeRate: -0.40 },
@@ -405,6 +415,25 @@ const marketIndices = ref([
   { region: '미국', name: 'NASDAQ', value: 16274.94, changeRate: 1.14 },
   { region: '미국', name: 'Dow Jones', value: 39087.38, changeRate: 0.23 }
 ])
+
+const loadMarketIndices = async () => {
+  if (isFetchingIndices.value) return
+  try {
+    isFetchingIndices.value = true
+    const res = await $fetch<any>('/api/stocks/indices')
+    if (res && res.success && res.data) {
+      marketIndices.value = res.data
+      indicesSource.value = res.source
+    } else {
+      indicesSource.value = 'fallback'
+    }
+  } catch (error) {
+    console.error('Failed to load real-time market indices:', error)
+    indicesSource.value = 'fallback'
+  } finally {
+    isFetchingIndices.value = false
+  }
+}
 
 const formatVolume = (vol: number) => {
   if (!vol) return '0주'
@@ -554,6 +583,8 @@ const loadIndicators = async () => {
 watch(activeTab, (newTab) => {
   if (newTab === 'stock') {
     loadStockRankings()
+    fetchThemes()
+    loadMarketIndices()
   } else if (newTab === 'news' && newsItems.value.length === 0) {
     loadNews()
   } else if (newTab === 'indicators' && indicators.value.length === 0) {
