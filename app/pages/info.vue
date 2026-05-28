@@ -76,139 +76,44 @@
           </div>
         </div>
 
-        <!-- 오늘의 인기 테마 -->
-        <div v-if="themes && themes.length > 0" class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl relative overflow-hidden">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex flex-col gap-0.5">
-              <h3 class="text-base font-black text-slate-100 tracking-tight">실시간 인기 테마</h3>
-              <span class="text-[9px] font-bold text-slate-500">평균 등락률 순위</span>
-            </div>
-            <button 
-              v-if="themes && themes.length > 3"
-              @click="isThemesExpanded = !isThemesExpanded"
-              class="text-[10px] font-black text-brand-primary hover:underline focus:outline-none flex items-center gap-0.5"
-            >
-              {{ isThemesExpanded ? '접기' : '더보기' }}
-              <UIcon :name="isThemesExpanded ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" class="w-3 h-3" />
-            </button>
+        <!-- 거래량 상위 종목 TOP 5 -->
+        <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl">
+          <div class="flex items-center gap-2 mb-4">
+            <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5 text-emerald-400" />
+            <h3 class="text-sm font-black text-slate-100 tracking-tight">거래량 상위 종목 TOP 5</h3>
           </div>
 
-          <div class="flex flex-col gap-2.5 transition-all duration-500 ease-in-out">
+          <div v-if="isLoadingStocks" class="flex justify-center py-6">
+            <div class="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <div v-else-if="volumeStocks.length === 0" class="text-center py-6 text-xs text-slate-500">
+            데이터가 없습니다.
+          </div>
+          <div v-else class="space-y-2">
             <div 
-              v-for="(theme, idx) in themes.slice(0, isThemesExpanded ? themes.length : 3)" 
-              :key="theme.sector"
-              @click="handleOpenThemeModal(theme)"
-              class="flex items-center justify-between bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-xl p-3 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
+              v-for="(stock, idx) in volumeStocks" 
+              :key="stock.id"
+              @click="navigateTo('/stocks/' + stock.code)"
+              class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 min-w-0">
                 <span 
-                  class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black"
+                  class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black"
                   :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-500'"
                 >
                   {{ idx + 1 }}
                 </span>
-                <span class="text-xs font-black text-slate-150 group-hover:text-brand-primary transition-colors">{{ theme.sector }}</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <span class="text-[10px] text-slate-500 font-bold">{{ theme.stock_count }}개 종목</span>
-                <span 
-                  class="px-2 py-0.5 rounded-md text-[10px] font-black"
-                  :class="theme.avg_change_rate >= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/10' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/10'"
-                >
-                  {{ theme.avg_change_rate >= 0 ? '+' : '' }}{{ theme.avg_change_rate }}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 실시간 종목 랭킹 2열 배치 -->
-        <div class="grid grid-cols-1 gap-6">
-          <!-- 1. 인기 관심 종목 TOP 5 -->
-          <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl">
-            <div class="flex items-center gap-2 mb-4">
-              <UIcon name="i-heroicons-heart-20-solid" class="w-5 h-5 text-rose-500" />
-              <h3 class="text-sm font-black text-slate-100 tracking-tight">인기 관심 종목 TOP 5</h3>
-            </div>
-            
-            <div v-if="isLoadingStocks" class="flex justify-center py-6">
-              <div class="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <div v-else-if="popularStocks.length === 0" class="text-center py-6 text-xs text-slate-500">
-              데이터가 없습니다.
-            </div>
-            <div v-else class="space-y-2">
-              <div 
-                v-for="(stock, idx) in popularStocks" 
-                :key="stock.id"
-                @click="navigateTo('/stocks/' + stock.code)"
-                class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group"
-              >
-                <div class="flex items-center gap-3 min-w-0">
-                  <span 
-                    class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black"
-                    :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-500'"
-                  >
-                    {{ idx + 1 }}
-                  </span>
-                  <div class="min-w-0">
-                    <h4 class="text-xs font-black text-slate-100 truncate group-hover:text-brand-primary transition-colors leading-tight">{{ stock.name }}</h4>
-                    <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider">{{ stock.code }}</span>
-                  </div>
-                </div>
-
-                <div class="text-right flex-shrink-0">
-                  <p class="text-xs font-black text-slate-100 font-mono">{{ stock.last_price.toLocaleString() }}원</p>
-                  <p 
-                    class="text-[9px] font-black font-mono leading-none mt-0.5"
-                    :class="stock.change_rate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
-                  >
-                    {{ stock.change_rate >= 0 ? '+' : '' }}{{ stock.change_rate }}%
-                  </p>
+                <div class="min-w-0">
+                  <h4 class="text-xs font-black text-slate-100 truncate group-hover:text-brand-primary transition-colors leading-tight">{{ stock.name }}</h4>
+                  <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider">{{ stock.code }}</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- 2. 거래량 상위 종목 TOP 5 -->
-          <div class="glass-dark rounded-[1.75rem] p-5 border border-white/5 shadow-2xl">
-            <div class="flex items-center gap-2 mb-4">
-              <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5 text-emerald-400" />
-              <h3 class="text-sm font-black text-slate-100 tracking-tight">거래량 상위 종목 TOP 5</h3>
-            </div>
-
-            <div v-if="isLoadingStocks" class="flex justify-center py-6">
-              <div class="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <div v-else-if="volumeStocks.length === 0" class="text-center py-6 text-xs text-slate-500">
-              데이터가 없습니다.
-            </div>
-            <div v-else class="space-y-2">
-              <div 
-                v-for="(stock, idx) in volumeStocks" 
-                :key="stock.id"
-                @click="navigateTo('/stocks/' + stock.code)"
-                class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer group"
-              >
-                <div class="flex items-center gap-3 min-w-0">
-                  <span 
-                    class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black"
-                    :class="idx === 0 ? 'bg-yellow-500/20 text-yellow-400' : idx === 1 ? 'bg-slate-400/20 text-slate-300' : idx === 2 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-500'"
-                  >
-                    {{ idx + 1 }}
-                  </span>
-                  <div class="min-w-0">
-                    <h4 class="text-xs font-black text-slate-100 truncate group-hover:text-brand-primary transition-colors leading-tight">{{ stock.name }}</h4>
-                    <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider">{{ stock.code }}</span>
-                  </div>
-                </div>
-
-                <div class="text-right flex-shrink-0">
-                  <p class="text-xs font-black text-slate-100 font-mono">{{ stock.last_price.toLocaleString() }}원</p>
-                  <p class="text-[9px] text-slate-500 font-bold leading-none mt-0.5 font-mono">
-                    {{ formatVolume(stock.volume) }}
-                  </p>
-                </div>
+              <div class="text-right flex-shrink-0">
+                <p class="text-xs font-black text-slate-100 font-mono">{{ stock.last_price.toLocaleString() }}원</p>
+                <p class="text-[9px] text-slate-500 font-bold leading-none mt-0.5 font-mono">
+                  {{ formatVolume(stock.volume) }}
+                </p>
               </div>
             </div>
           </div>
@@ -455,12 +360,6 @@
     </main>
 
     <BottomNav />
-
-    <!-- 오늘의 테마 상세 모달 -->
-    <ThemeModal 
-      v-model:open="isThemeModalOpen"
-      :theme="selectedTheme"
-    />
   </div>
 </template>
 
@@ -473,8 +372,6 @@ const {
   toggleHeart, 
   hearts, 
   fetchWishlist,
-  themes,
-  fetchThemes,
   fetchStocksWithStats
 } = useStock()
 
@@ -485,8 +382,6 @@ const activeTab = ref<'stock' | 'news' | 'indicators'>(
   (route.query.tab as any) === 'indicators' ? 'indicators' : 
   (route.query.tab as any) === 'news' ? 'news' : 'stock'
 )
-
-const isThemesExpanded = ref(false)
 
 // 아코디언 상태 관리 ('tax' | 'etf' | 'manager' | null)
 const expandedGuide = ref<'tax' | 'etf' | 'manager' | null>(null)
@@ -499,17 +394,8 @@ const toggleAccordion = (section: 'tax' | 'etf' | 'manager') => {
 }
 
 // 1. 주식 정보 데이터 바인딩
-const popularStocks = ref<any[]>([])
 const volumeStocks = ref<any[]>([])
 const isLoadingStocks = ref(false)
-
-const isThemeModalOpen = ref(false)
-const selectedTheme = ref<any>(null)
-
-const handleOpenThemeModal = (theme: any) => {
-  selectedTheme.value = theme
-  isThemeModalOpen.value = true
-}
 
 // 목업 지수 데이터
 const marketIndices = ref([
@@ -534,11 +420,7 @@ const formatVolume = (vol: number) => {
 const loadStockRankings = async () => {
   try {
     isLoadingStocks.value = true
-    const [popularRes, volumeRes] = await Promise.all([
-      fetchStocksWithStats('wishlist_count', 1, 5),
-      fetchStocksWithStats('volume', 1, 5)
-    ])
-    popularStocks.value = popularRes.data || []
+    const volumeRes = await fetchStocksWithStats('volume', 1, 5)
     volumeStocks.value = volumeRes.data || []
   } catch (error) {
     console.error('Failed to load stock rankings:', error)
@@ -672,7 +554,6 @@ const loadIndicators = async () => {
 watch(activeTab, (newTab) => {
   if (newTab === 'stock') {
     loadStockRankings()
-    fetchThemes()
   } else if (newTab === 'news' && newsItems.value.length === 0) {
     loadNews()
   } else if (newTab === 'indicators' && indicators.value.length === 0) {

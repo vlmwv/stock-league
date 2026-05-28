@@ -3,7 +3,7 @@
     <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-start sm:items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
       <div class="absolute inset-0" @click="$emit('close')"></div>
       
-      <div class="relative w-full max-w-sm glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in my-auto">
+      <div class="relative w-full max-w-md glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in my-auto">
         <!-- Close Button -->
         <button 
           @click="$emit('close')"
@@ -12,72 +12,86 @@
           <UIcon name="i-heroicons-x-mark-20-solid" class="w-6 h-6" />
         </button>
 
-        <div class="p-10 pt-12 text-center">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-6">
-            <span class="text-xs font-black text-brand-primary uppercase tracking-widest">참여 방법</span>
+        <div class="p-8 pt-10 text-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-5">
+            <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">Quick Map</span>
           </div>
           
-          <h2 class="text-3xl font-black text-slate-100 mb-2 leading-tight tracking-tighter">
-            니나노AI에 <br/>
-            <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">참여하는 방법</span>
+          <h2 class="text-2xl sm:text-3xl font-black text-slate-100 mb-2 leading-tight tracking-tighter">
+            니나노AI <br/>
+            <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">한눈에 둘러보기</span>
           </h2>
-          <p class="text-xs text-slate-400 font-bold mb-10 uppercase tracking-[0.2em]">3 EASY STEPS TO WIN</p>
+          <p class="text-[10px] text-slate-400 font-bold mb-8 uppercase tracking-[0.2em]">EXPLORE ALL FEATURES IN A GLANCE</p>
 
-          <!-- Guide Steps -->
-          <div class="space-y-10 text-left">
-            <div class="flex gap-5 group">
-              <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-500">
-                <UIcon name="i-heroicons-sparkles-20-solid" class="w-6 h-6 text-brand-primary animate-pulse-soft" />
+          <!-- Guide Cards -->
+          <div class="space-y-4 text-left">
+            <!-- 1. Home & My -->
+            <div class="flex gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:-translate-y-0.5 transition-all duration-300 group">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <UIcon name="i-heroicons-home-20-solid" class="w-5 h-5 text-indigo-400" />
               </div>
-              <div class="space-y-1">
+              <div class="space-y-0.5">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">1단계. 매일 밤 9시 20분</h4>
-                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-primary/20 text-[10px] font-black text-brand-primary uppercase">Daily Open</span>
+                  <h4 class="text-sm font-black text-slate-200">나만의 투자 요약판</h4>
+                  <span class="px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-[9px] font-bold text-indigo-400 border border-indigo-500/20 uppercase">Home & My</span>
                 </div>
-                <p class="text-sm text-slate-400 leading-relaxed">엄선된 <span class="text-slate-200 font-bold">5가지 추천 종목</span>과 <span class="text-slate-200 font-bold">AI 인사이트 리포트</span>를 확인하세요.</p>
+                <p class="text-xs text-slate-400 leading-relaxed">내 예측 성공률과 자산 흐름, 위시리스트를 한곳에서 쉽게 확인하세요.</p>
               </div>
             </div>
 
-            <div class="flex gap-5 group">
-              <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/10 to-indigo-500/10 border border-white/10 flex flex-col items-center justify-center gap-0.5 shadow-xl group-hover:scale-110 transition-transform duration-500">
-                <div class="flex gap-1">
-                  <div class="w-3 h-3 rounded-sm bg-rose-500/80 animate-bounce-soft"></div>
-                  <div class="w-3 h-3 rounded-sm bg-indigo-500/80 animate-bounce-soft-delayed"></div>
-                </div>
+            <!-- 2. Stocks & Info -->
+            <div class="flex gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:-translate-y-0.5 transition-all duration-300 group">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <UIcon name="i-heroicons-chart-bar-20-solid" class="w-5 h-5 text-emerald-400" />
               </div>
-              <div class="space-y-1">
-                <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">2단계. 상승 또는 하락 선택</h4>
-                <p class="text-sm text-slate-400 leading-relaxed">
-                  내일 장의 흐름을 예측하여 <br/>
-                  <span class="text-rose-400 font-black">상승</span> 또는 <span class="text-indigo-400 font-black">하락</span> 버튼을 탭하세요!
-                </p>
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-black text-slate-200">스마트한 시장 분석</h4>
+                  <span class="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-[9px] font-bold text-emerald-400 border border-emerald-500/20 uppercase">Stocks & Info</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">AI 추천 점수와 놓치면 안 될 글로벌 경제 지표를 실시간으로 모니터링하세요.</p>
               </div>
             </div>
 
-            <div class="flex gap-5 group">
-              <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-secondary/10 to-indigo-500/10 border border-brand-secondary/20 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-500">
-                <UIcon name="i-heroicons-trophy-20-solid" class="w-6 h-6 text-brand-secondary" />
+            <!-- 3. Play & Game -->
+            <div class="flex gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:-translate-y-0.5 transition-all duration-300 group">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500/20 to-red-500/20 border border-rose-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <UIcon name="i-heroicons-puzzle-piece-20-solid" class="w-5 h-5 text-rose-400" />
               </div>
-              <div class="space-y-1">
+              <div class="space-y-0.5">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-sm font-black text-slate-200 uppercase tracking-tight">3단계. 결과 확인 및 랭킹</h4>
-                  <span class="px-1.5 py-0.5 rounded-sm bg-brand-secondary/20 text-[10px] font-black text-brand-secondary uppercase">Result at 20:30</span>
+                  <h4 class="text-sm font-black text-slate-200">투자 감각 극대화</h4>
+                  <span class="px-1.5 py-0.5 rounded-md bg-rose-500/10 text-[9px] font-bold text-rose-400 border border-rose-500/20 uppercase">Play & Game</span>
                 </div>
-                <p class="text-sm text-slate-400 leading-relaxed">정확한 예측으로 포인트를 획득하고 <span class="text-slate-200 font-bold">주간/월간 랭킹 상위권</span>에 도전하세요!</p>
+                <p class="text-xs text-slate-400 leading-relaxed">매일의 일일 예측 리그와 역사적 금융위기를 극복해보는 서바이벌 게임에 참여하세요.</p>
+              </div>
+            </div>
+
+            <!-- 4. AI Insight -->
+            <div class="flex gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:-translate-y-0.5 transition-all duration-300 group">
+              <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <UIcon name="i-heroicons-sparkles-20-solid" class="w-5 h-5 text-purple-400" />
+              </div>
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-black text-slate-200">인텔리전트 리포트</h4>
+                  <span class="px-1.5 py-0.5 rounded-md bg-purple-500/10 text-[9px] font-bold text-purple-400 border border-purple-500/20 uppercase">AI Insight</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">AI의 정교한 종목 분석 리포트와 예측 기록실로 성공적인 투자 결정을 돕습니다.</p>
               </div>
             </div>
           </div>
 
           <button 
             @click="$emit('close')"
-            class="w-full mt-12 py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group/btn"
+            class="w-full mt-8 py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group/btn"
           >
-            <span class="relative z-10">참여하러 가기</span>
+            <span class="relative z-10">니나노AI 시작하기</span>
             <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
           </button>
           
-          <p class="mt-4 text-xs text-slate-600 font-bold uppercase tracking-widest opacity-60">
-            Participation closes at 08:00 AM daily
+          <p class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-80">
+            즐겁고 유익한 투자 여정을 경험해보세요.
           </p>
         </div>
         
@@ -105,28 +119,6 @@ defineEmits(['close'])
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.9) translateY(20px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s infinite ease-in-out;
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.95); }
-}
-
-.animate-bounce-soft {
-  animation: bounce-soft 2s infinite ease-in-out;
-}
-
-.animate-bounce-soft-delayed {
-  animation: bounce-soft 2s infinite ease-in-out 1s;
-}
-
-@keyframes bounce-soft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
 }
 
 .fade-enter-active, .fade-leave-active {
