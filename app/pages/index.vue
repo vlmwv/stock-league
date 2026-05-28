@@ -44,7 +44,7 @@
           <div 
             v-for="indexItem in marketIndices" 
             :key="indexItem.name"
-            class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[68px] transition-all hover:bg-white/[0.04]"
+            class="glass-dark border border-white/5 rounded-xl p-2.5 relative overflow-hidden group shadow-lg flex flex-col justify-between min-h-[76px] transition-all hover:bg-white/[0.04]"
           >
             <!-- 백그라운드 그라데이션 광채 -->
             <div 
@@ -60,15 +60,15 @@
               </h4>
             </div>
 
-            <!-- 2라인: 지수 값 & 변동율 (한 줄로 수평 정렬) -->
-            <div class="relative z-10 flex items-baseline justify-between mt-1.5 min-w-0 gap-1 leading-none">
-              <!-- 지수 값 -->
-              <span class="text-[10px] font-mono font-black text-slate-50 tracking-tighter truncate leading-none flex-shrink-0">
+            <!-- 2라인: 지수 값 (독립된 한 줄로 표시) -->
+            <div class="relative z-10 flex flex-col mt-1.5 min-w-0 leading-none">
+              <span class="text-[10px] font-mono font-black text-slate-50 tracking-tighter truncate leading-none">
                 {{ indexItem.value.toLocaleString(undefined, { minimumFractionDigits: indexItem.name.includes('환율') ? 0 : 0, maximumFractionDigits: 1 }) }}{{ indexItem.name.includes('환율') ? '원' : indexItem.name.includes('원유') ? '$' : 'p' }}
               </span>
-              <!-- 변동율 -->
+              
+              <!-- 3라인: 변동율 (다른 줄로 완전히 분리해 표시) -->
               <span 
-                class="text-[8px] font-mono font-black tracking-tighter flex items-center leading-none flex-shrink-0"
+                class="text-[8px] font-mono font-black tracking-tighter flex items-center leading-none mt-1"
                 :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
               >
                 <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-1.5 h-1.5 mr-0.5 flex-shrink-0" />
