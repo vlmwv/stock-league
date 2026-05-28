@@ -32,6 +32,7 @@ export interface Scenario {
 export const useScenario = () => {
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
+  const session = useSupabaseSession()
 
   const scenarios = ref<Scenario[]>([
     {
@@ -542,11 +543,9 @@ export const useScenario = () => {
   // 2. 로그인 유저의 시나리오 도전 내역 리스트 가져오기
   const fetchUserAttempts = async () => {
     if (!user.value?.id) return []
+    const token = session.value?.access_token
+    if (!token) return []
     try {
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-      if (!token) return []
-
       const data = await $fetch('/api/scenarios/attempts', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -572,13 +571,14 @@ export const useScenario = () => {
 
   // 4. 게임 최종 완료 기록 저장하기
   const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
+    const token = session.value?.access_token
+    if (!token) {
+      return { success: false, message: '로그인이 필요합니다.' }
+    }
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-
       const data = await $fetch('/api/scenarios/attempt', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: `Bearer ${token}` },
         body: { scenarioId, correctCount, totalDays }
       })
       return { success: true, data }
