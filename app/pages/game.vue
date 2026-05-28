@@ -21,7 +21,13 @@ const userAttempts = ref<any[]>([])
 const pendingScenarios = ref(true)
 
 const loadAttempts = async () => {
-  if (!user.value) {
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabase = useSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    currentUser = data?.user
+  }
+  if (!currentUser) {
     pendingScenarios.value = false
     return
   }
@@ -35,8 +41,15 @@ const getAttempt = (scenarioId: number) => {
   return userAttempts.value.find(a => a.scenario_id === scenarioId)
 }
 
-const handleParticipation = () => {
-  if (isLeagueOpen.value && !user.value) {
+const handleParticipation = async () => {
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabase = useSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    currentUser = data?.user
+  }
+
+  if (isLeagueOpen.value && !currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
       router.push('/login')
     }
@@ -45,8 +58,15 @@ const handleParticipation = () => {
   router.push('/daily')
 }
 
-const handleChallenge = (scenarioId: number) => {
-  if (!user.value) {
+const handleChallenge = async (scenarioId: number) => {
+  let currentUser = user.value
+  if (!currentUser) {
+    const supabase = useSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    currentUser = data?.user
+  }
+
+  if (!currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
       router.push('/login')
     }
@@ -55,11 +75,18 @@ const handleChallenge = (scenarioId: number) => {
   router.push(`/scenario-game/${scenarioId}`)
 }
 
+// Supabase 세션이 비동기로 완료되는 타이밍에 대응하여 유저 도전 이력을 자동으로 로딩
+watch(user, async (newUser) => {
+  if (newUser?.id) {
+    await loadAttempts()
+  } else {
+    userAttempts.value = []
+    pendingScenarios.value = false
+  }
+}, { immediate: true })
+
 onMounted(async () => {
-  await Promise.all([
-    refreshAll(),
-    loadAttempts()
-  ])
+  await refreshAll()
 })
 </script>
 
