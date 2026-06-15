@@ -79,7 +79,7 @@
 
 | # | 리스크 | 위치 | 영향 |
 |---|--------|------|------|
-| 🔴 | **`useStock.ts` 단일 거대 파일** — 영역별 모듈 분리 부재 *(분리 진행 중: 1·2단계 완료, 2089→1962줄. `docs/refactor-usestock-plan.md` 참고)* | composables | 유지보수성·테스트 불가·머지 충돌 |
+| 🔴 | **`useStock.ts` 단일 거대 파일** — 영역별 모듈 분리 부재 *(분리 진행 중: 1·2·3단계 완료, 2089→1337줄. `docs/refactor-usestock-plan.md` 참고)* | composables | 유지보수성·테스트 불가·머지 충돌 |
 | 🔴 | **스키마 드리프트 폴백(에러 42703)** 상시 잔존 | useStock:179,1110 | 마이그레이션 미확정의 흔적, 정리 필요 |
 | 🟠 | **로직 복제** — `isEtf`/KST 계산이 앱·Edge Function 양쪽에 중복 | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치(CLAUDE.md도 경고) |
 | 🟠 | **Streak 계산이 로컬 타임존** — KST 미통일 | useStock:1256 | UTC/KST 자정 불일치 버그 |
