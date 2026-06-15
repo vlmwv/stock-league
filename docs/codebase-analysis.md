@@ -62,7 +62,7 @@
 | `update-krx-top-100` | 시총 상위 100 갱신 | 16:00 |
 | `process-daily-results` | 종가 확인·예측 채점·포인트 지급 | 20:20 |
 | `calculate-rankings` | 주간/월간/연간/누적 랭킹 | 20:30 |
-| `update-naver-stocks` | 전체 종목 시세 갱신(50개 청크) | 20:50 |
+| `update-naver-stocks` | 전체 종목 시세 갱신(50개 청크) | 20:20 |
 | `select-daily-stocks` | 5종목 선정 + LLM 사유/목표가 | 21:20 |
 | `fetch-economic-indicators` | investing.com 경제지표(cheerio 파싱) | 30분마다 |
 | `fetch-news-summary` | 당일 종목 상세 요약 | 수동(cron 미등록) |

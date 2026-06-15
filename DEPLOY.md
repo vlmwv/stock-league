@@ -76,4 +76,4 @@ supabase secrets set SERVICE_ROLE_KEY=
 ### 5.3 크론(Cron) 작업 등록
 `supabase/migrations/20260324000000_setup_cron_jobs.sql` 파일을 Supabase SQL Editor에서 실행하세요.
 - **주의**: 실행 전 파일 내의 `YOUR_PROJECT_REF`와 `YOUR_SERVICE_ROLE_KEY_HERE` 부분을 실제 값으로 수정해야 합니다.
-- **상세 검증 방법**: 배치 작업의 정상 동작 여부 확인 및 수동 테스트 방법은 [배치 기능 검증 가이드](file:///Users/min-woolee/IdeaProjects/mine/stock/BATCH_VERIFICATION.md)를 참고하세요.
+- **상세 검증 방법**: 배치 작업의 정상 동작 여부 확인 및 수동 테스트 방법은 [배치 기능 검증 가이드](docs/batch-verification.md)를 참고하세요.

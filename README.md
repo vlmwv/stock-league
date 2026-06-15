@@ -60,11 +60,12 @@ SUPABASE_KEY=
    - 서비스 내 콜백 페이지: `http://localhost:3000/auth/confirm` (로컬 기준)
 
 ## 6. 관련 문서
+- [문서 색인(docs/README)](docs/README.md)
 - [배포 가이드](DEPLOY.md)
-- [에지 함수 보안 가이드](docs/SECRETS_GUIDE.md)
-- [기획 및 요구사항](docs/plan_request.md)
-- [아키텍처 추천](docs/architecture_recommend.md)
-- [포팅 및 구현 계획](docs/plan_implementation.md)
-- [배치 작업 검증](docs/BATCH_VERIFICATION.md)
+- [코드베이스 구조 분석](docs/codebase-analysis.md)
+- [AI 추천 종목 선정 알고리즘](docs/ai-recommendation-logic.md)
+- [에지 함수 보안 가이드](docs/secrets-guide.md)
+- [배치 작업 검증](docs/batch-verification.md)
 - [ERD (Entity Relationship Diagram)](erd.md)
 - [작업 목록(Task)](task.md)
+- 보관(히스토리): [기획·요구사항](docs/archive/plan-request.md) · [아키텍처 추천](docs/archive/architecture-recommend.md) · [포팅·구현 계획](docs/archive/plan-implementation.md)
