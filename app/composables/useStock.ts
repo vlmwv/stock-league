@@ -1,4 +1,5 @@
 import { repairNewsUrl, decodeHtmlEntities, isEtf } from '~/utils/stock'
+import { loadRecPriceHistory, resolveRecPrice } from '~/utils/stockHistory'
 
 interface Stock {
   id: number
@@ -42,55 +43,11 @@ interface WishlistItem {
 }
 
 export const useStock = () => {
-  const client = useSupabaseClient()
-  const user = useSupabaseUser()
-  const toast = useToast()
+  const { client, user, toast, resolveUserId } = useStockClient()
 
-  const resolveUserId = async () => {
-    if (user.value?.id) return user.value.id
-    try {
-      const { data, error } = await client.auth.getSession()
-      if (error) {
-        console.warn('[useStock] Failed to resolve auth session:', error.message)
-        return null
-      }
-      return data.session?.user?.id ?? null
-    } catch (e) {
-      console.error('[useStock] resolveUserId exception:', e)
-      return null
-    }
-  }
+  const { getKstDate, getKstHourMinute, getActiveLeagueDate, kstTime } = useKstTime()
 
-  const getKstDate = () => {
-    // Intl.DateTimeFormat을 사용하여 시스템 TZ에 관계없이 항상 KST 날짜 반환
-    const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
-    const d = new Intl.DateTimeFormat('sv-SE', options).format(new Date())
-    return d
-  }
-
-  const getKstHourMinute = () => {
-    const options = { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false } as const
-    const parts = new Intl.DateTimeFormat('en-GB', options).format(new Date()).split(':')
-    const hour = parts[0] || '0'
-    const minute = parts[1] || '0'
-    return { hour: parseInt(hour), minute: parseInt(minute), timeVal: parseInt(hour) * 100 + parseInt(minute) }
-  }
-
-  const getActiveLeagueDate = () => {
-    const today = getKstDate()
-    const { timeVal } = getKstHourMinute()
-    
-    // 21:20 이후라면 다음날 리그가 활성 대상입니다.
-    if (timeVal >= 2120) {
-      const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
-      const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
-      return new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
-    }
-    return today
-  }
-
-  // 실시간 상태 업데이트를 위한 시간 Ref (30초마다 갱신)
-  const kstTime = useState('kst_time', () => getKstHourMinute())
+  // 실시간 상태 업데이트를 위한 시간 Ref 갱신 (30초마다). 21:20 경과 시 내일 종목 자동 새로고침.
   if (process.client) {
     onMounted(() => {
       // SSR hydration 직후 즉시 클라이언트 현재 시각으로 갱신
@@ -476,43 +433,16 @@ export const useStock = () => {
     const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
     const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
     
-    let historyPrices: any[] = []
-    if (stockIds.length > 0 && gameDates.length > 0) {
-      const parseDateSafe = (dStr: string) => {
-        const parts = dStr.split('-')
-        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
-      }
-      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
-      const searchStartDate = new Date(minTime)
-      searchStartDate.setDate(searchStartDate.getDate() - 10) 
-      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
-
-      const { data: hpData } = await client
-        .from('stock_price_history')
-        .select('stock_id, price_date, close_price')
-        .in('stock_id', stockIds)
-        .gte('price_date', searchStartDateStr)
-        .order('price_date', { ascending: false })
-      historyPrices = hpData || []
-    }
+    const historyPrices = await loadRecPriceHistory(client, stockIds, gameDates)
 
     return (data || [])
       .filter((ds: any) => ds.stocks)
       .map((ds: any) => {
-        // 추천 기준가(rec_price) 결정 로직 (fetchAiHistory와 동일)
-        const recPriceRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-        )
-        const sameDayRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-        )
-        
-        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
-        if (!recPriceRecord && !sameDayRecord) {
+        // 추천 기준가(rec_price) 결정. 시세가 없으면 추천 항목에서 제외(지움)
+        const recPrice = resolveRecPrice(historyPrices, ds.stocks.id, ds.game_date)
+        if (recPrice === null) {
           return null
         }
-        
-        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
 
         return {
           id: Number(ds.stocks.id),
@@ -1720,27 +1650,7 @@ export const useStock = () => {
     const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
     const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
     
-    let historyPrices: any[] = []
-    if (stockIds.length > 0 && gameDates.length > 0) {
-      // 모든 추천 항목의 기준가(전일 종가)를 찾기 위해 넉넉하게 최근 60일치 시세를 가져옵니다.
-      // (주말/공휴일 등을 고려하여 추천일보다 이전인 데이터를 매칭하기 위함)
-      const parseDateSafe = (dStr: string) => {
-        const parts = dStr.split('-')
-        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
-      }
-      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
-      const searchStartDate = new Date(minTime)
-      searchStartDate.setDate(searchStartDate.getDate() - 10) // 최소 10일 전부터 조회
-      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
-
-      const { data: hpData } = await client
-        .from('stock_price_history')
-        .select('stock_id, price_date, close_price')
-        .in('stock_id', stockIds)
-        .gte('price_date', searchStartDateStr)
-        .order('price_date', { ascending: false })
-      historyPrices = hpData || []
-    }
+    const historyPrices = await loadRecPriceHistory(client, stockIds, gameDates)
 
     const todayStr = getKstDate()
     const todayNum = new Date(todayStr).getTime()
@@ -1748,25 +1658,14 @@ export const useStock = () => {
     const items = (data || [])
       .filter((ds: any) => ds.stocks)
       .map((ds: any) => {
-        // 추천 기준가(rec_price) 결정 로직: 
-        // game_date보다 이전 날짜 중 가장 최신 시세를 찾습니다. (이것이 추천 전일 종가)
-        const recPriceRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-        )
-        
-        // 만약 이전 시세가 없다면(신규 상장 등), 해당 날짜의 시세라도 찾아봄
-        const sameDayRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-        )
-        
-        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
-        if (!recPriceRecord && !sameDayRecord) {
+        // 추천 기준가(rec_price) 결정. game_date 이전(없으면 당일) 종가이며, 시세가 없으면 제외
+        const recPrice = resolveRecPrice(historyPrices, ds.stocks.id, ds.game_date)
+        if (recPrice === null) {
           return null
         }
-        
-        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
+
         const currentPrice = ds.stocks.last_price || 0
-        
+
         // 누적 수익률 계산: (현재가 - 추천 시작가) / 추천 시작가 * 100
         let cumulativeChangeRate = 0
         if (recPrice > 0) {
@@ -1850,44 +1749,19 @@ export const useStock = () => {
     const stockIds = (data || []).map((ds: any) => ds.stocks?.id).filter(Boolean)
     const gameDates = (data || []).map((ds: any) => ds.game_date).filter(Boolean)
     
-    let historyPrices: any[] = []
-    if (stockIds.length > 0 && gameDates.length > 0) {
-      const parseDateSafe = (dStr: string) => {
-        const parts = dStr.split('-')
-        return parts.length === 3 ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)) : new Date(dStr)
-      }
-      const minTime = Math.min(...gameDates.map((d: string) => parseDateSafe(d).getTime()))
-      const searchStartDate = new Date(minTime)
-      searchStartDate.setDate(searchStartDate.getDate() - 10) 
-      const searchStartDateStr = searchStartDate.toISOString().split('T')[0]
-
-      const { data: hpData } = await client
-        .from('stock_price_history')
-        .select('stock_id, price_date, close_price')
-        .in('stock_id', stockIds)
-        .gte('price_date', searchStartDateStr)
-        .order('price_date', { ascending: false })
-      historyPrices = hpData || []
-    }
+    const historyPrices = await loadRecPriceHistory(client, stockIds, gameDates)
 
     return (data || [])
       .filter((ds: any) => ds.stocks)
       .map((ds: any) => {
-        const recPriceRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date < ds.game_date
-        )
-        const sameDayRecord = historyPrices.find(hp => 
-          Number(hp.stock_id) === Number(ds.stocks.id) && hp.price_date === ds.game_date
-        )
-        
-        // 기존 시세 데이터가 없으면 추천 항목에서 제외(지움)
-        if (!recPriceRecord && !sameDayRecord) {
+        // 추천 기준가(rec_price) 결정. 시세가 없으면 추천 항목에서 제외(지움)
+        const recPrice = resolveRecPrice(historyPrices, ds.stocks.id, ds.game_date)
+        if (recPrice === null) {
           return null
         }
-        
-        const recPrice = recPriceRecord?.close_price || sameDayRecord?.close_price || 0
+
         const currentPrice = ds.stocks.last_price || 0
-        
+
         let cumulativeChangeRate = 0
         if (recPrice > 0) {
           cumulativeChangeRate = Number(((currentPrice - recPrice) / recPrice * 100).toFixed(2))
