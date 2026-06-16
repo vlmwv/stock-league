@@ -1,6 +1,6 @@
 # 니나노AI 코드베이스 구조 분석
 
-> 작성일: 2026-06-15 · 대상: `ninanoai.com` (주식 예측 리그)
+> 작성일: 2026-06-15 · 갱신: 2026-06-16(권장사항 1~5 반영) · 대상: `ninanoai.com` (주식 예측 리그)
 
 ## 1. 전체 개요
 
@@ -77,17 +77,19 @@
 
 ## 3. 주요 구조적 리스크 (우선순위순)
 
-| # | 리스크 | 위치 | 영향 |
-|---|--------|------|------|
-| 🔴 | **`useStock.ts` 단일 거대 파일** — 영역별 모듈 분리 부재 *(분리 진행 중: 1~6단계 완료, 2089→294줄. `docs/refactor-usestock-plan.md` 참고)* | composables | 유지보수성·테스트 불가·머지 충돌 |
-| 🔴 | **스키마 드리프트 폴백(에러 42703)** 상시 잔존 | useStock:179,1110 | 마이그레이션 미확정의 흔적, 정리 필요 |
-| 🟠 | **로직 복제** — `isEtf`/KST 계산이 앱·Edge Function 양쪽에 중복 | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치(CLAUDE.md도 경고) |
-| 🟠 | **Streak 계산이 로컬 타임존** — KST 미통일 | useStock:1256 | UTC/KST 자정 불일치 버그 |
-| 🟠 | **인증 하이브리드 검증** — 로그인 무한 리다이렉트 반복 발생 영역 | 최근 커밋 5개가 전부 이 수정 | 회귀 위험 높은 취약 지점 |
-| 🟡 | **시나리오 10개 하드코딩**(약 1440개 캔들) | useScenario:37-540 | 번들 크기·확장성 |
-| 🟡 | **배치 모니터링 부재** — DB 로그만, 외부 알림 없음 | 전체 Edge Function | 무음 실패 위험 |
-| 🟡 | **테스트/린트/타입체크 전무** | 프로젝트 전반 | 회귀 방어선 없음 |
-| 🟡 | **`transfer-hall-of-fame` 미구현** | supabase/functions | 명세 대비 누락 |
+> 상태 범례: ✅ 해결 · 🔄 진행/부분 · ⬜ 미착수
+
+| # | 상태 | 리스크 | 위치 | 영향 |
+|---|------|--------|------|------|
+| 🔴 | ✅ | **`useStock.ts` 단일 거대 파일** — 영역별 컴포저블로 분리 완료(2089→294줄, 12개 컴포저블). `docs/refactor-usestock-plan.md` 참고 | composables | 유지보수성·테스트 불가·머지 충돌 |
+| 🔴 | ⬜ | **스키마 드리프트 폴백(에러 42703)** 상시 잔존 | useDailyStocks / useUserProfile | 마이그레이션 미확정의 흔적, 정리 필요 |
+| 🟠 | ✅ | **로직 복제** — `isEtf`/KST 계산 앱↔Edge Function 중복 → 두 `isEtf` 완전 동기화 확인(Deno 제약상 분리 불가, CLAUDE.md에 동기화 규칙 명문화) | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치 |
+| 🟠 | ✅ | **Streak 계산이 로컬 타임존** → `getKstDate()` 기반 KST 통일 완료 | useUserProfile.ts | UTC/KST 자정 불일치 버그 |
+| 🟠 | ✅ | **인증 하이브리드 검증** — 8곳 인라인 복제 → `useStockClient.resolveUser()` 단일 진입점으로 통합 | useStockClient + 4파일 | 회귀 위험 높은 취약 지점 |
+| 🟡 | ⬜ | **시나리오 10개 하드코딩**(약 1440개 캔들) | useScenario.ts | 번들 크기·확장성 |
+| 🟡 | ⬜ | **배치 모니터링 부재** — DB 로그만, 외부 알림 없음 | 전체 Edge Function | 무음 실패 위험 |
+| 🟡 | ⬜ | **테스트/린트/타입체크 전무** | 프로젝트 전반 | 회귀 방어선 없음 |
+| 🟡 | ⬜ | **`transfer-hall-of-fame` 미구현** | supabase/functions | 명세 대비 누락 |
 
 ## 4. 주목할 강점
 - KST 시간 경계(21:20 선정 / 20:30 발표)를 `Intl.DateTimeFormat`으로 일관 처리 — 서버 TZ 독립적.
@@ -95,10 +97,17 @@
 - 클라이언트 직접 쿼리(RLS) + 얇은 서버 API의 역할 분리가 명확.
 
 ## 5. 권장 개선 방향
-1. **(고) `useStock.ts` 분할** — `useDailyStocks`, `useWishlist`, `useRankings`, `useNews` 등 영역별 컴포저블로 분리.
-2. **(고) 인증 하이브리드 로직 단일화** — 반복 회귀하는 로그인 리다이렉트의 근본 원인 정리.
-3. **(중) 42703 폴백 제거** — 스키마 확정 후 분기 코드 정리.
-4. **(중) 중복 로직 정리** — `isEtf`/KST 계산 등 앱↔Edge Function 공유 전략 수립(또는 동기화 규칙 명문화).
-5. **(중) Streak 계산 KST 통일** — `getKstDate()` 기반으로 변경.
-6. **(저) 죽은 코드 제거** — `app/stores/stock.ts`.
-7. **(저) 시나리오 데이터 DB 이관**, 배치 실패 외부 알림 도입.
+
+### ✅ 완료
+1. **(고) `useStock.ts` 분할** — `useDailyStocks`, `useWishlist`, `useRankings`, `useNews`, `useUserProfile`, `useAiHistory` 등 12개 컴포저블로 분리(2089→294줄).
+2. **(고) 인증 하이브리드 로직 단일화** — `useStockClient.resolveUser()`를 단일 진입점으로 신설, 8곳의 인라인 `getUser()` 블록을 제거. 보안 가드(server 미들웨어·admin 미들웨어)는 유지. 클라이언트 게이팅은 기존 `resolveUserId()`와 동일하게 `getSession()` 채택(서버가 실제 인가 담당).
+3. **(중) Streak 계산 KST 통일** — `getKstDate()` + UTC 자정 타임스탬프 비교로 TZ 무관하게 변경(`useUserProfile.ts`).
+4. **(중) 중복 로직 정리** — `isEtf` 두 구현이 완전 동기화 상태임을 확인. Deno 런타임 제약상 앱↔Edge 분리는 불가, CLAUDE.md의 동기화 규칙으로 관리(코드 변경 불필요).
+5. **(저) 죽은 코드 제거** — `app/stores/stock.ts`(하드코딩 목 데이터 Pinia 스토어) 삭제. pinia는 그 외 미사용.
+
+### ⬜ 잔여 (우선순위순)
+6. **(중) 42703 폴백 제거** — 라이브 DB 스키마 확정 여부 확인 선행 필요. 잘못 제거 시 프로덕션 쿼리 실패 위험 → 마이그레이션과 실제 컬럼 대조 후 분기 코드 정리.
+7. **(저) 시나리오 데이터 DB 이관** — 하드코딩 10개 시나리오(약 1440 캔들)를 테이블로 이관(마이그레이션 신설 + `useScenario.ts` 로딩 경로 변경).
+8. **(저) 배치 실패 외부 알림 도입** — Edge Function 무음 실패 대비(DB 로그 외 알림 채널).
+9. **(저) `transfer-hall-of-fame` 구현** — `index.ts` 부재, 명세 대비 누락.
+10. **(저) 테스트/린트/타입체크 도입** — 회귀 방어선 부재.

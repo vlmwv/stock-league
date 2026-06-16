@@ -31,8 +31,8 @@ export interface Scenario {
 
 export const useScenario = () => {
   const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
   const session = useSupabaseSession()
+  const { resolveUser } = useStockClient()
 
   const scenarios = ref<Scenario[]>([
     {
@@ -542,11 +542,7 @@ export const useScenario = () => {
 
   // 2. 로그인 유저의 시나리오 도전 내역 리스트 가져오기
   const fetchUserAttempts = async () => {
-    let currentUser = user.value
-    if (!currentUser) {
-      const { data } = await supabase.auth.getUser()
-      currentUser = data?.user
-    }
+    const currentUser = await resolveUser()
     if (!currentUser?.id) return []
 
     try {
@@ -582,7 +578,8 @@ export const useScenario = () => {
 
   // 4. 게임 최종 완료 기록 저장하기
   const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
-    if (!user.value?.id) {
+    const currentUser = await resolveUser()
+    if (!currentUser?.id) {
       return { success: false, message: '로그인이 필요합니다.' }
     }
     const playDays = totalDays > 7 ? totalDays - 7 : totalDays
@@ -593,7 +590,7 @@ export const useScenario = () => {
       const { data: existing, error: existError } = await supabase
         .from('scenario_attempts')
         .select('id')
-        .eq('user_id', user.value.id)
+        .eq('user_id', currentUser.id)
         .eq('scenario_id', scenarioId)
         .maybeSingle()
 
@@ -606,7 +603,7 @@ export const useScenario = () => {
       const { data, error } = await supabase
         .from('scenario_attempts')
         .insert({
-          user_id: user.value.id,
+          user_id: currentUser.id,
           scenario_id: scenarioId,
           correct_count: correctCount,
           score: score,

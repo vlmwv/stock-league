@@ -11,7 +11,7 @@ const {
 } = useStock()
 
 const { scenarios, fetchUserAttempts } = useScenario()
-const user = useSupabaseUser()
+const { user, resolveUser } = useStockClient()
 const router = useRouter()
 
 const activeTab = ref<'league' | 'scenarios'>('league')
@@ -21,12 +21,7 @@ const userAttempts = ref<any[]>([])
 const pendingScenarios = ref(true)
 
 const loadAttempts = async () => {
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabase = useSupabaseClient()
-    const { data } = await supabase.auth.getUser()
-    currentUser = data?.user
-  }
+  const currentUser = await resolveUser()
   if (!currentUser) {
     pendingScenarios.value = false
     return
@@ -42,12 +37,7 @@ const getAttempt = (scenarioId: number) => {
 }
 
 const handleParticipation = async () => {
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabase = useSupabaseClient()
-    const { data } = await supabase.auth.getUser()
-    currentUser = data?.user
-  }
+  const currentUser = await resolveUser()
 
   if (isLeagueOpen.value && !currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
@@ -59,12 +49,7 @@ const handleParticipation = async () => {
 }
 
 const handleChallenge = async (scenarioId: number) => {
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabase = useSupabaseClient()
-    const { data } = await supabase.auth.getUser()
-    currentUser = data?.user
-  }
+  const currentUser = await resolveUser()
 
   if (!currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {

@@ -7,20 +7,24 @@ export const useStockClient = () => {
   const user = useSupabaseUser()
   const toast = useToast()
 
-  const resolveUserId = async () => {
-    if (user.value?.id) return user.value.id
+  // 캐시된 user가 없으면 getSession()으로 세션의 유저 객체를 직접 조회한다.
+  // 클라이언트 측 인증 판정의 단일 진입점 — 페이지/컴포저블에서 동일 블록을 복제하지 말 것.
+  const resolveUser = async () => {
+    if (user.value) return user.value
     try {
       const { data, error } = await client.auth.getSession()
       if (error) {
         console.warn('[useStockClient] Failed to resolve auth session:', error.message)
         return null
       }
-      return data.session?.user?.id ?? null
+      return data.session?.user ?? null
     } catch (e) {
-      console.error('[useStockClient] resolveUserId exception:', e)
+      console.error('[useStockClient] resolveUser exception:', e)
       return null
     }
   }
 
-  return { client, user, toast, resolveUserId }
+  const resolveUserId = async () => (await resolveUser())?.id ?? null
+
+  return { client, user, toast, resolveUser, resolveUserId }
 }

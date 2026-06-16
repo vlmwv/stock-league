@@ -3,7 +3,7 @@ import { useScenario } from '~/composables/useScenario'
 
 const router = useRouter()
 const { scenarios, fetchUserAttempts } = useScenario()
-const user = useSupabaseUser()
+const { user, resolveUser } = useStockClient()
 
 const userAttempts = ref<any[]>([])
 const pending = ref(true)
@@ -24,12 +24,7 @@ const getAttempt = (scenarioId: number) => {
 }
 
 const handleChallenge = async (scenarioId: number) => {
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabase = useSupabaseClient()
-    const { data } = await supabase.auth.getUser()
-    currentUser = data?.user
-  }
+  const currentUser = await resolveUser()
 
   if (!currentUser) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {

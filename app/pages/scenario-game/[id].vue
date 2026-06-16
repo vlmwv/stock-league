@@ -7,7 +7,7 @@ const router = useRouter()
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark')
 const { scenarios, submitScenarioAttempt, fetchUserAttempts } = useScenario()
-const user = useSupabaseUser()
+const { user, resolveUser } = useStockClient()
 
 const scenarioId = Number(route.params.id)
 const scenario = computed(() => scenarios.value.find(s => s.id === scenarioId))
@@ -27,12 +27,7 @@ const activeTab = ref<'game' | 'ranking'>('game')
 
 // 1. 이미 완료한 도전 이력이 있는지 검증
 const checkAttemptStatus = async () => {
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabaseClient = useSupabaseClient()
-    const { data } = await supabaseClient.auth.getUser()
-    currentUser = data?.user
-  }
+  const currentUser = await resolveUser()
   if (!currentUser) return
 
   const attempts = await fetchUserAttempts() as any[]
@@ -140,13 +135,8 @@ const todayEvent = computed(() => {
 // 5. 예측 제출 로직
 const handlePredict = async (prediction: 'up' | 'down') => {
   if (isFeedbackMode.value || gameEnded.value || hasAlreadyAttempted.value) return
-  
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabase = useSupabaseClient()
-    const { data } = await supabase.auth.getUser()
-    currentUser = data?.user
-  }
+
+  const currentUser = await resolveUser()
 
   if (!currentUser?.id) {
     if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
@@ -234,13 +224,7 @@ onMounted(async () => {
   resetGame()
 
   // user가 이미 로드된 상태면 즉시 도전 이력 확인 (비동기 지연 복구 크로스체크 포함)
-  let currentUser = user.value
-  if (!currentUser) {
-    const supabaseClient = useSupabaseClient()
-    const { data } = await supabaseClient.auth.getUser()
-    currentUser = data?.user
-  }
-
+  const currentUser = await resolveUser()
   if (currentUser?.id) {
     await checkAttemptStatus()
   }

@@ -73,28 +73,24 @@ export const useUserProfile = () => {
 
     let streak = 0
     if (dateRecords && (dateRecords as any).length > 0) {
-      const uniqueDates = [...new Set((dateRecords as any).map((d: any) => d.game_date))]
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const uniqueDates = [...new Set((dateRecords as any).map((d: any) => d.game_date as string))]
 
-      let currentCheck = new Date(uniqueDates[0] as string)
-      currentCheck.setHours(0, 0, 0, 0)
+      // game_date(KST 기준 날짜 문자열)와 KST 오늘을 UTC 자정 타임스탬프로 변환해
+      // 시스템 TZ와 무관하게 일수 차이로 연속성을 판정한다.
+      const DAY = 24 * 60 * 60 * 1000
+      const toUtcDay = (s: string) => new Date(`${s}T00:00:00Z`).getTime()
 
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
+      const todayTs = toUtcDay(getKstDate())
+      let currentTs = toUtcDay(uniqueDates[0] as string)
 
-      if (currentCheck >= yesterday) {
+      // 가장 최근 예측이 오늘 또는 어제여야 streak가 유지된다.
+      if (todayTs - currentTs <= DAY) {
         streak = 1
         for (let i = 1; i < uniqueDates.length; i++) {
-          const prevDate = new Date(uniqueDates[i] as string)
-          prevDate.setHours(0, 0, 0, 0)
-
-          const expectedPrevDate = new Date(currentCheck)
-          expectedPrevDate.setDate(expectedPrevDate.getDate() - 1)
-
-          if (prevDate.getTime() === expectedPrevDate.getTime()) {
+          const prevTs = toUtcDay(uniqueDates[i] as string)
+          if (currentTs - prevTs === DAY) {
             streak++
-            currentCheck = prevDate
+            currentTs = prevTs
           } else {
             break
           }
