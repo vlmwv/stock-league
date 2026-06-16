@@ -21,29 +21,7 @@ export const useRankings = () => {
       query = query.order('points', { ascending: false })
     }
 
-    let { data, error } = await query.limit(limitNum)
-
-    // gender 컬럼이 없을 경우 재시도
-    if (error && error.code === '42703') {
-      console.warn('[useRankings] gender column missing, retrying without it...')
-      const fallbackQuery = client
-        .from('profiles')
-        .select(`
-          id,
-          username,
-          avatar_url,
-          points,
-          rankings(prediction_count, win_rate, win_count)
-        `)
-
-      if (sortBy === 'rank') {
-        fallbackQuery.order('points', { ascending: false })
-      }
-
-      const retry = await fallbackQuery.limit(limitNum)
-      data = retry.data
-      error = retry.error
-    }
+    const { data, error } = await query.limit(limitNum)
 
     if (error) {
       console.error('Error fetching rankings:', error)

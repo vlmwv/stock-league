@@ -13,23 +13,11 @@ export const useUserProfile = () => {
       return null
     }
 
-    let { data: profile, error: profileError } = await client
+    const { data: profile } = await client
       .from('profiles')
       .select('username, full_name, display_name_type, email, avatar_url, points, role, gender')
       .eq('id', userId)
       .single()
-
-    // 컬럼 부재로 인한 에러 시 재시도 (gender 또는 role 제외)
-    if (profileError && profileError.code === '42703') {
-      console.warn('[useUserProfile] Some columns missing in profiles, retrying with basic columns...')
-      const retry = await client
-        .from('profiles')
-        .select('username, email, avatar_url, points')
-        .eq('id', userId)
-        .single()
-      profile = retry.data
-      profileError = retry.error
-    }
 
     // 2. Get all-time rank (number of users with more points + 1)
     const { count: higherRankCount } = await client

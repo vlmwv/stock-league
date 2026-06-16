@@ -90,38 +90,8 @@ export const useDailyStocks = () => {
       .eq('game_date', targetDate as any)
       .neq('status', 'withdrawn')
 
-    let { data, error } = await query
-
-    // ai_result 컬럼 부재로 인한 에러 시 재시도
-    if (error && error.code === '42703') {
-      console.warn('[useDailyStocks] ai_result column missing in daily_stocks, retrying without it...')
-      const fallbackQuery = client
-        .from('daily_stocks')
-        .select(`
-          id,
-          game_date,
-          llm_summary,
-          ai_score,
-          target_price,
-          target_date,
-          stocks (
-            id,
-            code,
-            name,
-            last_price,
-            change_amount,
-            change_rate,
-            ai_recommendation_count,
-            ai_win_count,
-            ai_processed_count
-          )
-        `)
-        .eq('game_date', targetDate as any)
-
-      const retry = await fallbackQuery
-      data = retry.data
-      error = retry.error
-    }
+    const { data: initialData, error } = await query
+    let data = initialData
 
     // Fallback: If no future data, fetch latest available stock data
     if (!error && (!data || data.length === 0)) {
@@ -163,35 +133,7 @@ export const useDailyStocks = () => {
           .eq('game_date', latestDate)
           .neq('status', 'withdrawn')
 
-        let { data: fallbackData, error: fallbackError } = await q
-
-        if (fallbackError && fallbackError.code === '42703') {
-          const fbRetryQuery = client
-            .from('daily_stocks')
-            .select(`
-              id,
-              game_date,
-              llm_summary,
-              ai_score,
-              target_price,
-              target_date,
-              stocks (
-                id,
-                code,
-                name,
-                last_price,
-                change_amount,
-                change_rate,
-                ai_recommendation_count,
-                ai_win_count,
-                ai_processed_count
-              )
-            `)
-            .eq('game_date', latestDate)
-          const fbRetry = await fbRetryQuery
-          fallbackData = fbRetry.data
-          fallbackError = fbRetry.error
-        }
+        const { data: fallbackData, error: fallbackError } = await q
 
         if (!fallbackError && fallbackData) {
           data = fallbackData

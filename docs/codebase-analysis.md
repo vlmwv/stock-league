@@ -82,7 +82,7 @@
 | # | 상태 | 리스크 | 위치 | 영향 |
 |---|------|--------|------|------|
 | 🔴 | ✅ | **`useStock.ts` 단일 거대 파일** — 영역별 컴포저블로 분리 완료(2089→294줄, 12개 컴포저블). `docs/refactor-usestock-plan.md` 참고 | composables | 유지보수성·테스트 불가·머지 충돌 |
-| 🔴 | ⬜ | **스키마 드리프트 폴백(에러 42703)** 상시 잔존 | useDailyStocks / useUserProfile | 마이그레이션 미확정의 흔적, 정리 필요 |
+| 🔴 | ✅ | **스키마 드리프트 폴백(에러 42703)** — 드리프트 점검(4개 컬럼 존재) 후 폴백 6곳 제거, 단일 쿼리로 정리 | useDailyStocks / useUserProfile / useRankings / api | 마이그레이션 미확정의 흔적, 정리 완료 |
 | 🟠 | ✅ | **로직 복제** — `isEtf`/KST 계산 앱↔Edge Function 중복 → 두 `isEtf` 완전 동기화 확인(Deno 제약상 분리 불가, CLAUDE.md에 동기화 규칙 명문화) | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치 |
 | 🟠 | ✅ | **Streak 계산이 로컬 타임존** → `getKstDate()` 기반 KST 통일 완료 | useUserProfile.ts | UTC/KST 자정 불일치 버그 |
 | 🟠 | ✅ | **인증 하이브리드 검증** — 8곳 인라인 복제 → `useStockClient.resolveUser()` 단일 진입점으로 통합 | useStockClient + 4파일 | 회귀 위험 높은 취약 지점 |
@@ -106,7 +106,7 @@
 5. **(저) 죽은 코드 제거** — `app/stores/stock.ts`(하드코딩 목 데이터 Pinia 스토어) 삭제. pinia는 그 외 미사용.
 
 ### ⬜ 잔여 (우선순위순)
-6. **(중) 42703 폴백 제거** — 라이브 DB 스키마 확정 여부 확인 선행 필요. 잘못 제거 시 프로덕션 쿼리 실패 위험 → 마이그레이션과 실제 컬럼 대조 후 분기 코드 정리.
+6. ✅ **(중) 42703 폴백 제거** — `scripts/check_schema_drift.ts`로 4개 컬럼(라이브 DB) 존재 확인 후 폴백 6곳 제거 완료(useDailyStocks 2·useRankings·useUserProfile·api). 단일 쿼리로 정리, build·test 통과.
 7. **(저) 시나리오 데이터 DB 이관** — 하드코딩 10개 시나리오(약 1440 캔들)를 테이블로 이관(마이그레이션 신설 + `useScenario.ts` 로딩 경로 변경).
 8. **(저) 배치 실패 외부 알림 도입** — Edge Function 무음 실패 대비(DB 로그 외 알림 채널).
 9. **(저) `transfer-hall-of-fame` 구현** — `index.ts` 부재, 명세 대비 누락.

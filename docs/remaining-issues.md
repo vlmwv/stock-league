@@ -8,7 +8,7 @@
 
 | # | 우선순위 | 항목 | 영역 | 출처 |
 |---|:---:|------|------|------|
-| 1 | 🔴 고 | 42703 스키마 드리프트 폴백 제거 — **드리프트 점검 ✅(4개 컬럼 모두 존재) → 착수 가능** | composables | analysis §5-6 |
+| 1 | ✅ 완료 | ~~42703 스키마 드리프트 폴백 제거~~ — 드리프트 점검(4개 컬럼 존재) 후 폴백 6곳 제거 완료 | composables | analysis §5-6 |
 | 2 | ✅ 완료 | ~~`usePredictions` 분리 (7단계)~~ — `usePredictions.ts` 분리 완료 | composables | refactor §4 |
 | 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 95줄로 축소 | composables | refactor §4 |
 | 4 | 🟡 저 | 시나리오 데이터 DB 이관 | useScenario + DB | analysis §5-7 |
@@ -18,11 +18,12 @@
 
 ---
 
-## 1. 🔴 42703 스키마 드리프트 폴백 제거
+## 1. ✅ 42703 스키마 드리프트 폴백 제거 — 완료
 
 - **현상**: Postgres 에러 `42703`(정의되지 않은 컬럼) 발생 시 최신 컬럼을 빼고 재쿼리하는 방어 분기가 `useDailyStocks`, `useUserProfile` 등에 상존.
 - **위험**: 잘못 제거 시 프로덕션 쿼리 실패. **반드시 라이브 DB 스키마 확정 여부 확인 후** 진행.
-- **사전 점검 결과(2026-06-16)**: `npx tsx scripts/check_schema_drift.ts` 실행 → `profiles.gender`·`profiles.role`·`daily_stocks.ai_result`·`daily_stocks.status` **4개 컬럼 모두 라이브 DB에 존재(드리프트 없음)**. 폴백 6곳(`useDailyStocks:96,168` / `useRankings:27` / `useUserProfile:23` / `server/api/rankings.get.ts:57`) 안전 제거 가능 → **착수 준비 완료(아직 미제거)**.
+- **사전 점검 결과(2026-06-16)**: `npx tsx scripts/check_schema_drift.ts` 실행 → `profiles.gender`·`profiles.role`·`daily_stocks.ai_result`·`daily_stocks.status` **4개 컬럼 모두 라이브 DB에 존재(드리프트 없음)**.
+- **제거 결과(2026-06-17)**: 폴백 6곳 제거 완료 — `useDailyStocks`(ai_result 재시도 + latest fallback 재시도 2곳), `useRankings`(gender), `useUserProfile`(gender/role), `server/api/rankings.get.ts`(gender). 단일 쿼리로 정리하고 `let`→`const` 정돈. `npm run build`·`npm run test`(30) 통과, 앱/서버 코드에 `42703` 잔재 0.
 - **접근**:
   1. `supabase/migrations/`의 최신 마이그레이션과 라이브 DB 실제 컬럼을 대조(드리프트 없음 확인).
   2. 드리프트가 없으면 폴백 분기와 재시도 쿼리 제거, 단일 쿼리로 정리.
