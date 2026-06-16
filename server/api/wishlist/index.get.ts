@@ -4,6 +4,10 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
   const user = event.context.user
 
+  if (!user) {
+    throw createError({ statusCode: 401, statusMessage: '로그인이 필요합니다.' })
+  }
+
   const { data, error } = await (client as any)
     .from('wishlists')
     .select(`

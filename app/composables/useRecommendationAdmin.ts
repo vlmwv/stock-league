@@ -17,9 +17,9 @@ export const useRecommendationAdmin = () => {
   }
 
   const withdrawRecommendation = async (dailyId: number) => {
-    const { error } = await client
+    const { error } = await (client as any)
       .from('daily_stocks')
-      .update({ status: 'withdrawn' } as any)
+      .update({ status: 'withdrawn' })
       .eq('id', dailyId)
 
     if (error) {

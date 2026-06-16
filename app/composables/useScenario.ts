@@ -600,7 +600,7 @@ export const useScenario = () => {
       }
 
       // 점수 저장
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('scenario_attempts')
         .insert({
           user_id: currentUser.id,

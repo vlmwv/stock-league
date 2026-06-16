@@ -803,7 +803,7 @@ const chartOptions = computed(() => ({
     x: { format: 'MM월 dd일' },
     y: {
       title: {
-        formatter: (seriesName) => {
+        formatter: (seriesName: any) => {
           if (seriesName === 'Open') return '시가'
           if (seriesName === 'High') return '고가'
           if (seriesName === 'Low') return '저가'
@@ -895,7 +895,7 @@ const volumeChartOptions = computed(() => ({
     x: { format: 'MM월 dd일' },
     y: {
       title: {
-        formatter: (seriesName) => {
+        formatter: (seriesName: any) => {
           if (seriesName === 'Volume' || seriesName === '거래량') return '거래량'
           return seriesName
         }

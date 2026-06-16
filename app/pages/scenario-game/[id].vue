@@ -206,6 +206,11 @@ const resetGame = () => {
   activeTab.value = 'game'
 }
 
+// 확인 후 처음부터 다시 시작 (템플릿에서 전역 confirm 직접 호출 시 타입 미해결되므로 핸들러로 분리)
+const confirmReset = () => {
+  if (window.confirm('처음부터 다시 도전하시겠습니까?')) resetGame()
+}
+
 const formatPrice = (price: number | undefined) => {
   if (price === undefined) return ''
   if (scenario.value?.etfName === 'KODEX 200') {
@@ -536,7 +541,7 @@ class="text-[9px] font-black uppercase tracking-widest"
           <div v-if="!hasAlreadyAttempted && currentDay > 7" class="text-center pt-2">
             <button 
               class="inline-flex items-center gap-1 text-[11px] font-black text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-0 cursor-pointer"
-              @click="confirm('처음부터 다시 도전하시겠습니까?') && resetGame()"
+              @click="confirmReset"
             >
               <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
               처음부터 다시 도전하기

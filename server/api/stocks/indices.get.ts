@@ -15,7 +15,7 @@ const FALLBACK_INDICES = [
   { region: '미국', name: '필라델피아 반도체', value: 5240.50, changeRate: 1.15 },
   { region: '외환', name: '원/달러 환율', value: 1365.20, changeRate: 0.25 },
   { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
-]
+] as const
 
 export default defineEventHandler(async (event) => {
   const now = Date.now()

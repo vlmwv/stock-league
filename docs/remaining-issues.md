@@ -70,11 +70,11 @@
 - **실행 결과(2026-06-16, `npm install --legacy-peer-deps` 후)**:
   - ✅ `npm run test` — **30 passed**(node·nuxt 두 환경에서 스타터 15개씩).
   - ✅ `npm run build` — 통과(타입/번들 에러 0). 분리 리팩터링 핵심 검증 완료.
-  - 📊 `npm run typecheck` — **66 errors(베이스라인)**. 대부분 `server/api/**`(특히 `indices.get.ts` 32건). 상당수는 Supabase `Database = unknown`(타입 파일 부재)에서 파생된 `never` 계열. → 점진 수정 대상.
+  - ✅ `npm run typecheck` — **66 → 0 errors** (2026-06-17 전량 수정 완료). `indices.get.ts` 32건은 `FALLBACK_INDICES` `as const` 튜플화로 일괄 해소, `never` 계열은 `(client as any)` 캐스팅, 서버 라우트 `user`는 401 가드 추가, `WishlistItem.group_id` `number|null` 모델 보정 등. 부수로 `daily.vue`의 `pending`(항상 undefined였던 잠재버그) 정상 노출.
   - 📊 `npm run lint` — `lint:fix` 적용 후 **353 → 46 problems(46 errors)**. 288 warnings 전부 자동수정(주로 `process.client`→`import.meta.client`), 잔여 46건은 대부분 `no-unused-vars`(기존 코드). → 단계적 강화 대상.
 - **잔여(점진)**:
-  1. typecheck 66건 점진 수정 — 우선 `app/types/database.types.ts`(supabase 타입) 생성 시 `never` 계열 다수 해소 가능.
-  2. lint 46건(`no-unused-vars` 위주) 정리 후 완화 규칙(`no-explicit-any` 등) 단계적 복원.
+  1. ✅ typecheck 66건 → 0 (완료). 추후 `app/types/database.types.ts`(supabase gen types) 도입 시 `(client as any)` 캐스팅을 정식 타입으로 대체 가능.
+  2. lint 45건(`no-unused-vars` 위주) 정리 후 완화 규칙(`no-explicit-any` 등) 단계적 복원.
   3. (선택) CI에 typecheck/lint/test 편입.
 - **참조**: analysis §3(🟡), §5-10.
 
@@ -88,8 +88,8 @@
 - [x] `npm install --legacy-peer-deps` 성공(266 packages 추가, peer 충돌 없음)
 - [x] `npm run build` 통과(타입/번들 에러 0) — 분리 리팩터링 핵심 검증
 - [x] `npm run test` — 스타터 테스트 **30 passed**
-- [x] `npm run typecheck` — 베이스라인 **66 errors** 파악(점진 수정 대상)
-- [x] `npm run lint` — `lint:fix` 후 **46 errors** 베이스라인(353에서 감소)
+- [x] `npm run typecheck` — **66 → 0 errors** (전량 수정 완료)
+- [x] `npm run lint` — `lint:fix` 후 **45 errors** 베이스라인(353에서 감소)
 
 ### 8-1. useStock 분리 7~8단계 (커밋 `524ad0b`)
 - [ ] 메인/오늘의 예측: 종목 표시, **예측 제출(낙관적 업데이트·롤백)**, 참여자 수 갱신

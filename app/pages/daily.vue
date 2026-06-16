@@ -61,9 +61,9 @@
         <p class="text-sm text-slate-500 leading-relaxed mb-8">
           리그 데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해 주세요.
         </p>
-        <button 
+        <button
           class="px-6 py-3 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
-          @click="refresh"
+          @click="() => refresh()"
         >
           다시 시도하기
         </button>

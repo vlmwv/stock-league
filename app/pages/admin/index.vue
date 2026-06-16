@@ -329,7 +329,7 @@
 
     <!-- Re-check Result Modal -->
     <UModal v-model="isReCheckModalOpen">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-white/10', background: 'bg-slate-900' }">
+      <UCard :ui="{ ring: '', divide: 'divide-y divide-white/10', background: 'bg-slate-900' } as any">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-white">추천 유효성 검증 결과</h3>

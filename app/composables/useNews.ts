@@ -2,7 +2,7 @@ import { decodeHtmlEntities } from '~/utils/stock'
 
 // 뉴스/공시, 테마, 경제 지표 조회 + 알림(notifications) 집계.
 // notifications는 daily 추천(recommended)에 의존하므로 해당 ref를 주입받는다.
-export const useNews = (recommended: Ref<any[]>) => {
+export const useNews = (recommended: Ref<any[] | undefined>) => {
   const { client } = useStockClient()
   const { getKstDate } = useKstTime()
 

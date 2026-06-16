@@ -18,9 +18,9 @@ export const loadRecPriceHistory = async (
   if (stockIds.length === 0 || gameDates.length === 0) return []
 
   const parseDateSafe = (dStr: string) => {
-    const parts = dStr.split('-')
-    return parts.length === 3
-      ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+    const [y, m, d] = dStr.split('-')
+    return (y && m && d)
+      ? new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10))
       : new Date(dStr)
   }
 

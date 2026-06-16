@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
 
   // stocks 테이블에서 전체 종목 데이터를 가져옵니다.
-  const { data: stocks, error } = await client
+  const { data: stocks, error } = await (client as any)
     .from('stocks')
     .select('id, name, code, sector, last_price, change_amount, change_rate, market_cap_rank')
 

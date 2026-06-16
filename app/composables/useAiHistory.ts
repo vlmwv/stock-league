@@ -100,7 +100,7 @@ export const useAiHistory = () => {
       .filter((item): item is NonNullable<typeof item> => item !== null)
 
     if (items.length > 0) {
-      return { items, emptyReason: null as const }
+      return { items, emptyReason: null }
     }
 
     if ((data || []).length > 0) {

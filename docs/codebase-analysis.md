@@ -88,7 +88,7 @@
 | 🟠 | ✅ | **인증 하이브리드 검증** — 8곳 인라인 복제 → `useStockClient.resolveUser()` 단일 진입점으로 통합 | useStockClient + 4파일 | 회귀 위험 높은 취약 지점 |
 | 🟡 | ⬜ | **시나리오 10개 하드코딩**(약 1440개 캔들) | useScenario.ts | 번들 크기·확장성 |
 | 🟡 | ⬜ | **배치 모니터링 부재** — DB 로그만, 외부 알림 없음 | 전체 Edge Function | 무음 실패 위험 |
-| 🟡 | 🔄 | **테스트/린트/타입체크** — 스택 도입·환경 구성·실행 완료(test 30✓·build✓·typecheck 66·lint 46 베이스라인). 잔여 점진 수정 | 프로젝트 전반 | 회귀 방어선 없음 |
+| 🟡 | 🔄 | **테스트/린트/타입체크** — 스택·환경·실행 완료(test 30✓·build✓·**typecheck 66→0**·lint 353→45). 잔여 lint 점진 정리 | 프로젝트 전반 | 회귀 방어선 없음 |
 | 🟡 | ⬜ | **`transfer-hall-of-fame` 미구현** | supabase/functions | 명세 대비 누락 |
 
 ## 4. 주목할 강점
@@ -110,4 +110,4 @@
 7. **(저) 시나리오 데이터 DB 이관** — 하드코딩 10개 시나리오(약 1440 캔들)를 테이블로 이관(마이그레이션 신설 + `useScenario.ts` 로딩 경로 변경).
 8. **(저) 배치 실패 외부 알림 도입** — Edge Function 무음 실패 대비(DB 로그 외 알림 채널).
 9. **(저) `transfer-hall-of-fame` 구현** — `index.ts` 부재, 명세 대비 누락.
-10. 🔄 **(저) 테스트/린트/타입체크 도입** — Nuxt 4 표준 스택(vitest·@nuxt/eslint·vue-tsc) + 스크립트 + 스타터 테스트 도입. **환경 구성·전 도구 실행 완료**(test 30 pass·build 통과·typecheck 66·lint 353→46 베이스라인). 잔여 에러 점진 수정·완화 규칙 복원은 remaining-issues.md §7.
+10. 🔄 **(저) 테스트/린트/타입체크 도입** — Nuxt 4 표준 스택(vitest·@nuxt/eslint·vue-tsc) + 스크립트 + 스타터 테스트 도입. **환경 구성·전 도구 실행 완료**(test 30 pass·build 통과·**typecheck 66→0 전량 수정**·lint 353→45). 잔여 lint 점진 정리·완화 규칙 복원은 remaining-issues.md §7.

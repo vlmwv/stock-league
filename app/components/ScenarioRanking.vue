@@ -37,9 +37,9 @@ const formatDate = (dateStr: string) => {
         <UIcon name="i-heroicons-trophy" class="w-6 h-6 text-brand-primary" />
         실시간 참여랭킹
       </h3>
-      <button 
-        class="w-10 h-10 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95" 
-        @click="refresh"
+      <button
+        class="w-10 h-10 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95"
+        @click="() => refresh()"
       >
         <UIcon name="i-heroicons-arrow-path" class="w-5 h-5" :class="{ 'animate-spin': pending }" />
       </button>

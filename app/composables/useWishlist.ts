@@ -10,7 +10,7 @@ interface WishlistGroup {
 
 interface WishlistItem {
   stock_id: number
-  group_id: number
+  group_id: number | null
 }
 
 // 관심 종목(찜)과 폴더(그룹) 관리. 낙관적 업데이트 + 실패 시 롤백.
@@ -111,9 +111,9 @@ export const useWishlist = () => {
 
       // 1. 해당 폴더의 종목들을 '미분류'로 변경
       // (DB 제약조건이 ON DELETE CASCADE로 되어 있어 폴더 삭제 시 종목도 찜하기에서 해제되는 것을 방지)
-      const { error: updateError } = await client
+      const { error: updateError } = await (client as any)
         .from('wishlists')
-        .update({ group_id: null } as any)
+        .update({ group_id: null })
         .eq('group_id', groupId)
         .eq('user_id', userId)
 
@@ -163,14 +163,14 @@ export const useWishlist = () => {
     const userId = await resolveUserId()
     if (!userId) return { success: false }
 
-    const { error } = await client
+    const { error } = await (client as any)
       .from('wishlist_groups')
-      .update({ name } as any)
+      .update({ name })
       .eq('id', groupId)
 
     if (!error) {
-      const idx = wishlistGroups.value.findIndex(g => g.id === groupId)
-      if (idx > -1) wishlistGroups.value[idx].name = name
+      const target = wishlistGroups.value.find(g => g.id === groupId)
+      if (target) target.name = name
       toast.add({
         title: '폴더 이름을 변경했습니다',
         color: 'primary',

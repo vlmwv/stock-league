@@ -26,7 +26,7 @@ export const useDailyStocks = () => {
   }
 
   // 1. Fetch today's daily stocks with stock details
-  const { data: stocks, refresh, error: fetchError } = useAsyncData('dailyStocks', async () => {
+  const { data: stocks, refresh, error: fetchError, pending } = useAsyncData('dailyStocks', async () => {
     // KST (UTC+9) 기준으로 오늘 날짜 구하기
     const today = getKstDate()
 
@@ -423,6 +423,7 @@ export const useDailyStocks = () => {
     stocks,
     refresh,
     fetchError,
+    pending,
     recommended,
     refreshRecommended,
     marketCapStocks,

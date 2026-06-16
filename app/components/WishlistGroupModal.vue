@@ -103,7 +103,7 @@
 const props = defineProps<{
   open: boolean
   stockId: number | null
-  initialGroupIds?: number[]
+  initialGroupIds?: (number | null)[]
 }>()
 
 const emit = defineEmits(['update:open', 'success'])
@@ -111,7 +111,7 @@ const emit = defineEmits(['update:open', 'success'])
 const { wishlistGroups, createWishlistGroup, isCreatingGroup, toggleHeart, fetchWishlist, wishlistsWithGroups, deleteWishlistGroup } = useStock()
 const toast = useToast()
 
-const selectedGroupIds = ref<number[]>([])
+const selectedGroupIds = ref<(number | null)[]>([])
 const newGroupName = ref('')
 const showNewInput = ref(false)
 const saving = ref(false)
@@ -172,7 +172,7 @@ const handleSave = async () => {
       .map(w => w.group_id)
     
     // 추가해야 할 그룹
-    const toAdd = selectedGroupIds.value.filter(id => id !== null && !currentGroups.includes(id))
+    const toAdd = selectedGroupIds.value.filter((id): id is number => id !== null && !currentGroups.includes(id))
     // 제거해야 할 그룹 (null 포함 기존 항목들 모두 체크)
     const toRemove = currentGroups.filter(id => !selectedGroupIds.value.includes(id as any))
     

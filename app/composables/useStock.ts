@@ -7,7 +7,7 @@ export const useStock = () => {
   // 오늘의 종목/추천/시총/타겟가 + 리그 상태 + 자동 새로고침 (분리된 useDailyStocks)
   const daily = useDailyStocks()
   const {
-    refresh, fetchError,
+    refresh, fetchError, pending,
     recommended, refreshRecommended,
     marketCapStocks, refreshMarketCap,
     targetedStocks, refreshTargetedStocks, pendingTargeted,
@@ -81,6 +81,7 @@ export const useStock = () => {
     marketCapStocks,
     refresh,
     fetchError,
+    pending,
     refreshMarketCap,
     refreshRecommended,
     isLeagueOpen,
