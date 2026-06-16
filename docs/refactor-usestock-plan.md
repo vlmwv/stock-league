@@ -5,14 +5,15 @@
 
 ## 0. 진행 현황 (2026-06-15 기준)
 
-- `useStock.ts` 현재 **294줄** (착수 시 2089줄).
+- `useStock.ts` 현재 **95줄** (착수 시 2089줄). 분리 완료(1~8단계). 이후는 선택적 소비자 마이그레이션(9단계)만 남음.
 - ✅ **1단계 완료** — 공통 헬퍼 추출: `app/utils/stockHistory.ts`(`loadRecPriceHistory`/`resolveRecPrice`로 rec_price 중복 3곳 수렴), `app/composables/useStockClient.ts`(`client`/`user`/`toast`/`resolveUserId`).
 - ✅ **2단계 완료** — `app/composables/useKstTime.ts` 분리(`getKstDate`/`getKstHourMinute`/`getActiveLeagueDate`/`kstTime`). 자동 새로고침 타이머는 계획대로 아직 `useStock`에 유지.
 - ✅ **3단계 완료** — 독립 도메인 5종 분리: `useRankings`, `useStockDirectory`(hearts 주입), `useAiHistory`, `useNews`, `useRecommendationAdmin`. `useStock`은 이들을 호출해 `...spread`로 합쳐 내보냄. notifications computed는 `recommended` 의존이라 파사드에 유지.
 - ✅ **4단계 완료** — `useWishlist` 분리(찜/그룹 CRUD·낙관적 업데이트·`wishlistStocks`·`isHearted` 포함). 파사드는 `useWishlist()`를 호출해 `...spread`로 내보내고, 내부 참조용으로 `hearts`/`fetchWishlist`만 구조분해(refreshAll·watch·useStockDirectory 주입이 그대로 동작). `WishlistGroup`/`WishlistItem` 인터페이스도 함께 이동.
 - ✅ **5단계 완료** — `useUserProfile` 분리(`fetchUserStats`+스트릭 집계, `updateProfile`, `fetchUserHistory`, `currentUserProfile` 상태). 자기완결적이라 파사드는 `...profile` 스프레드만 추가. (streak 로컬 TZ 이슈는 §5대로 별도 PR로 유지)
 - ✅ **6단계 완료** — `useDailyStocks` 분리(오늘의 종목/추천/시총/타겟가 asyncData + `isLeagueOpen`/`isResultPublished` + 자동 새로고침 타이머 이관, dead `Stock` 인터페이스 제거). 파사드는 `useDailyStocks()`를 구조분해해 기존 반환 키를 그대로 유지. 미사용 import(`isEtf`/`decodeHtmlEntities`/`repairNewsUrl`/stockHistory) 정리.
-- ⬜ **7단계** `usePredictions`, **8단계** 파사드 최종 정리 (아래 §4).
+- ✅ **7단계 완료** — `usePredictions` 분리(`myPredictions`/`participantCount`/`totalMemberCount` 상태 + `predict`/`fetchPredictions`/`fetchParticipantCount`/`getPrediction*`). `predict`의 리그 종목·오픈 여부 검증을 위해 `useDailyStocks` 결과(`daily`)를 주입받음. 파사드는 `usePredictions(daily)`를 `...spread`로 내보내고 내부 참조용으로 `myPredictions`/`fetchPredictions`/`fetchParticipantCount`만 구조분해(refreshAll·watch·allPredicted가 그대로 동작). 반환 키 8개 1:1 동일.
+- ✅ **8단계 완료** — `notifications` computed를 `useNews`로 이관(daily `recommended` 주입). 파사드는 오케스트레이션(`refreshAll`·`watch(user)`·`allPredicted`)과 반환 표면 조합만 남기고 **95줄**로 축소(착수 시 2089줄). 반환 키 전체 1:1 동일 → 소비자 영향 0.
 - 각 단계 후 `npm run build` 통과 확인, 파사드 반환 표면 불변 → 소비자 18곳 영향 0.
 
 ## 1. 핵심 전략 — 파사드 유지 + 무중단 점진 분리
@@ -88,8 +89,8 @@ export const useStock = () => {
 4. ✅ **`useWishlist`** 이동 (그룹 CRUD + 낙관적 업데이트 포함, 자기완결적).
 5. ✅ **`useUserProfile`** 이동 (streak 계산 시 KST 통일은 별도 PR 권장 — 아래 5번).
 6. ✅ **`useDailyStocks`** 이동 + 자동 새로고침 타이머를 여기로 이관.
-7. **`usePredictions`** 이동 (`useDailyStocks` 주입).
-8. **파사드 정리** — `refreshAll`, `watch(user)`, `allPredicted` 조합만 남기고 `useStock`을 30~50줄 수준으로 축소.
+7. ✅ **`usePredictions`** 이동 (`useDailyStocks` 주입).
+8. ✅ **파사드 정리** — `notifications`를 `useNews`로 이관하고 `refreshAll`·`watch(user)`·`allPredicted` 조합만 남겨 `useStock`을 95줄로 축소.
 9. (선택) 소비자 마이그레이션 — 단일 도메인만 쓰는 컴포넌트부터 직접 컴포저블로 교체 (예: `RankingUser.vue` → `useRankings`). 점진적으로, 강제 아님.
 
 ## 5. 함께 처리하면 좋은 별도 개선 (각각 독립 PR)

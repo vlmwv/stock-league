@@ -9,8 +9,8 @@
 | # | 우선순위 | 항목 | 영역 | 출처 |
 |---|:---:|------|------|------|
 | 1 | 🔴 고 | 42703 스키마 드리프트 폴백 제거 | composables | analysis §5-6 |
-| 2 | 🟠 중 | `usePredictions` 분리 (7단계) | composables | refactor §4 |
-| 3 | 🟠 중 | `useStock` 파사드 최종 정리 (8단계) | composables | refactor §4 |
+| 2 | ✅ 완료 | ~~`usePredictions` 분리 (7단계)~~ — `usePredictions.ts` 분리 완료 | composables | refactor §4 |
+| 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 95줄로 축소 | composables | refactor §4 |
 | 4 | 🟡 저 | 시나리오 데이터 DB 이관 | useScenario + DB | analysis §5-7 |
 | 5 | 🟡 저 | 배치 실패 외부 알림 도입 | Edge Function | analysis §5-8 |
 | 6 | 🟡 저 | `transfer-hall-of-fame` 구현 | Edge Function | analysis §5-9 |
@@ -28,17 +28,16 @@
   3. 폴백 제거 후 해당 컴포저블 동작 검증(오늘의 종목·프로필 통계).
 - **참조**: analysis §3(🔴 두 번째 행), §5-6.
 
-## 2. 🟠 `usePredictions` 분리 (useStock 7단계)
+## 2. ✅ `usePredictions` 분리 (useStock 7단계) — 완료
 
-- **현상**: 예측 제출/조회·참여자 수 로직이 아직 `useStock.ts` 파사드에 잔존(`myPredictions`, `participantCount`, `predict()`, `get_participant_count` RPC).
-- **접근**: 기존 분리 패턴(파사드 유지 + `...spread`)대로 `usePredictions.ts`로 추출. 반환 표면 불변 유지해 소비자 영향 0.
-- **검증**: 분리 후 `npm run build` 통과 + 예측 제출/낙관적 업데이트 동작 확인.
+- **결과**: 예측 제출/조회·참여자 수 로직을 `usePredictions.ts`로 분리(`myPredictions`/`participantCount`/`totalMemberCount` + `predict`/`fetchPredictions`/`fetchParticipantCount`/`getPrediction*`). `predict`의 리그 검증을 위해 `useDailyStocks` 결과를 주입. 파사드는 `...predictions` 스프레드로 반환 키 8개를 1:1 동일 유지(소비자 영향 0).
+- **잔여 검증**: `node_modules` 설치 후 `npm run build` 통과 + 예측 제출/낙관적 업데이트 동작 스모크 확인 필요.
 - **참조**: refactor-usestock-plan.md §4 (7단계).
 
-## 3. 🟠 `useStock` 파사드 최종 정리 (useStock 8단계)
+## 3. ✅ `useStock` 파사드 최종 정리 (useStock 8단계) — 완료
 
-- **현상**: 7단계까지 분리 후 파사드에 남는 잔여 상태/computed(예: `notifications`) 및 import 정리 필요.
-- **접근**: 도메인 컴포저블로 모두 이관된 뒤 파사드를 순수 조합(facade)으로 축소. 미사용 import/상태 제거.
+- **결과**: `notifications` computed를 `useNews(recommended)`로 이관. 파사드는 크로스 도메인 오케스트레이션(`refreshAll`·`watch(user)`·`allPredicted`)과 반환 표면 조합만 남기고 **95줄**로 축소(착수 시 2089줄). 반환 키 전체 1:1 동일 → 소비자 영향 0.
+- **잔여**: (선택) 9단계 소비자 마이그레이션 — 단일 도메인만 쓰는 컴포넌트를 직접 컴포저블로 교체. 강제 아님.
 - **참조**: refactor-usestock-plan.md §4 (8단계).
 
 ## 4. 🟡 시나리오 데이터 DB 이관
