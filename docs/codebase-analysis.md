@@ -1,6 +1,6 @@
 # 니나노AI 코드베이스 구조 분석
 
-> 작성일: 2026-06-15 · 갱신: 2026-06-16(권장사항 1~5 반영) · 대상: `ninanoai.com` (주식 예측 리그)
+> 작성일: 2026-06-15 · 갱신: 2026-06-17(useStock 분리 완료·#1 폴백 제거·품질도구 그린 반영) · 대상: `ninanoai.com` (주식 예측 리그)
 
 ## 1. 전체 개요
 
@@ -10,8 +10,8 @@
 ┌─────────────── 프론트엔드 (Nuxt 4 / Vue 3) ───────────────┐
 │  pages/ (18개)  ─  components/ (20개)  ─  middleware (2)   │
 │                         ↓                                   │
-│  composables/  useStock.ts(2088줄) · useScenario.ts(632)    │
-│  utils/stock.ts (순수함수)   stores/stock.ts (★ 죽은 코드)  │
+│  composables/ useStock(파사드 96줄) + 도메인 11개 · useScenario │
+│  utils/{stock, stockHistory}.ts (순수함수)                      │
 └────────────┬──────────────────────────┬────────────────────┘
              │ 직접 쿼리(RLS)            │ 교차유저 집계만
              ↓                          ↓
@@ -29,23 +29,21 @@
 ## 2. 계층별 진단
 
 ### 2.1 프론트엔드 데이터 계층
-- **`useStock.ts` (2088줄) — 단일 거대 컴포저블**이 사실상 전체 비즈니스 로직을 담당. 약 9개 영역으로 나뉨:
+- **`useStock.ts`는 도메인 컴포저블을 합쳐 내보내는 96줄 파사드**다(착수 시 2089줄 단일 거대 컴포저블 → 11개 도메인 컴포저블로 분리 완료, `docs/refactor-usestock-plan.md`). 파사드는 도메인을 가로지르는 오케스트레이션(`refreshAll`·`watch(user)`·`allPredicted`)과 반환 표면 조합만 담당하고, 소비자 18곳은 여전히 `useStock()`만 호출한다(반환 키 불변).
 
-  | 섹션 | 줄(대략) | 담당 |
-  |------|---------|------|
-  | 타입 & 초기화 | 1–110 | Stock 인터페이스, KST 시간 유틸, 30초 자동 갱신 타이머 |
-  | Daily Stocks 조회 | 112–309 | `useAsyncData('dailyStocks')`, 42703 폴백 |
-  | AI 추천 종목 | 311–418 | ai_score 기반 top5, 당일/최신 fallback |
-  | 시총 순위 종목 | 420–442 | 시가총액 랭킹 top100 |
-  | 타겟가 종목 | 444–534 | `stock_price_history` 조인, 추천 기준가 계산 |
-  | 리그/결과 상태 | 536–605 | `isLeagueOpen`(21:20→08:00), `isResultPublished`(20:30) |
-  | 예측 & 참여 | 607–680 | `predict()` 낙관적 업데이트, `get_participant_count` RPC |
-  | 찜(위시리스트) | 682–913 | group_id 폴더 관리, 낙관적 업데이트+롤백 |
-  | 프로필/랭킹/뉴스/AI히스토리 | 1088–2087 | `fetchUserStats`, `fetchRankings`, `fetchNews`, `fetchAiHistory` |
+  | 컴포저블 | 담당 |
+  |---------|------|
+  | `useKstTime` / `useStockClient` | KST 시간 유틸·`kstTime` / Supabase 클라이언트·세션 검증(`resolveUser`) |
+  | `useDailyStocks` | 오늘의 종목·추천·시총·타겟가 asyncData, 리그/결과 상태, 30초 자동 새로고침 |
+  | `usePredictions` | 예측 제출/조회, 참여자·회원 수 (`useDailyStocks` 주입) |
+  | `useWishlist` | 찜·폴더 CRUD, 낙관적 업데이트+롤백 |
+  | `useUserProfile` | 프로필·랭크·승률·스트릭(KST), 예측 이력 |
+  | `useRankings` · `useStockDirectory` · `useAiHistory` · `useNews` · `useRecommendationAdmin` | 역대 랭킹 / 종목 검색·상세·시세 / AI 추천 이력 / 뉴스·테마·알림 / 추천 관리 |
 
 - 데이터 소스는 **대부분 `useSupabaseClient()` 직접 쿼리(RLS)**, API 호출은 단 2곳(`/api/stocks/themes`, `/api/scenarios/rankings`)뿐.
-- `useScenario.ts`(632줄)는 10개 시나리오를 **하드코딩**(약 1440개 캔들 데이터)으로 메모리에 로드.
-- `app/stores/stock.ts`(Pinia)는 **하드코딩 목 데이터를 가진 죽은 코드** — 어디서도 참조되지 않음.
+- 추천 기준가(rec_price) 계산은 `utils/stockHistory.ts`로 추출해 3곳 중복을 제거했고, 스키마 드리프트 42703 폴백은 컬럼 존재 확인 후 제거 완료.
+- `useScenario.ts`(632줄)는 10개 시나리오를 **하드코딩**(약 1440개 캔들 데이터)으로 메모리에 로드 — 잔여 백로그(DB 이관 예정).
+- `app/stores/stock.ts`(죽은 Pinia 스토어)는 **삭제됨**.
 - `app/utils/stock.ts` 순수 함수: `isEtf`, `decodeHtmlEntities`, `cleanLlmSummary`, `getNewsUrl`, `repairNewsUrl`.
 
 ### 2.2 서버 API 계층 (Nitro, 15개)
