@@ -3,7 +3,7 @@
     <Transition name="fade">
       <div v-if="open && theme" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
         <!-- 배경 클릭 시 닫기 -->
-        <div class="absolute inset-0" @click="$emit('update:open', false)"></div>
+        <div class="absolute inset-0" @click="$emit('update:open', false)"/>
         
         <div class="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl overflow-hidden transform transition-all duration-300 scale-100 max-h-[85vh] flex flex-col">
           
@@ -15,7 +15,7 @@
                   {{ theme.stock_count }}개 관련종목
                 </span>
               </div>
-              <button @click="$emit('update:open', false)" class="w-8 h-8 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-white/5">
+              <button class="w-8 h-8 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-white/5" @click="$emit('update:open', false)">
                 <UIcon name="i-heroicons-x-mark-20-solid" class="w-5 h-5" />
               </button>
             </div>
@@ -40,8 +40,8 @@
             <div 
               v-for="(stock, index) in theme.stocks" 
               :key="stock.id"
-              @click="handleStockClick(stock.code)"
               class="glass-dark rounded-2xl p-4 border border-white/5 flex items-center gap-3.5 hover:bg-white/5 active:scale-[0.98] transition-all cursor-pointer group"
+              @click="handleStockClick(stock.code)"
             >
               <!-- 테마 내 순위 번호 -->
               <span class="text-[10px] font-black text-slate-500 w-5 text-center shrink-0">{{ index + 1 }}</span>
@@ -79,8 +79,8 @@
           <!-- 하단 안내 영역 -->
           <div class="px-6 py-6 border-t border-white/5 flex-shrink-0 bg-slate-900/50">
             <button 
-              @click="$emit('update:open', false)"
               class="w-full h-14 rounded-2xl bg-white/5 text-slate-300 font-bold hover:bg-white/10 active:scale-95 transition-all text-sm uppercase tracking-widest border border-white/5"
+              @click="$emit('update:open', false)"
             >
               닫기
             </button>

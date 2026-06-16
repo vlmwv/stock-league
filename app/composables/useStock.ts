@@ -42,7 +42,7 @@ export const useStock = () => {
   }
 
   // 사용자 상태 감시 (클라이언트 측에서만 1회 실행 유도)
-  if (process.client) {
+  if (import.meta.client) {
     watch(user, async (newUser, oldUser) => {
       // 실제 유저 아이디가 변경된 경우에만 동기화
       if (newUser?.id && newUser.id !== oldUser?.id) {

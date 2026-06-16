@@ -150,11 +150,11 @@ onMounted(async () => {
       <button 
         v-for="opt in sortOptions" 
         :key="opt.value"
-        @click="sortBy = opt.value as any"
         class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[11px] font-black transition-all duration-300 border backdrop-blur-sm shadow-sm"
         :class="sortBy === opt.value 
           ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-brand-primary/5' 
           : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'"
+        @click="sortBy = opt.value as any"
       >
         <UIcon :name="opt.icon" class="w-3.5 h-3.5" />
         {{ opt.label }}
@@ -173,7 +173,7 @@ onMounted(async () => {
         <div v-if="topThree[1]" class="flex-1 flex flex-col items-center group">
           <div class="relative mb-3">
             <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
-              <img v-if="topThree[1].avatar_url" :src="topThree[1].avatar_url" alt="2nd" class="w-full h-full rounded-xl" />
+              <img v-if="topThree[1].avatar_url" :src="topThree[1].avatar_url" alt="2nd" class="w-full h-full rounded-xl" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
                 <UIcon :name="topThree[1].gender === 'female' ? 'i-mdi-gender-female' : topThree[1].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
               </div>
@@ -194,9 +194,9 @@ onMounted(async () => {
         <!-- 1st Place -->
         <div v-if="topThree[0]" class="flex-1 flex flex-col items-center group -translate-y-2">
           <div class="relative mb-3 scale-110">
-             <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
+             <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"/>
             <div class="relative w-14 h-14 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1 flex items-center justify-center">
-              <img v-if="topThree[0].avatar_url" :src="topThree[0].avatar_url" alt="1st" class="w-full h-full rounded-xl" />
+              <img v-if="topThree[0].avatar_url" :src="topThree[0].avatar_url" alt="1st" class="w-full h-full rounded-xl" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
                 <UIcon :name="topThree[0].gender === 'female' ? 'i-mdi-gender-female' : topThree[0].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
               </div>
@@ -218,7 +218,7 @@ onMounted(async () => {
         <div v-if="topThree[2]" class="flex-1 flex flex-col items-center group">
           <div class="relative mb-3">
             <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center">
-              <img v-if="topThree[2].avatar_url" :src="topThree[2].avatar_url" alt="3rd" class="w-full h-full rounded-xl" />
+              <img v-if="topThree[2].avatar_url" :src="topThree[2].avatar_url" alt="3rd" class="w-full h-full rounded-xl" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
                 <UIcon :name="topThree[2].gender === 'female' ? 'i-mdi-gender-female' : topThree[2].gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-10 h-10" />
               </div>
@@ -248,7 +248,7 @@ onMounted(async () => {
           </div>
           <div class="flex-1 flex items-center gap-3 ml-3">
             <div class="w-9 h-9 rounded-lg bg-slate-900 border border-brand-primary/20 overflow-hidden shrink-0 flex items-center justify-center">
-               <img v-if="myRankingInfo.avatar_url" :src="myRankingInfo.avatar_url" alt="me" class="w-full h-full object-cover" />
+               <img v-if="myRankingInfo.avatar_url" :src="myRankingInfo.avatar_url" alt="me" class="w-full h-full object-cover" >
                <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
                  <UIcon :name="myRankingInfo.gender === 'female' ? 'i-mdi-gender-female' : myRankingInfo.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-6 h-6" />
                </div>
@@ -287,7 +287,8 @@ onMounted(async () => {
 
       <!-- Leaderboard List -->
       <div class="space-y-2">
-        <div v-for="(rankingUser, index) in listRankings" :key="rankingUser.username" 
+        <div
+v-for="(rankingUser, index) in listRankings" :key="rankingUser.username" 
              class="glass-dark rounded-2xl p-3 flex items-center hover:bg-slate-800/50 transition-colors border border-white/5 group"
         >
           <!-- Rank -->
@@ -307,7 +308,7 @@ onMounted(async () => {
           <!-- Profile & Name -->
           <div class="flex-1 flex items-center gap-3 ml-4">
             <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0 flex items-center justify-center">
-               <img v-if="rankingUser.avatar_url" :src="rankingUser.avatar_url" alt="user" class="w-full h-full object-cover" />
+               <img v-if="rankingUser.avatar_url" :src="rankingUser.avatar_url" alt="user" class="w-full h-full object-cover" >
                <div v-else class="w-full h-full flex items-center justify-center text-slate-700">
                  <UIcon :name="rankingUser.gender === 'female' ? 'i-mdi-gender-female' : rankingUser.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-5 h-5" />
                </div>
@@ -343,7 +344,7 @@ onMounted(async () => {
 
       <!-- Load More Button -->
       <div v-if="hasMore" class="mt-8 flex justify-center">
-        <button @click="loadMore" class="px-6 py-2.5 rounded-2xl bg-slate-800/50 border border-white/5 text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all">
+        <button class="px-6 py-2.5 rounded-2xl bg-slate-800/50 border border-white/5 text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-all" @click="loadMore">
           더 보기 (100위까지)
         </button>
       </div>

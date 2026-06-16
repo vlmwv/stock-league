@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     console.log(`[PrepareDaily] Target game_date: ${targetDateStr}`)
     
     let processedCount = 0
-    let errors = []
+    const errors = []
     
     // 2. 각 종목별 뉴스 수집 및 Gemini 요약 생성
     for (const stock of selectedStocks) {

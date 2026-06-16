@@ -18,8 +18,8 @@
             </p>
           </div>
           <!-- Decorative UI elements -->
-          <div class="absolute -top-10 -right-10 w-48 h-48 bg-brand-primary/20 blur-[60px] rounded-full"></div>
-          <div class="absolute top-1/2 -left-10 w-32 h-32 bg-brand-secondary/20 blur-[60px] rounded-full"></div>
+          <div class="absolute -top-10 -right-10 w-48 h-48 bg-brand-primary/20 blur-[60px] rounded-full"/>
+          <div class="absolute top-1/2 -left-10 w-32 h-32 bg-brand-secondary/20 blur-[60px] rounded-full"/>
         </div>
       </section>
  
@@ -27,14 +27,14 @@
       <section class="px-4 mb-8">
         <div class="flex items-center justify-between px-1 mb-3">
           <h3 class="text-sm font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"/>
             글로벌 시장 지수
           </h3>
           <span 
             class="text-[10px] font-bold transition-all duration-300 flex items-center gap-1"
             :class="indicesSource === 'api' ? 'text-emerald-400 font-extrabold' : 'text-slate-500'"
           >
-            <span v-if="indicesSource === 'api'" class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
+            <span v-if="indicesSource === 'api'" class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"/>
             {{ indicesSource === 'api' ? '실시간 반영' : indicesSource === 'loading' ? '지수 로딩 중...' : '실시간 모사' }}
           </span>
         </div>
@@ -50,7 +50,7 @@
             <div 
               class="absolute -top-10 -right-10 w-14 h-14 blur-xl rounded-full transition-opacity duration-500"
               :class="indexItem.changeRate >= 0 ? 'bg-rose-500/10' : 'bg-indigo-500/10'"
-            ></div>
+            />
 
             <!-- 1라인: 지수명 (한 줄로 깔끔하게 노출) -->
             <div class="relative z-10 flex flex-col min-w-0">
@@ -100,11 +100,11 @@
             <div
               v-for="(theme, index) in themes.slice(0, 6)"
               :key="theme.sector"
-              @click="handleOpenThemeModal(theme)"
               class="bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-2.5 transition-all duration-300 cursor-pointer active:scale-95 flex flex-col justify-between min-h-[84px] relative overflow-hidden group shadow-inner"
+              @click="handleOpenThemeModal(theme)"
             >
               <!-- 은은한 무늬/그라데이션 효과 -->
-              <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"></div>
+              <div class="absolute -top-12 -right-12 w-20 h-20 bg-brand-primary/5 blur-2xl rounded-full group-hover:bg-brand-primary/10 transition-all duration-500"/>
 
               <div>
                 <!-- 순위 및 개수 -->
@@ -161,11 +161,11 @@
           <div 
             v-for="stock in recommendedStocks" 
             :key="stock.id"
-            @click="navigateToStock(stock.code)"
             class="w-full bg-white/[0.04] backdrop-blur-md rounded-[1.25rem] p-4 border border-white/5 relative overflow-hidden group hover:bg-white/[0.08] transition-all duration-300 cursor-pointer shadow-sm"
+            @click="navigateToStock(stock.code)"
           >
             <!-- Subtle Background Glow -->
-            <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full group-hover:bg-brand-primary/10 transition-all"></div>
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full group-hover:bg-brand-primary/10 transition-all"/>
             
             <div class="relative z-10 flex flex-col gap-3">
               <!-- Row 1: Icon, Info, Price, Heart -->
@@ -202,9 +202,9 @@
                   </div>
                   
                   <button 
-                    @click.stop="handleOpenModal(stock.id)"
                     class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5"
                     :class="isHearted(stock.id) ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
+                    @click.stop="handleOpenModal(stock.id)"
                   >
                     <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4 h-4" />
                   </button>

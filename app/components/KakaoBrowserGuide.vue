@@ -2,12 +2,12 @@
   <Transition name="fade">
     <div v-if="isKakaoTalk" class="fixed inset-0 z-[1000] flex items-center justify-center px-6">
       <!-- Backdrop with heavy blur for premium feel -->
-      <div class="absolute inset-0 bg-slate-950/95 backdrop-blur-3xl"></div>
+      <div class="absolute inset-0 bg-slate-950/95 backdrop-blur-3xl"/>
       
       <div class="relative w-full max-w-sm glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in">
         <!-- Decoration -->
-        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand-primary/20 blur-[100px] rounded-full"></div>
-        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-secondary/20 blur-[100px] rounded-full"></div>
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand-primary/20 blur-[100px] rounded-full"/>
+        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-secondary/20 blur-[100px] rounded-full"/>
 
         <div class="p-10 pt-12 text-center relative z-10">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-primary/10 border border-brand-primary/20 mb-6">
@@ -16,13 +16,13 @@
           </div>
           
           <h2 class="text-2xl font-black text-slate-100 mb-4 leading-tight tracking-tighter">
-            구글 로그인을 위해 <br/>
+            구글 로그인을 위해 <br>
             <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">외부 브라우저</span>가 필요합니다
           </h2>
           
           <p class="text-sm text-slate-400 mb-10 leading-relaxed font-medium">
-            카카오톡 내부에서는 구글의 보안 정책상 <br/>
-            로그인이 제한됩니다. 아래 안내에 따라 <br/>
+            카카오톡 내부에서는 구글의 보안 정책상 <br>
+            로그인이 제한됩니다. 아래 안내에 따라 <br>
             시스템 브라우저로 이동해 주세요!
           </p>
 
@@ -31,8 +31,8 @@
             <!-- Android Guide -->
             <div v-if="isAndroid" class="space-y-4">
               <button 
-                @click="redirectToExternalBrowser"
                 class="w-full py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                @click="redirectToExternalBrowser"
               >
                 크롬으로 지금 바로 이동
               </button>

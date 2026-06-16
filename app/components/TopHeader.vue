@@ -2,7 +2,7 @@
   <header class="sticky top-0 z-[500] w-full glass-dark px-4 py-2.5 flex justify-between items-center transition-all duration-300" :class="{ 'py-2 shadow-2xl shadow-indigo-500/10': isScrolled }">
     <NuxtLink to="/" class="flex items-center gap-2 group transition-all active:scale-95">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-primary via-indigo-500 to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20 flex-shrink-0 relative overflow-hidden group-hover:shadow-brand-primary/40 transition-shadow">
-        <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"/>
         <UIcon name="i-heroicons-presentation-chart-line-20-solid" class="w-5 h-5 text-white drop-shadow-sm" />
       </div>
       <h1 class="text-lg sm:text-xl font-black bg-gradient-to-r from-blue-400 via-brand-primary to-purple-500 bg-clip-text text-transparent tracking-tighter truncate max-w-[160px] sm:max-w-none group-hover:brightness-110 transition-all">
@@ -13,12 +13,12 @@
     <div class="flex items-center gap-1.5 sm:gap-3">
       <!-- 테마 토글 버튼 -->
       <button
-        @click="toggleTheme"
         class="p-1.5 sm:p-2 rounded-xl transition-all border active:scale-95 flex-shrink-0"
         :class="isDark
           ? 'bg-slate-800/50 hover:bg-slate-700/50 border-white/5'
           : 'bg-white/70 hover:bg-slate-100 border-slate-200'"
         :title="isDark ? '라이트 모드로 전환' : '다크 모드로 전환'"
+        @click="toggleTheme"
       >
         <UIcon
           :name="isDark ? 'i-heroicons-sun-20-solid' : 'i-heroicons-moon-20-solid'"
@@ -28,9 +28,9 @@
       </button>
 
       <button 
-        @click="isGuideOpen = true"
         class="p-1.5 sm:p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-white/5 active:scale-95 flex-shrink-0"
         title="가이드 보기"
+        @click="isGuideOpen = true"
       >
         <UIcon name="i-heroicons-question-mark-circle-20-solid" class="w-5 h-5 text-brand-primary" />
       </button>
@@ -54,7 +54,7 @@
         >
           <button class="relative p-1.5 sm:p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all border border-slate-700/50 group flex-shrink-0">
             <UIcon name="i-heroicons-bell" class="w-5 h-5 text-slate-300 group-hover:text-brand-primary transition-colors" />
-            <span v-if="hasNewNotifications" class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
+            <span v-if="hasNewNotifications" class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900 animate-pulse"/>
           </button>
 
           <template #content>
@@ -69,8 +69,8 @@
                     <div 
                       v-for="item in notifications" 
                       :key="item.id"
-                      @click="item.type === 'recommendation' ? navigateTo('/stocks/' + item.code) : navigateTo('/info?tab=indicators')"
                       class="px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
+                      @click="item.type === 'recommendation' ? navigateTo('/stocks/' + item.code) : navigateTo('/info?tab=indicators')"
                     >
                     <div class="flex flex-col gap-1">
                       <div class="flex justify-between items-start gap-2">
@@ -120,7 +120,7 @@
               :key="userStats?.avatarUrl || userStats?.gender || 'default'"
               class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-brand-primary/50 transition-all"
             >
-              <img v-if="userStats?.avatarUrl" :src="`${userStats.avatarUrl}?t=${Date.now()}`" alt="Avatar" class="w-full h-full object-cover" />
+              <img v-if="userStats?.avatarUrl" :src="`${userStats.avatarUrl}?t=${Date.now()}`" alt="Avatar" class="w-full h-full object-cover" >
               <div v-else class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500">
                 <UIcon :name="userStats?.gender === 'female' ? 'i-mdi-gender-female' : userStats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
@@ -128,15 +128,15 @@
             <template #content>
               <div class="p-2 w-48 bg-slate-950 border border-white/20 rounded-xl shadow-2xl ring-1 ring-white/10 relative z-[9999]">
                 <div 
-                  @click="isProfileOpen = true"
                   class="px-3 py-2 border-b border-slate-700/50 mb-1 hover:bg-white/5 cursor-pointer rounded-lg transition-all"
+                  @click="isProfileOpen = true"
                 >
                   <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">계정 정보</p>
                   <p class="text-xs text-slate-300 truncate">{{ user.email }}</p>
                 </div>
                 <button 
-                  @click.prevent="handleLogout"
                   class="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                  @click.prevent="handleLogout"
                 >
                   <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
                   로그아웃

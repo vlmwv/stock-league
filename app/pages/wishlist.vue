@@ -7,8 +7,8 @@
         <div>
           <div class="flex items-center gap-3 mb-2">
             <button 
-              @click="router.back()" 
-              class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+              class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95" 
+              @click="router.back()"
             >
               <UIcon name="i-heroicons-arrow-left-20-solid" class="w-5 h-5" />
             </button>
@@ -21,11 +21,11 @@
       <!-- Folder Tabs -->
       <div class="flex gap-2 overflow-x-auto pt-2 pb-4 no-scrollbar -mx-6 px-6 mb-6">
         <button 
-          @click="selectedGroupId = null"
           class="px-5 h-10 rounded-full text-xs font-bold transition-all whitespace-nowrap border flex items-center justify-center"
           :class="selectedGroupId === null 
             ? 'bg-brand-primary text-slate-900 border-brand-primary shadow-lg shadow-brand-primary/20' 
             : 'bg-slate-800 text-slate-400 border-white/5 hover:bg-slate-700'"
+          @click="selectedGroupId = null"
         >
           전체
         </button>
@@ -35,11 +35,11 @@
           class="relative flex-shrink-0 group/tab"
         >
           <button 
-            @click="selectedGroupId = group.id"
             class="px-5 h-10 rounded-full text-xs font-bold transition-all whitespace-nowrap border flex items-center justify-center gap-2"
             :class="selectedGroupId === group.id 
               ? 'bg-slate-100 text-slate-900 border-slate-100 shadow-xl' 
               : 'bg-slate-800 text-slate-400 border-white/5 hover:bg-slate-700'"
+            @click="selectedGroupId = group.id"
           >
             <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-3.5 h-3.5" />
             {{ group.name }}
@@ -48,8 +48,8 @@
           <!-- Delete button for custom folders (not '기본 폴더') -->
           <button 
             v-if="group.name !== '기본 폴더' && selectedGroupId === group.id"
-            @click.stop="handleDeleteGroup(group)"
             class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg transform transition-transform border border-slate-900 z-10 active:scale-90"
+            @click.stop="handleDeleteGroup(group)"
           >
             <UIcon name="i-heroicons-x-mark-20-solid" class="w-4 h-4" />
           </button>
@@ -111,8 +111,8 @@
               </div>
               
               <button 
-                @click="selectedGroupId = group.id"
                 class="text-[10px] font-bold text-slate-500 hover:text-brand-primary transition-colors flex items-center gap-1 opacity-0 group-hover/header:opacity-100"
+                @click="selectedGroupId = group.id"
               >
                 자세히 보기
                 <UIcon name="i-heroicons-chevron-right-20-solid" class="w-3 h-3" />
@@ -141,7 +141,7 @@
             </div>
             
             <!-- 폴더 간 간격 조절용 구분선 -->
-            <div class="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent my-6"></div>
+            <div class="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent my-6"/>
           </div>
 
           <!-- 폴더에 속하지 않은 종목 -->

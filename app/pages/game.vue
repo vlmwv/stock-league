@@ -97,16 +97,16 @@ onMounted(async () => {
       <!-- Tabs Navigation -->
       <div class="flex border-b border-white/5 mb-8">
         <button 
-          @click="activeTab = 'league'" 
-          class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
+          class="flex-1 pb-3 text-sm font-black transition-all border-b-2" 
           :class="activeTab === 'league' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300'"
+          @click="activeTab = 'league'"
         >
           오늘의 리그 🏆
         </button>
         <button 
-          @click="activeTab = 'scenarios'" 
-          class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
+          class="flex-1 pb-3 text-sm font-black transition-all border-b-2" 
           :class="activeTab === 'scenarios' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300'"
+          @click="activeTab = 'scenarios'"
         >
           시나리오 서바이벌 📈
         </button>
@@ -116,11 +116,11 @@ onMounted(async () => {
       <div v-if="activeTab === 'league'" class="space-y-8 animate-fade-in">
         <!-- 오늘의 예측 리그 카드 -->
         <div 
-          @click="handleParticipation"
           class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(30,41,59,1)] cursor-pointer"
+          @click="handleParticipation"
         >
           <!-- Subtle Glow -->
-          <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-primary/10 blur-2xl rounded-full group-hover:bg-brand-primary/20 transition-all"></div>
+          <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-primary/10 blur-2xl rounded-full group-hover:bg-brand-primary/20 transition-all"/>
           
           <div class="relative z-10 flex flex-col gap-4">
             <div class="flex items-start justify-between">
@@ -149,7 +149,7 @@ onMounted(async () => {
                   오늘 {{ participantCount.toLocaleString() }}명 <span class="text-slate-500 font-normal">(누적 {{ totalMemberCount.toLocaleString() }}명)</span>
                 </span>
               </div>
-              <div class="h-px bg-white/5"></div>
+              <div class="h-px bg-white/5"/>
               <div class="flex items-center justify-between text-xs text-slate-400">
                 <span class="font-bold">진행 상태</span>
                 <span class="font-black" :class="isLeagueOpen ? 'text-brand-primary' : 'text-slate-500'">
@@ -185,10 +185,10 @@ onMounted(async () => {
         <!-- Loading State -->
         <div v-if="pendingScenarios" class="space-y-6">
           <div v-for="i in 3" :key="i" class="glass-dark rounded-3xl p-6 border border-white/5 animate-pulse">
-            <div class="h-4 w-24 bg-white/5 rounded mb-3"></div>
-            <div class="h-6 w-48 bg-white/5 rounded mb-4"></div>
-            <div class="h-16 w-full bg-white/5 rounded-2xl mb-4"></div>
-            <div class="h-12 w-full bg-white/5 rounded-2xl"></div>
+            <div class="h-4 w-24 bg-white/5 rounded mb-3"/>
+            <div class="h-6 w-48 bg-white/5 rounded mb-4"/>
+            <div class="h-16 w-full bg-white/5 rounded-2xl mb-4"/>
+            <div class="h-12 w-full bg-white/5 rounded-2xl"/>
           </div>
         </div>
 
@@ -204,7 +204,8 @@ onMounted(async () => {
             <div class="flex items-center justify-between mb-4 gap-2">
               <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
                 <!-- 가상/역사 마크 -->
-                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
+                <span
+class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
                   :class="item.type === '가상' 
                     ? 'bg-purple-500/20 border-purple-500/30 text-purple-400' 
                     : 'bg-blue-500/20 border-blue-500/30 text-blue-400'"
@@ -212,7 +213,8 @@ onMounted(async () => {
                   {{ item.type }}
                 </span>
                 <!-- 난이도 마크 -->
-                <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
+                <div
+class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
                   :class="item.difficulty === '어려움' 
                     ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
                     : item.difficulty === '보통' 
@@ -262,13 +264,13 @@ onMounted(async () => {
 
             <!-- Button -->
             <button 
-              @click="handleChallenge(item.id)"
               class="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all active:scale-95 border"
               :class="[
                 getAttempt(item.id) 
                   ? 'bg-slate-800/50 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
                   : 'bg-brand-primary text-slate-900 border-brand-primary hover:scale-[1.02] shadow-lg shadow-brand-primary/10'
               ]"
+              @click="handleChallenge(item.id)"
             >
               <UIcon 
                 :name="getAttempt(item.id) ? 'i-heroicons-trophy-20-solid' : 'i-heroicons-play-20-solid'" 

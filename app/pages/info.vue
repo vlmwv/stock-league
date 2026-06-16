@@ -7,25 +7,25 @@
       <section class="px-4 pt-6 mb-6">
         <div class="flex p-1 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl">
           <button 
-            @click="activeTab = 'stock'"
             class="flex-1 py-3 rounded-xl text-xs font-black transition-all duration-300 flex flex-col items-center justify-center gap-1"
             :class="activeTab === 'stock' ? 'bg-slate-800 text-brand-primary shadow-xl border border-white/5' : 'text-slate-500 hover:text-slate-300'"
+            @click="activeTab = 'stock'"
           >
             <UIcon name="i-heroicons-chart-pie" class="w-4 h-4" />
             주식 정보
           </button>
           <button 
-            @click="activeTab = 'news'"
             class="flex-1 py-3 rounded-xl text-xs font-black transition-all duration-300 flex flex-col items-center justify-center gap-1"
             :class="activeTab === 'news' ? 'bg-slate-800 text-slate-100 shadow-xl border border-white/5' : 'text-slate-500 hover:text-slate-300'"
+            @click="activeTab = 'news'"
           >
             <UIcon name="i-heroicons-newspaper" class="w-4 h-4" />
             최신 뉴스
           </button>
           <button 
-            @click="activeTab = 'indicators'"
             class="flex-1 py-3 rounded-xl text-xs font-black transition-all duration-300 flex flex-col items-center justify-center gap-1"
             :class="activeTab === 'indicators' ? 'bg-slate-800 text-slate-100 shadow-xl border border-white/5' : 'text-slate-500 hover:text-slate-300'"
+            @click="activeTab = 'indicators'"
           >
             <UIcon name="i-heroicons-calendar-days" class="w-4 h-4" />
             경제 지표
@@ -133,8 +133,8 @@
             <!-- 1. 국내외 주식 세금 가이드 -->
             <div class="border border-white/5 rounded-xl overflow-hidden bg-white/[0.01]">
               <button 
-                @click="toggleAccordion('tax')"
                 class="w-full flex items-center justify-between p-3.5 text-xs font-black text-slate-200 hover:bg-white/[0.03] transition-colors"
+                @click="toggleAccordion('tax')"
               >
                 <span>💡 국내주식 vs 미국주식 세금 가이드</span>
                 <UIcon 
@@ -169,8 +169,8 @@
             <!-- 2. 지수추종 대표 ETF 가이드 -->
             <div class="border border-white/5 rounded-xl overflow-hidden bg-white/[0.01]">
               <button 
-                @click="toggleAccordion('etf')"
                 class="w-full flex items-center justify-between p-3.5 text-xs font-black text-slate-200 hover:bg-white/[0.03] transition-colors"
+                @click="toggleAccordion('etf')"
               >
                 <span>📈 1등 시장 지수추종 대표 ETF 완벽 정리</span>
                 <UIcon 
@@ -224,8 +224,8 @@
             <!-- 3. 국내외 탑 자산운용사 브랜드 -->
             <div class="border border-white/5 rounded-xl overflow-hidden bg-white/[0.01]">
               <button 
-                @click="toggleAccordion('manager')"
                 class="w-full flex items-center justify-between p-3.5 text-xs font-black text-slate-200 hover:bg-white/[0.03] transition-colors"
+                @click="toggleAccordion('manager')"
               >
                 <span>🏢 국내외 유명 자산운용사 브랜드 알아보기</span>
                 <UIcon 
@@ -265,7 +265,7 @@
       <!-- 2. 최신 뉴스 탭 -->
       <section v-if="activeTab === 'news'" class="px-6 space-y-4 animate-fade-in">
         <div v-if="isLoading && newsItems.length === 0" class="flex flex-col items-center justify-center py-20 gap-4">
-          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
         </div>
 
@@ -294,7 +294,7 @@
 
           <!-- 무한 스크롤 감지 요소 & 로딩 스피너 -->
           <div ref="sentinel" class="py-10 flex flex-col justify-center items-center gap-3">
-            <div v-if="isFetchingMore" class="w-8 h-8 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+            <div v-if="isFetchingMore" class="w-8 h-8 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"/>
             <p v-else-if="!hasMore && newsItems.length > 0" class="text-[10px] text-slate-600 font-black uppercase tracking-widest opacity-40">마지막 뉴스입니다</p>
           </div>
         </template>
@@ -305,24 +305,24 @@
         <!-- 경제지표 전용 서브 탭 -->
         <div class="flex items-center gap-4 mb-2">
           <button 
-            @click="indicatorTab = 'announced'"
             class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
             :class="indicatorTab === 'announced' ? 'text-brand-primary' : 'text-slate-500'"
+            @click="indicatorTab = 'announced'"
           >
             발표 완료
-            <div v-if="indicatorTab === 'announced'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
+            <div v-if="indicatorTab === 'announced'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"/>
           </button>
           <button 
-            @click="indicatorTab = 'upcoming'"
             class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
             :class="indicatorTab === 'upcoming' ? 'text-brand-primary' : 'text-slate-500'"
+            @click="indicatorTab = 'upcoming'"
           >
             발표 예정
-            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"></div>
+            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"/>
           </button>
         </div>
         <div v-if="isLoadingIndicators" class="flex flex-col items-center justify-center py-20 gap-4">
-          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">지표 로드 중...</p>
         </div>
         <div v-else-if="indicatorTab === 'upcoming' && upcomingIndicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">

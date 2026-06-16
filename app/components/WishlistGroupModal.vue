@@ -2,13 +2,13 @@
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="open" class="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-        <div class="absolute inset-0" @click="$emit('update:open', false)"></div>
+        <div class="absolute inset-0" @click="$emit('update:open', false)"/>
         
         <div class="relative w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl overflow-hidden transform transition-all duration-300 scale-100 my-auto">
           <div class="px-8 py-10">
             <div class="flex items-center justify-between mb-8">
               <h3 class="text-2xl font-black text-white tracking-tight">폴더 선택</h3>
-              <button @click="$emit('update:open', false)" class="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors">
+              <button class="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors" @click="$emit('update:open', false)">
                 <UIcon name="i-heroicons-x-mark-20-solid" class="w-6 h-6" />
               </button>
             </div>
@@ -20,11 +20,11 @@
                 class="relative group/folder"
               >
                 <button 
-                  @click="toggleSelection(group.id)"
                   class="w-full h-16 rounded-2xl border transition-all flex items-center justify-between px-5"
                   :class="selectedGroupIds.includes(group.id) 
                     ? 'bg-brand-primary/20 border-brand-primary text-brand-primary' 
                     : 'bg-slate-800/50 border-white/10 text-slate-400 hover:border-white/20'"
+                  @click="toggleSelection(group.id)"
                 >
                   <div class="flex items-center gap-3">
                     <UIcon :name="group.icon || 'i-heroicons-folder'" class="w-5 h-5" />
@@ -40,8 +40,8 @@
                 <!-- 삭제 버튼 (기본 폴더 제외) -->
                 <button 
                   v-if="group.name !== '기본 폴더'"
-                  @click.stop="handleDeleteGroup(group)"
                   class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                  @click.stop="handleDeleteGroup(group)"
                 >
                   <UIcon name="i-heroicons-trash-20-solid" class="w-4 h-4" />
                 </button>
@@ -56,11 +56,11 @@
                   placeholder="새 폴더 이름"
                   class="flex-1 h-12 bg-slate-800/50 border border-white/10 rounded-xl px-4 text-sm text-white font-bold focus:outline-none focus:border-brand-primary transition-all"
                   @keyup.enter="handleCreateGroup"
-                />
+                >
                 <button 
-                  @click="handleCreateGroup"
                   :disabled="isCreatingGroup"
                   class="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-lg shadow-brand-primary/20 disabled:opacity-50 transition-all"
+                  @click="handleCreateGroup"
                 >
                   <UIcon v-if="isCreatingGroup" name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
                   <UIcon v-else name="i-heroicons-plus-20-solid" class="w-6 h-6" />
@@ -68,8 +68,8 @@
               </div>
               <button 
                 v-else
-                @click="showNewInput = true"
                 class="w-full h-12 rounded-xl border border-dashed border-white/10 text-slate-500 text-xs font-bold hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                @click="showNewInput = true"
               >
                 <UIcon name="i-heroicons-plus" class="w-4 h-4" />
                 새 폴더 추가
@@ -78,15 +78,15 @@
 
             <div class="grid grid-cols-2 gap-3 mt-10">
               <button 
-                @click="$emit('update:open', false)"
                 class="h-14 rounded-2xl bg-white/5 text-slate-300 font-bold hover:bg-white/10 transition-colors"
+                @click="$emit('update:open', false)"
               >
                 취소
               </button>
               <button 
-                @click="handleSave"
                 :disabled="saving"
                 class="h-14 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                @click="handleSave"
               >
                 <UIcon v-if="saving" name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin" />
                 저장하기

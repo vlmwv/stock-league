@@ -6,7 +6,7 @@
     :style="cardStyle"
   >
     <!-- Background Glow -->
-    <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+    <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"/>
     
     <div class="relative glass-dark rounded-[2.5rem] p-7 shadow-2xl overflow-hidden border border-white/5 group-hover:border-white/10 transition-colors">
       <!-- Swipe/Click Masks (Only shown if predictable and league open) -->
@@ -19,7 +19,7 @@
           <div 
             class="absolute inset-x-0 top-0 h-2 bg-rose-500 blur-md scale-x-50 group-hover/up:scale-x-100 transition-transform duration-500"
             :class="{ 'opacity-100 blur-lg': swipeEffect === 'up' }"
-          ></div>
+          />
           <div class="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/up:opacity-100 transition-opacity duration-300">
             <UIcon name="i-heroicons-arrow-trending-up-20-solid" class="w-6 h-6 text-rose-500" />
             <span class="text-xs font-black text-rose-500 uppercase tracking-widest">상승 예측</span>
@@ -32,7 +32,7 @@
           <div 
             class="absolute inset-x-0 bottom-0 h-2 bg-indigo-500 blur-md scale-x-50 group-hover/down:scale-x-100 transition-transform duration-500"
             :class="{ 'opacity-100 blur-lg': swipeEffect === 'down' }"
-          ></div>
+          />
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 group-hover/down:opacity-100 transition-opacity duration-300">
             <span class="text-xs font-black text-indigo-500 uppercase tracking-widest">하락 예측</span>
             <UIcon name="i-heroicons-arrow-trending-down-20-solid" class="w-6 h-6 text-indigo-400" />
@@ -50,9 +50,9 @@
                   {{ stock.code }}
                 </span>
                 <button 
-                  @click.prevent.stop="$emit('openWishlistModal', stock.id)" 
-                  class="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                  class="w-8 h-8 flex items-center justify-center rounded-full transition-all" 
                   :class="[isHearted ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'text-slate-600 hover:text-slate-400']"
+                  @click.prevent.stop="$emit('openWishlistModal', stock.id)"
                 >
                   <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
                 </button>
@@ -102,9 +102,9 @@
                 <UIcon name="i-heroicons-chevron-up" class="w-3 h-3 text-rose-500" />
                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-rose-500/80">상승</span>
               </div>
-              <div class="h-px w-8 bg-slate-800"></div>
+              <div class="h-px w-8 bg-slate-800"/>
               <p class="text-xs font-black text-slate-500 uppercase tracking-widest">스와이프해서 예측</p>
-              <div class="h-px w-8 bg-slate-800"></div>
+              <div class="h-px w-8 bg-slate-800"/>
               <div class="flex flex-col items-center gap-1">
                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-indigo-500/80">하락</span>
                 <UIcon name="i-heroicons-chevron-down" class="w-3 h-3 text-indigo-500" />
@@ -131,7 +131,7 @@
           <div 
             class="absolute inset-0 border-2 rounded-[2.5rem]"
             :class="[prediction === 'up' ? 'border-rose-500/30' : 'border-indigo-500/30']"
-          ></div>
+          />
           
           <!-- Animated Badge -->
           <div class="absolute top-6 right-6 flex flex-col items-end gap-1.5 pointer-events-auto">
@@ -147,8 +147,8 @@
             
             <button 
               v-if="isLeagueOpen"
-              @click.stop="$emit('cancelPrediction', stock.id)"
               class="px-2 py-1 rounded-lg bg-slate-900/80 border border-white/5 text-[10px] font-black text-slate-500 hover:text-rose-400 hover:border-rose-500/30 transition-all uppercase tracking-widest backdrop-blur-sm"
+              @click.stop="$emit('cancelPrediction', stock.id)"
             >
               취소하기
             </button>

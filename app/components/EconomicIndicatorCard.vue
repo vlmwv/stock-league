@@ -1,7 +1,7 @@
 <template>
   <div class="group relative overflow-hidden rounded-2xl bg-slate-900/40 border border-slate-800/50 backdrop-blur-md p-5 transition-all duration-300 hover:border-brand-primary/30 hover:bg-slate-900/60 shadow-lg">
     <!-- 데코레이션 배경 -->
-    <div class="absolute -right-4 -top-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl group-hover:bg-brand-primary/10 transition-all duration-500"></div>
+    <div class="absolute -right-4 -top-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl group-hover:bg-brand-primary/10 transition-all duration-500"/>
     
     <div class="flex items-center justify-between mb-4 relative z-10">
       <div class="flex items-center gap-3">

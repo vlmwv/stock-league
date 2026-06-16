@@ -39,21 +39,21 @@ watch(aiSubTab, (newSub) => {
       <!-- 서브 탭 전환 -->
       <div class="flex gap-2 mb-6">
         <button 
-          @click="aiSubTab = 'history'"
           class="flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border flex items-center justify-center gap-2"
           :class="aiSubTab === 'history' 
             ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-lg shadow-brand-primary/5' 
             : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300'"
+          @click="aiSubTab = 'history'"
         >
           <UIcon name="i-heroicons-clock-20-solid" class="w-4 h-4" />
           추천 이력
         </button>
         <button 
-          @click="aiSubTab = 'target'"
           class="flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border flex items-center justify-center gap-2"
           :class="aiSubTab === 'target' 
             ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-lg shadow-brand-primary/5' 
             : 'bg-slate-800/30 border-white/5 text-slate-500 hover:text-slate-300'"
+          @click="aiSubTab = 'target'"
         >
           <UIcon name="i-heroicons-target" class="w-4 h-4" />
           목표가 리스트
@@ -65,21 +65,21 @@ watch(aiSubTab, (newSub) => {
         <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2">보기 방식</span>
         <div class="flex gap-1 bg-slate-950/40 p-0.5 rounded-xl border border-white/5">
           <button 
-            @click="viewMode = 'list'"
             class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5"
             :class="viewMode === 'list'
               ? 'bg-slate-800 text-brand-primary border border-white/5 shadow'
               : 'text-slate-500 hover:text-slate-400'"
+            @click="viewMode = 'list'"
           >
             <UIcon name="i-heroicons-queue-list" class="w-3.5 h-3.5" />
             리스트
           </button>
           <button 
-            @click="viewMode = 'calendar'"
             class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5"
             :class="viewMode === 'calendar'
               ? 'bg-slate-800 text-brand-primary border border-white/5 shadow'
               : 'text-slate-500 hover:text-slate-400'"
+            @click="viewMode = 'calendar'"
           >
             <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
             달력

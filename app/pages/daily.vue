@@ -35,19 +35,19 @@
         <div v-for="i in 3" :key="i" class="glass-dark rounded-3xl p-6 border border-white/5 animate-pulse">
           <div class="flex justify-between items-start mb-4">
             <div class="flex gap-4 flex-1">
-              <div class="w-12 h-12 rounded-2xl bg-white/5"></div>
+              <div class="w-12 h-12 rounded-2xl bg-white/5"/>
               <div class="flex-1 space-y-2">
-                <div class="h-3 w-16 bg-white/5 rounded"></div>
-                <div class="h-6 w-32 bg-white/5 rounded"></div>
+                <div class="h-3 w-16 bg-white/5 rounded"/>
+                <div class="h-6 w-32 bg-white/5 rounded"/>
               </div>
             </div>
-            <div class="w-16 h-8 bg-white/5 rounded-lg"></div>
+            <div class="w-16 h-8 bg-white/5 rounded-lg"/>
           </div>
-          <div class="h-16 w-full bg-white/5 rounded-2xl mb-6"></div>
+          <div class="h-16 w-full bg-white/5 rounded-2xl mb-6"/>
           <div class="flex gap-3">
-            <div class="flex-1 h-14 rounded-2xl bg-white/5"></div>
-            <div class="flex-1 h-14 rounded-2xl bg-white/5"></div>
-            <div class="w-12 h-12 rounded-2xl bg-white/5"></div>
+            <div class="flex-1 h-14 rounded-2xl bg-white/5"/>
+            <div class="flex-1 h-14 rounded-2xl bg-white/5"/>
+            <div class="w-12 h-12 rounded-2xl bg-white/5"/>
           </div>
         </div>
       </section>
@@ -62,8 +62,8 @@
           리그 데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해 주세요.
         </p>
         <button 
-          @click="refresh"
           class="px-6 py-3 rounded-xl bg-brand-primary text-slate-900 font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+          @click="refresh"
         >
           다시 시도하기
         </button>
@@ -74,13 +74,14 @@
         <div 
           v-for="stock in dailyStocks" 
           :key="stock.id"
-          @click="navigateToStock(stock.code)"
           class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5"
           :class="getPredictionValue(stock.id) === 'up' ? 'border-rose-500/30' : getPredictionValue(stock.id) === 'down' ? 'border-indigo-500/30' : ''"
+          @click="navigateToStock(stock.code)"
         >
           <!-- 예측 완료 배지 -->
 
-          <div v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm"
+          <div
+v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm"
             :class="[
               getPrediction(stock.id)?.result === 'win' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
               getPrediction(stock.id)?.result === 'lose' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
@@ -161,7 +162,6 @@
           <!-- Prediction Controls -->
           <div class="flex items-center gap-3 mt-auto">
             <button 
-              @click.stop="onPredict(stock.id, 'up')"
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
@@ -173,6 +173,7 @@
                 !isLeagueOpen && getPredictionValue(stock.id) !== 'up' ? 'opacity-20 grayscale cursor-not-allowed' : '',
                 !isLeagueOpen && getPredictionValue(stock.id) === 'up' ? 'opacity-90 cursor-default' : ''
               ]"
+              @click.stop="onPredict(stock.id, 'up')"
             >
               <UIcon 
                 :name="getPredictionValue(stock.id) === 'up' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-up-20-solid'" 
@@ -183,7 +184,6 @@
               </span>
             </button>
             <button 
-              @click.stop="onPredict(stock.id, 'down')"
               :disabled="!isLeagueOpen"
               class="flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 relative overflow-hidden"
               :class="[
@@ -195,6 +195,7 @@
                 !isLeagueOpen && getPredictionValue(stock.id) !== 'down' ? 'opacity-20 grayscale cursor-not-allowed' : '',
                 !isLeagueOpen && getPredictionValue(stock.id) === 'down' ? 'opacity-90 cursor-default' : ''
               ]"
+              @click.stop="onPredict(stock.id, 'down')"
             >
               <UIcon 
                 :name="getPredictionValue(stock.id) === 'down' ? 'i-heroicons-check-circle-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
@@ -205,9 +206,9 @@
               </span>
             </button>
             <button 
-              @click.stop="handleOpenModal(stock.id)"
               class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-slate-800/50 border border-white/5 shadow-2xl"
               :class="isHearted(stock.id) ? 'text-rose-500 shadow-rose-500/10' : 'text-slate-600'"
+              @click.stop="handleOpenModal(stock.id)"
             >
               <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
             </button>

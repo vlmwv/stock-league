@@ -12,7 +12,7 @@
         :class="roundingClasses"
         referrerpolicy="no-referrer"
         @error="handleError"
-      />
+      >
     </div>
 
 
@@ -33,7 +33,7 @@
     </div>
 
     <!-- Subtle Overlay for depth -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none z-20" :class="roundingClasses"></div>
+    <div class="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none z-20" :class="roundingClasses"/>
   </div>
 </template>
 

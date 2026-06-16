@@ -5,8 +5,8 @@
     <main class="max-w-md mx-auto px-6 py-8">
       <div class="mb-8 flex items-center gap-4">
         <button 
-          @click="router.back()" 
-          class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+          class="w-10 h-10 rounded-2xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all active:scale-95" 
+          @click="router.back()"
         >
           <UIcon name="i-heroicons-arrow-left-20-solid" class="w-5 h-5" />
         </button>
@@ -19,7 +19,7 @@
       <!-- History List -->
       <div class="space-y-4">
         <div v-if="loading" class="text-center py-20">
-          <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
+          <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"/>
           <p class="text-slate-500 font-bold">기록을 불러오는 중...</p>
         </div>
         
@@ -56,7 +56,7 @@
                </div>
                <div class="flex items-center gap-2 mt-1">
                  <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
-                 <span class="w-1 h-1 rounded-full bg-slate-800"></span>
+                 <span class="w-1 h-1 rounded-full bg-slate-800"/>
                  <span 
                    class="text-[10px] font-black"
                    :class="item.prediction_type === 'up' ? 'text-rose-400' : 'text-indigo-400'"
@@ -90,7 +90,7 @@
 
           <!-- Infinite Scroll Trigger -->
           <div ref="loadMoreTrigger" class="h-10 flex items-center justify-center mt-4">
-            <div v-if="moreLoading" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+            <div v-if="moreLoading" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"/>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ onMounted(async () => {
   await loadHistory(true)
 
   // Infinite Scroll with Intersection Observer
-  if (process.client) {
+  if (import.meta.client) {
     const observer = new IntersectionObserver((entries) => {
       const entry = entries[0]
       if (entry && entry.isIntersecting && !moreLoading.value && hasMore.value) {

@@ -12,7 +12,7 @@ export default withNuxt(
     }
   },
   {
-    // 유지보수 스크립트·빌드 산출물은 린트 대상에서 제외
-    ignores: ['scripts/**', '.output/**', '.nuxt/**', 'dist/**', 'supabase/**']
+    // 유지보수 스크립트·실험용·빌드 산출물은 린트 대상에서 제외
+    ignores: ['scripts/**', 'scratch/**', '.output/**', '.nuxt/**', 'dist/**', 'supabase/**']
   }
 )

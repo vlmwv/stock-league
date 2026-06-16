@@ -342,8 +342,8 @@ onMounted(() => {
         <div class="relative">
           <select 
             v-model="currentYear" 
-            @change="loadMonthlyData"
             class="bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-slate-700 dark:text-slate-200 appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+            @change="loadMonthlyData"
           >
             <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}년</option>
           </select>
@@ -353,8 +353,8 @@ onMounted(() => {
         <div class="relative">
           <select 
             v-model="currentMonth" 
-            @change="loadMonthlyData"
             class="bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 rounded-2xl pl-4 pr-9 py-2 text-sm font-black text-brand-primary appearance-none focus:outline-none focus:border-brand-primary/50 transition-colors cursor-pointer"
+            @change="loadMonthlyData"
           >
             <option v-for="month in 12" :key="month" :value="month">{{ month }}월</option>
           </select>
@@ -364,9 +364,9 @@ onMounted(() => {
 
       <!-- 단일 초기화 버튼 -->
       <button 
-        @click="goToday"
         class="px-4 h-9 rounded-2xl bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 text-xs font-black text-slate-600 dark:text-slate-400 hover:text-brand-primary active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
         title="오늘 날짜로 초기화"
+        @click="goToday"
       >
         <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
         <span>초기화</span>
@@ -375,7 +375,7 @@ onMounted(() => {
 
     <!-- 로딩 인디케이터 -->
     <div v-if="loading" class="text-center py-32 bg-slate-900/20 border border-white/5 rounded-[2.5rem] backdrop-blur-sm">
-      <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
+      <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"/>
       <p class="text-slate-500 font-bold text-sm">추천 데이터를 분석 중...</p>
     </div>
 
@@ -414,7 +414,7 @@ onMounted(() => {
             >
               {{ cell.holidayName }}
             </span>
-            <span v-else></span>
+            <span v-else/>
             
             <span 
               v-if="cell.day" 
@@ -507,8 +507,8 @@ onMounted(() => {
 
       <!-- 상세 종목 전체보기 버튼 (클릭 시 기존 고화질 모달 오픈) -->
       <button 
-        @click="openDetailModal(activeDateCell)"
         class="w-full h-12 rounded-2xl bg-brand-primary text-slate-950 font-black hover:bg-brand-primary/95 active:scale-[0.98] transition-all text-xs flex items-center justify-center gap-1.5 shadow animate-fade-in"
+        @click="openDetailModal(activeDateCell)"
       >
         <UIcon name="i-heroicons-document-magnifying-glass" class="w-4 h-4" />
         <span>상세 분석 리포트 전체보기</span>
@@ -530,7 +530,7 @@ onMounted(() => {
       <Transition name="fade">
         <div v-if="detailModalOpen && selectedCell" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
           <!-- 배경 클릭 시 닫기 -->
-          <div class="absolute inset-0" @click="detailModalOpen = false"></div>
+          <div class="absolute inset-0" @click="detailModalOpen = false"/>
           
           <div class="relative w-full max-w-lg bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl overflow-hidden transform transition-all duration-300 scale-100 max-h-[85vh] flex flex-col">
             
@@ -546,8 +546,8 @@ onMounted(() => {
                 </p>
               </div>
               <button 
-                @click="detailModalOpen = false" 
-                class="w-8 h-8 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-white/5"
+                class="w-8 h-8 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors flex items-center justify-center border border-white/5" 
+                @click="detailModalOpen = false"
               >
                 <UIcon name="i-heroicons-x-mark-20-solid" class="w-5 h-5" />
               </button>
@@ -558,14 +558,14 @@ onMounted(() => {
               <div 
                 v-for="item in selectedCell.items" 
                 :key="item.daily_id"
-                @click="router.push('/stocks/' + item.code); detailModalOpen = false"
                 class="glass-dark rounded-3xl p-5 border border-white/5 hover:bg-white/5 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4"
+                @click="router.push('/stocks/' + item.code); detailModalOpen = false"
               >
                 <!-- 카드 배경 글로우 데코 -->
                 <div 
                   class="absolute -top-12 -right-12 w-28 h-28 blur-3xl rounded-full opacity-10 group-hover:opacity-20 transition-all duration-500"
                   :class="item.cumulative_change_rate >= 0 ? 'bg-rose-500' : 'bg-indigo-500'"
-                ></div>
+                />
 
                 <div class="relative z-10 flex flex-col gap-3.5">
                   <!-- 상단 주식 요약 -->
@@ -622,8 +622,8 @@ onMounted(() => {
             <!-- 하단 닫기 영역 -->
             <div class="px-6 py-6 border-t border-white/5 flex-shrink-0 bg-slate-900/50">
               <button 
-                @click="detailModalOpen = false"
                 class="w-full h-13 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold active:scale-95 transition-all text-xs uppercase tracking-widest border border-white/5"
+                @click="detailModalOpen = false"
               >
                 닫기
               </button>

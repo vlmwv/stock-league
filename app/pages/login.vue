@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
     <!-- Decorative background elements -->
-    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"/>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full"/>
 
     <div class="w-full max-w-md z-10">
       <div class="text-center mb-10">
@@ -17,24 +17,24 @@
         <!-- Auth Providers -->
         <div class="space-y-4 mb-8">
           <button 
-            @click="handleOAuthLogin('google')"
             class="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-white text-slate-900 font-bold transition-all hover:bg-slate-100 active:scale-[0.98] shadow-lg shadow-white/5"
+            @click="handleOAuthLogin('google')"
           >
             <UIcon name="i-logos-google-icon" class="w-5 h-5" />
             구글로 시작하기
           </button>
 
           <button 
-            @click="handleOAuthLogin('kakao')"
             class="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-[#FEE500] text-[#3c1e1e] font-bold transition-all hover:bg-[#FDD835] active:scale-[0.98] shadow-lg shadow-yellow-500/5"
+            @click="handleOAuthLogin('kakao')"
           >
             <UIcon name="i-ri-kakao-talk-fill" class="w-5 h-5" />
             카카오로 시작하기
           </button>
 
           <button 
-            @click="handleOAuthLogin('naver')"
             class="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-[#03C75A] text-white font-bold transition-all hover:bg-[#02b350] active:scale-[0.98] shadow-lg shadow-green-500/5"
+            @click="handleOAuthLogin('naver')"
           >
             <UIcon name="i-simple-icons-naver" class="w-4 h-4" />
             네이버로 시작하기
@@ -43,7 +43,7 @@
 
         <div class="relative mb-8">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-slate-700/50"></div>
+            <div class="w-full border-t border-slate-700/50"/>
           </div>
           <div class="relative flex justify-center text-xs uppercase">
             <span class="bg-[#1e293b] px-4 text-slate-500 font-medium">또는 이메일로</span>
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Email/Password Form -->
-        <form @submit.prevent="handleEmailLogin" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="handleEmailLogin">
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">이메일</label>
             <input 
@@ -60,7 +60,7 @@
               placeholder="example@email.com"
               class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
               required
-            />
+            >
           </div>
 
           <div>
@@ -71,7 +71,7 @@
               placeholder="••••••••"
               class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
               required
-            />
+            >
           </div>
 
           <button 
@@ -79,7 +79,7 @@
             :disabled="loading"
             class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/30 transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span v-if="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
             로그인 / 회원가입
           </button>
         </form>

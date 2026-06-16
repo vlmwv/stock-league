@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex items-center justify-center p-6 bg-slate-950">
     <div class="text-center">
-      <div class="w-12 h-12 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mx-auto mb-6"></div>
+      <div class="w-12 h-12 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mx-auto mb-6"/>
       <h2 class="text-xl font-bold text-white mb-2">인증 확인 중...</h2>
       <p class="text-slate-400">잠시만 기다려 주세요.</p>
     </div>

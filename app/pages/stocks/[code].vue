@@ -3,15 +3,15 @@
     <div class="max-w-md mx-auto relative">
       <!-- 상단 액션 바 -->
       <nav class="sticky top-0 z-40 px-5 py-3 flex items-center justify-between bg-bg-deep/80 backdrop-blur-xl">
-        <button @click="router.back()" class="w-10 h-10 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+        <button class="w-10 h-10 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors" @click="router.back()">
           <UIcon name="i-heroicons-chevron-left-20-solid" class="w-6 h-6" />
         </button>
         <div class="flex items-center gap-2">
           <button
             v-if="stock"
-            @click="handleToggleHeart"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors px-1"
             :class="isHearted(stock.id) ? 'bg-rose-500/10 text-rose-500 shadow-lg shadow-rose-500/20' : 'bg-slate-800/50 text-slate-600 hover:text-slate-400'"
+            @click="handleToggleHeart"
           >
             <UIcon :name="isHearted(stock.id) ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-5 h-5" />
           </button>
@@ -39,7 +39,7 @@
                 <span class="text-slate-500">{{ stock.code }}</span>
                 <span v-if="stock.market" class="text-slate-500 bg-white/5 px-1.5 py-0.5 rounded-md text-[10px]">{{ stock.market }}</span>
                 <span v-if="stock.sector" class="text-slate-400">{{ stock.sector }}</span>
-                <button @click="clearAiHistoryAndGoToTab" class="text-slate-500 hover:text-slate-300 transition-colors flex items-center">
+                <button class="text-slate-500 hover:text-slate-300 transition-colors flex items-center" @click="clearAiHistoryAndGoToTab">
                   <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -61,10 +61,10 @@
               <!-- 마커 체크박스 -->
               <label class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
                 <input
-                  type="checkbox"
                   v-model="showMarkers"
+                  type="checkbox"
                   class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-brand-primary focus:ring-brand-primary focus:ring-offset-slate-900"
-                />
+                >
                 <span>마커</span>
               </label>
               <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
@@ -127,9 +127,9 @@
             <button
               v-for="tab in tabs"
               :key="tab.key"
-              @click="activeTab = tab.key"
               class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300"
               :class="activeTab === tab.key ? 'bg-brand-primary text-slate-900 shadow-xl' : 'text-slate-500 hover:text-slate-300'"
+              @click="activeTab = tab.key"
             >
               {{ tab.label }}
             </button>
@@ -183,7 +183,7 @@
           <!-- 탭 콘텐츠: 종목 뉴스 -->
           <div v-else-if="activeTab === 'news'" class="space-y-4 animate-fade-in">
             <div v-if="isNewsLoading" class="flex flex-col items-center justify-center py-12 gap-4">
-              <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+              <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
               <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
             </div>
             
@@ -196,8 +196,8 @@
               <div
                 v-for="item in currentNewsItems"
                 :key="item.id"
-                @click="navigateToNews(item)"
                 class="bg-white/5 rounded-[1.5rem] p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden active:scale-[0.98]"
+                @click="navigateToNews(item)"
               >
                 <div class="flex flex-col gap-3.5 relative z-10">
                   <div class="flex items-center justify-between">
@@ -218,7 +218,7 @@
                     </p>
                   </div>
                 </div>
-                <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"></div>
+                <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-brand-secondary/5 blur-[40px] rounded-full group-hover:bg-brand-secondary/10 transition-colors"/>
               </div>
             </div>
           </div>
@@ -226,7 +226,7 @@
           <!-- 탭 콘텐츠: AI 추천 이력 -->
           <div v-else class="space-y-4 animate-fade-in">
             <div v-if="isAiHistoryLoading" class="flex flex-col items-center justify-center py-12 gap-4">
-              <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+              <div class="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
               <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest animate-pulse">데이터 로드 중...</p>
             </div>
 
@@ -245,7 +245,7 @@
                 <div 
                   class="absolute -top-12 -right-12 w-32 h-32 blur-3xl rounded-full transition-all duration-700 opacity-20 group-hover:opacity-40"
                   :class="item.cumulative_change_rate >= 0 ? 'bg-rose-500' : 'bg-indigo-500'"
-                ></div>
+                />
 
                 <div class="relative z-10">
                   <!-- 날짜 및 상단 정보 -->
@@ -329,7 +329,7 @@
 
       <!-- 로딩 상태 -->
       <div v-else class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
         <p class="text-sm text-slate-500 font-bold animate-pulse uppercase tracking-widest">종목 정보 불러오는 중...</p>
       </div>
     </div>
@@ -651,7 +651,7 @@ const chartAnnotations = computed(() => {
         const isNegative = /하락|급락|악재|적자|우려|부진|감소|소송|하한가/i.test(title)
         
         let textColor = '#22c55e' // 기본 초록 (Green 500)
-        let bgColor = isDark.value ? '#0f172a' : '#f8fafc'
+        const bgColor = isDark.value ? '#0f172a' : '#f8fafc'
         let borderColor = '#22c55e'
 
         if (isPositive) {

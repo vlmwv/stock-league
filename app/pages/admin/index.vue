@@ -1,14 +1,14 @@
 <template>
   <div class="min-h-screen bg-slate-950 p-4 sm:p-6 lg:p-8 relative overflow-hidden">
     <!-- Decorative Glow -->
-    <div class="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-primary/10 blur-[150px] rounded-full"></div>
-    <div class="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-secondary/10 blur-[150px] rounded-full"></div>
+    <div class="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-brand-primary/10 blur-[150px] rounded-full"/>
+    <div class="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-secondary/10 blur-[150px] rounded-full"/>
 
     <UContainer class="relative z-10">
       <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-2 h-8 bg-brand-primary rounded-full"></div>
+            <div class="w-2 h-8 bg-brand-primary rounded-full"/>
             <h1 class="text-3xl font-black text-white tracking-tight">시스템 어드민</h1>
           </div>
           <p class="text-slate-400 font-medium">실시간 배치 현황 및 시스템 지표를 모니터링합니다.</p>
@@ -271,8 +271,8 @@
                   variant="soft"
                   :color="batch.isRunning ? 'primary' : 'neutral'"
                   :loading="batch.isRunning"
-                  @click="runBatch(batch)"
                   class="font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                  @click="runBatch(batch)"
                 >
                   실행
                 </UButton>
@@ -337,7 +337,7 @@
           </div>
         </template>
 
-        <div class="space-y-4 py-2" v-if="reCheckResult">
+        <div v-if="reCheckResult" class="space-y-4 py-2">
           <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
             <div>
               <p class="text-xs text-slate-500 mb-1">상태 판단</p>

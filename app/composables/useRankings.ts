@@ -50,7 +50,7 @@ export const useRankings = () => {
       return []
     }
 
-    let results = ((data as any[]) || []).map((p) => {
+    const results = ((data as any[]) || []).map((p) => {
       const stats = (p.rankings as any[])?.find(r => r.ranking_type === 'all_time' && r.period_key === 'global') || { prediction_count: 0, win_rate: 0, win_count: 0 }
       return {
         user_id: p.id,

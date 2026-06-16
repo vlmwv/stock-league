@@ -75,7 +75,7 @@ const loadHistory = async (isInitial = false) => {
 onMounted(async () => {
   await loadHistory(true)
 
-  if (process.client) {
+  if (import.meta.client) {
     const observer = new IntersectionObserver((entries) => {
       const entry = entries[0]
       if (entry && entry.isIntersecting && !moreLoading.value && hasMore.value) {
@@ -98,7 +98,7 @@ onMounted(async () => {
     <!-- History List Grouped by Date -->
     <div class="space-y-10">
       <div v-if="loading" class="text-center py-20">
-        <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
+        <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"/>
         <p class="text-slate-500 font-bold text-sm">이력을 불러오는 중...</p>
       </div>
       
@@ -112,24 +112,24 @@ onMounted(async () => {
         </p>
       </div>
 
-      <div v-else v-for="group in groupedHistory" :key="group.date" class="space-y-4">
+      <div v-for="group in groupedHistory" v-else :key="group.date" class="space-y-4">
         <div class="flex items-center gap-4 px-2">
           <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ group.date }}</h3>
-          <div class="h-px bg-white/5 flex-1"></div>
+          <div class="h-px bg-white/5 flex-1"/>
           <span class="text-xs font-bold text-slate-600">{{ group.items.length }} 종목</span>
         </div>
 
         <div 
           v-for="item in group.items" 
           :key="item.daily_id" 
-          @click="router.push('/stocks/' + item.code)"
           class="glass-dark rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group hover:bg-white/5 transition-all cursor-pointer"
+          @click="router.push('/stocks/' + item.code)"
         >
           <!-- 카드 배경 글로우 -->
           <div 
             class="absolute -top-12 -right-12 w-32 h-32 blur-3xl rounded-full transition-all duration-700 opacity-20 group-hover:opacity-40"
             :class="item.cumulative_change_rate >= 0 ? 'bg-emerald-500' : 'bg-indigo-500'"
-          ></div>
+          />
 
           <div class="relative z-10">
             <!-- 종목 정보 및 상단 정보 -->
@@ -158,7 +158,7 @@ onMounted(async () => {
                 <p class="text-sm font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
               </div>
               <div class="flex flex-col items-center justify-center pt-2">
-                <div class="h-px bg-white/10 w-full mb-2"></div>
+                <div class="h-px bg-white/10 w-full mb-2"/>
                 <span class="text-xs font-black text-slate-500 uppercase tracking-[0.1em] whitespace-nowrap bg-bg-deep px-2">
                    {{ item.days_passed === 0 ? '오늘' : `${item.days_passed}일 경과` }}
                 </span>
@@ -225,7 +225,7 @@ onMounted(async () => {
 
       <!-- Infinite Scroll Trigger -->
       <div ref="loadMoreTrigger" class="h-20 flex items-center justify-center">
-        <div v-if="moreLoading" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+        <div v-if="moreLoading" class="w-6 h-6 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"/>
       </div>
     </div>
   </div>

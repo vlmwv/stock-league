@@ -89,7 +89,7 @@ export const usePredictions = (daily: ReturnType<typeof useDailyStocks>) => {
 
     const userId = await resolveUserId()
     if (!userId) {
-      if (process.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+      if (import.meta.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
         navigateTo('/login')
       }
       return false

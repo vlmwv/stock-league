@@ -242,7 +242,7 @@ watch(user, async (newUser) => {
   <div class="min-h-screen bg-bg-deep pb-32 overflow-x-hidden selection:bg-brand-primary/30">
     <!-- Top Header -->
     <header class="max-w-md mx-auto px-6 py-4 flex items-center justify-between border-b border-white/5">
-      <button @click="router.back()" class="flex items-center gap-1.5 text-xs font-black text-slate-400 hover:text-brand-primary">
+      <button class="flex items-center gap-1.5 text-xs font-black text-slate-400 hover:text-brand-primary" @click="router.back()">
         <UIcon name="i-heroicons-arrow-left" class="w-4 h-4" />
         뒤로가기
       </button>
@@ -261,7 +261,8 @@ watch(user, async (newUser) => {
       <section class="mb-6">
         <div class="flex items-center gap-2 mb-2 flex-wrap">
           <!-- 가상/역사 마크 -->
-          <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
+          <span
+class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0"
             :class="scenario.type === '가상' 
               ? 'bg-purple-500/20 border-purple-500/30 text-purple-400' 
               : 'bg-blue-500/20 border-blue-500/30 text-blue-400'"
@@ -269,7 +270,8 @@ watch(user, async (newUser) => {
             {{ scenario.type }}
           </span>
           <!-- 난이도 마크 -->
-          <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
+          <div
+class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
             :class="scenario.difficulty === '어려움' 
               ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' 
               : scenario.difficulty === '보통' 
@@ -304,16 +306,16 @@ watch(user, async (newUser) => {
       <!-- Tabs Navigation -->
       <div class="flex border-b border-white/5 mb-6">
         <button 
-          @click="activeTab = 'game'" 
-          class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
+          class="flex-1 pb-3 text-sm font-black transition-all border-b-2" 
           :class="activeTab === 'game' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300'"
+          @click="activeTab = 'game'"
         >
           게임 도전
         </button>
         <button 
-          @click="activeTab = 'ranking'" 
-          class="flex-1 pb-3 text-sm font-black transition-all border-b-2"
+          class="flex-1 pb-3 text-sm font-black transition-all border-b-2" 
           :class="activeTab === 'ranking' ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-300'"
+          @click="activeTab = 'ranking'"
         >
           참여랭킹
         </button>
@@ -455,11 +457,13 @@ watch(user, async (newUser) => {
           </svg>
 
           <!-- Feedback Overlay -->
-          <div v-if="isFeedbackMode" 
+          <div
+v-if="isFeedbackMode" 
                class="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] transition-all z-20"
                :class="isCorrect ? 'bg-emerald-500/10' : 'bg-rose-500/10'"
           >
-            <div class="px-6 py-3 rounded-2xl border flex items-center gap-2 animate-scale-in shadow-2xl"
+            <div
+class="px-6 py-3 rounded-2xl border flex items-center gap-2 animate-scale-in shadow-2xl"
                  :class="isCorrect ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-400' : 'bg-rose-950/80 border-rose-500/30 text-rose-400'"
             >
               <UIcon :name="isCorrect ? 'i-heroicons-sparkles' : 'i-heroicons-x-circle'" class="w-6 h-6" />
@@ -469,11 +473,13 @@ watch(user, async (newUser) => {
         </div>
 
         <!-- 속보 / 뉴스 힌트 카드 -->
-        <div class="glass-dark border border-white/5 rounded-3xl p-5 min-h-[120px] transition-all"
+        <div
+class="glass-dark border border-white/5 rounded-3xl p-5 min-h-[120px] transition-all"
              :class="todayEvent ? 'border-sky-500/30 bg-sky-500/5' : ''"
         >
           <div class="flex items-center gap-2 mb-2">
-            <span class="text-[9px] font-black uppercase tracking-widest"
+            <span
+class="text-[9px] font-black uppercase tracking-widest"
               :class="todayEvent ? 'text-sky-400' : 'text-slate-500'"
             >
               {{ todayEvent ? '🔴 속보 및 이슈 발생' : 'ℹ️ 일일 동향 힌트' }}
@@ -508,19 +514,19 @@ watch(user, async (newUser) => {
           </p>
           <div class="flex gap-4">
             <button 
-              @click="handlePredict('down')"
               :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-blue-500/20 text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 active:scale-95"
               :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
+              @click="handlePredict('down')"
             >
               <UIcon name="i-heroicons-arrow-trending-down" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">하락 예측</span>
             </button>
             <button 
-              @click="handlePredict('up')"
               :disabled="isFeedbackMode || hasAlreadyAttempted"
               class="flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 border border-rose-500/20 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 active:scale-95"
               :class="{ 'opacity-50 grayscale cursor-not-allowed': isFeedbackMode || hasAlreadyAttempted }"
+              @click="handlePredict('up')"
             >
               <UIcon name="i-heroicons-arrow-trending-up" class="w-5 h-5" />
               <span class="text-sm font-black tracking-widest">상승 예측</span>
@@ -529,8 +535,8 @@ watch(user, async (newUser) => {
           <!-- 진행 중 유저에게만 노출되는 처음부터 다시 시작 버튼 -->
           <div v-if="!hasAlreadyAttempted && currentDay > 7" class="text-center pt-2">
             <button 
-              @click="confirm('처음부터 다시 도전하시겠습니까?') && resetGame()"
               class="inline-flex items-center gap-1 text-[11px] font-black text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-0 cursor-pointer"
+              @click="confirm('처음부터 다시 도전하시겠습니까?') && resetGame()"
             >
               <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
               처음부터 다시 도전하기
@@ -548,8 +554,8 @@ watch(user, async (newUser) => {
           
           <div class="px-6 flex flex-col gap-2">
             <button 
-              @click="resetGame"
               class="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all active:scale-95 border border-white/10 bg-slate-800 text-slate-200 hover:bg-slate-700"
+              @click="resetGame"
             >
               <UIcon name="i-heroicons-arrow-path" class="w-4 h-4" />
               처음부터 재도전하기

@@ -1,7 +1,7 @@
 <template>
   <div
-    @click="$emit('navigate-news')"
     class="bg-white/[0.03] rounded-[1.5rem] p-5 border border-white/5 group hover:bg-white/[0.07] transition-all cursor-pointer relative overflow-hidden active:scale-[0.98]"
+    @click="$emit('navigate-news')"
   >
     <div class="flex flex-col gap-4 relative z-10">
       <div class="flex items-center justify-between">
@@ -16,16 +16,16 @@
         <div class="flex items-center gap-4">
           <button
             v-if="item.stockId"
-            @click.stop="$emit('openWishlistModal', item.stockId)"
             class="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-white/5 hover:bg-white/10 active:scale-90 border border-white/5"
             :class="isHearted ? 'text-rose-500 border-rose-500/20' : 'text-slate-600'"
+            @click.stop="$emit('openWishlistModal', item.stockId)"
           >
             <UIcon :name="isHearted ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'" class="w-4.5 h-4.5" />
           </button>
           <button
             v-if="item.stockCode"
-            @click.stop="$emit('navigate-stock', item.stockCode)"
             class="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-slate-900 transition-all shadow-lg group/plus"
+            @click.stop="$emit('navigate-stock', item.stockCode)"
           >
             <UIcon name="i-heroicons-plus-20-solid" class="w-5 h-5 transition-transform group-hover/plus:rotate-90" />
           </button>
@@ -59,7 +59,7 @@
       </div>
     </div>
 
-    <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-brand-secondary/5 blur-[50px] rounded-full group-hover:bg-brand-secondary/10 transition-all duration-700"></div>
+    <div class="absolute -bottom-12 -right-12 w-28 h-28 bg-brand-secondary/5 blur-[50px] rounded-full group-hover:bg-brand-secondary/10 transition-all duration-700"/>
   </div>
 </template>
 

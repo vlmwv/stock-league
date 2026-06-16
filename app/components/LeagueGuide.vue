@@ -1,13 +1,13 @@
 <template>
   <Transition name="fade">
     <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-start sm:items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
-      <div class="absolute inset-0" @click="$emit('close')"></div>
+      <div class="absolute inset-0" @click="$emit('close')"/>
       
       <div class="relative w-full max-w-md glass-dark rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden animate-scale-in my-auto">
         <!-- Close Button -->
         <button 
-          @click="$emit('close')"
           class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 transition-all z-10 border border-white/5"
+          @click="$emit('close')"
         >
           <UIcon name="i-heroicons-x-mark-20-solid" class="w-6 h-6" />
         </button>
@@ -18,7 +18,7 @@
           </div>
           
           <h2 class="text-2xl sm:text-3xl font-black text-slate-100 mb-2 leading-tight tracking-tighter">
-            니나노AI <br/>
+            니나노AI <br>
             <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">한눈에 둘러보기</span>
           </h2>
           <p class="text-[10px] text-slate-400 font-bold mb-8 uppercase tracking-[0.2em]">EXPLORE ALL FEATURES IN A GLANCE</p>
@@ -83,11 +83,11 @@
           </div>
 
           <button 
-            @click="$emit('close')"
             class="w-full mt-8 py-4.5 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-900 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group/btn"
+            @click="$emit('close')"
           >
             <span class="relative z-10">니나노AI 시작하기</span>
-            <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
+            <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"/>
           </button>
           
           <p class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-80">
@@ -96,8 +96,8 @@
         </div>
         
         <!-- Decorative Glows -->
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/10 blur-[80px] rounded-full pointer-events-none"></div>
-        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-secondary/10 blur-[80px] rounded-full pointer-events-none"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/10 blur-[80px] rounded-full pointer-events-none"/>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-secondary/10 blur-[80px] rounded-full pointer-events-none"/>
       </div>
     </div>
   </Transition>

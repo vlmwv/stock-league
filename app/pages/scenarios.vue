@@ -66,10 +66,10 @@ watch(user, async (newUser) => {
       <!-- Loading State -->
       <section v-if="pending" class="space-y-6">
         <div v-for="i in 3" :key="i" class="glass-dark rounded-3xl p-6 border border-white/5 animate-pulse">
-          <div class="h-4 w-24 bg-white/5 rounded mb-3"></div>
-          <div class="h-6 w-48 bg-white/5 rounded mb-4"></div>
-          <div class="h-16 w-full bg-white/5 rounded-2xl mb-4"></div>
-          <div class="h-12 w-full bg-white/5 rounded-2xl"></div>
+          <div class="h-4 w-24 bg-white/5 rounded mb-3"/>
+          <div class="h-6 w-48 bg-white/5 rounded mb-4"/>
+          <div class="h-16 w-full bg-white/5 rounded-2xl mb-4"/>
+          <div class="h-12 w-full bg-white/5 rounded-2xl"/>
         </div>
       </section>
 
@@ -83,7 +83,8 @@ watch(user, async (newUser) => {
         >
           <!-- Badge Header -->
           <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
+            <span
+class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
               :class="item.difficulty === '어려움' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'"
             >
               {{ item.difficulty }}
@@ -111,13 +112,13 @@ watch(user, async (newUser) => {
 
           <!-- Button -->
           <button 
-            @click="handleChallenge(item.id)"
             class="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest transition-all active:scale-95 border"
             :class="[
               getAttempt(item.id) 
                 ? 'bg-slate-800/50 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
                 : 'bg-brand-primary text-slate-900 border-brand-primary hover:scale-[1.02] shadow-lg shadow-brand-primary/10'
             ]"
+            @click="handleChallenge(item.id)"
           >
             <UIcon 
               :name="getAttempt(item.id) ? 'i-heroicons-trophy-20-solid' : 'i-heroicons-play-20-solid'" 

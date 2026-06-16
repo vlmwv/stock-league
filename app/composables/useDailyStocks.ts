@@ -8,7 +8,7 @@ export const useDailyStocks = () => {
   const { getKstDate, getKstHourMinute, kstTime } = useKstTime()
 
   // 실시간 시각 갱신 (30초). 21:20 경과 시 내일 종목 자동 새로고침.
-  if (process.client) {
+  if (import.meta.client) {
     onMounted(() => {
       // SSR hydration 직후 즉시 클라이언트 현재 시각으로 갱신
       kstTime.value = getKstHourMinute()
@@ -64,7 +64,7 @@ export const useDailyStocks = () => {
     console.log(`[useDailyStocks] Fetching stocks for target date: ${targetDate} (today: ${today}, searchDate: ${searchDate})`)
 
     // Join daily_stocks with stocks and news (latest summary)
-    let query = client
+    const query = client
       .from('daily_stocks')
       .select(`
         id,

@@ -8,14 +8,14 @@
         <div class="profile-card relative overflow-hidden rounded-[2.5rem] p-4 pt-6 shadow-3xl text-center">
           <div class="relative z-10">
             <div class="relative inline-block mb-6">
-              <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"></div>
+              <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-[2rem] blur opacity-30"/>
               <div class="profile-avatar relative w-24 h-24 rounded-[2rem] p-1 shadow-2xl overflow-hidden flex items-center justify-center">
-                <img v-if="stats?.avatarUrl" :src="stats.avatarUrl" alt="Profile" class="w-full h-full rounded-[1.5rem]" />
+                <img v-if="stats?.avatarUrl" :src="stats.avatarUrl" alt="Profile" class="w-full h-full rounded-[1.5rem]" >
                 <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
                    <UIcon :name="stats?.gender === 'female' ? 'i-mdi-gender-female' : stats?.gender === 'male' ? 'i-mdi-gender-male' : 'i-heroicons-user-20-solid'" class="w-16 h-16" />
                 </div>
               </div>
-              <div @click="openEditModal" class="profile-edit-btn absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+              <div class="profile-edit-btn absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" @click="openEditModal">
                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-white" />
               </div>
             </div>
@@ -46,8 +46,8 @@
           </div>
 
           <!-- Decorative blobs -->
-          <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/10 blur-[60px] rounded-full"></div>
-          <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-secondary/10 blur-[60px] rounded-full"></div>
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/10 blur-[60px] rounded-full"/>
+          <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-secondary/10 blur-[60px] rounded-full"/>
         </div>
       </section>
 
@@ -56,7 +56,7 @@
            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">연속 참여</p>
            <p class="text-base font-black text-slate-200">{{ stats?.streak || 0 }}일</p>
         </div>
-        <div class="w-px h-6 bg-white/10"></div>
+        <div class="w-px h-6 bg-white/10"/>
         <div class="text-center">
            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">총 게임 수</p>
            <p class="text-base font-black text-slate-200">{{ stats?.totalGames || 0 }}회</p>
@@ -96,7 +96,7 @@
               </div>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">{{ item.game_date }}</span>
-                <span class="w-1 h-1 rounded-full bg-slate-800"></span>
+                <span class="w-1 h-1 rounded-full bg-slate-800"/>
                 <span 
                   class="text-[10px] font-black"
                   :class="item.prediction_type === 'up' ? 'text-rose-400' : 'text-indigo-400'"

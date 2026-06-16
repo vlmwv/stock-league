@@ -8,13 +8,13 @@
 
 | # | 우선순위 | 항목 | 영역 | 출처 |
 |---|:---:|------|------|------|
-| 1 | 🔴 고 | 42703 스키마 드리프트 폴백 제거 | composables | analysis §5-6 |
+| 1 | 🔴 고 | 42703 스키마 드리프트 폴백 제거 — **드리프트 점검 ✅(4개 컬럼 모두 존재) → 착수 가능** | composables | analysis §5-6 |
 | 2 | ✅ 완료 | ~~`usePredictions` 분리 (7단계)~~ — `usePredictions.ts` 분리 완료 | composables | refactor §4 |
 | 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 95줄로 축소 | composables | refactor §4 |
 | 4 | 🟡 저 | 시나리오 데이터 DB 이관 | useScenario + DB | analysis §5-7 |
 | 5 | 🟡 저 | 배치 실패 외부 알림 도입 | Edge Function | analysis §5-8 |
 | 6 | 🟡 저 | `transfer-hall-of-fame` 구현 | Edge Function | analysis §5-9 |
-| 7 | 🔄 도입 | 테스트/린트/타입체크 — 스택·스크립트·스타터 테스트 도입(설치/실행은 환경 필요) | 프로젝트 전반 | analysis §5-10 |
+| 7 | ✅ 실행 | 테스트/린트/타입체크 — 환경 구성·전 도구 실행·베이스라인 확보 완료(아래 §7) | 프로젝트 전반 | analysis §5-10 |
 
 ---
 
@@ -22,6 +22,7 @@
 
 - **현상**: Postgres 에러 `42703`(정의되지 않은 컬럼) 발생 시 최신 컬럼을 빼고 재쿼리하는 방어 분기가 `useDailyStocks`, `useUserProfile` 등에 상존.
 - **위험**: 잘못 제거 시 프로덕션 쿼리 실패. **반드시 라이브 DB 스키마 확정 여부 확인 후** 진행.
+- **사전 점검 결과(2026-06-16)**: `npx tsx scripts/check_schema_drift.ts` 실행 → `profiles.gender`·`profiles.role`·`daily_stocks.ai_result`·`daily_stocks.status` **4개 컬럼 모두 라이브 DB에 존재(드리프트 없음)**. 폴백 6곳(`useDailyStocks:96,168` / `useRankings:27` / `useUserProfile:23` / `server/api/rankings.get.ts:57`) 안전 제거 가능 → **착수 준비 완료(아직 미제거)**.
 - **접근**:
   1. `supabase/migrations/`의 최신 마이그레이션과 라이브 DB 실제 컬럼을 대조(드리프트 없음 확인).
   2. 드리프트가 없으면 폴백 분기와 재시도 쿼리 제거, 단일 쿼리로 정리.
@@ -58,18 +59,22 @@
 - **접근**: 월말/연말 cron 트리거 기준으로 랭킹 → 명예의 전당 테이블 이관 로직 구현 후 cron 등록.
 - **참조**: analysis §3(🟡), §5-9.
 
-## 7. 🔄 테스트/린트/타입체크 — 스택 도입(설치/실행은 환경 필요)
+## 7. ✅ 테스트/린트/타입체크 — 환경 구성·실행·베이스라인 확보 완료
 
 - **도입 내용**:
   - 스크립트: `typecheck`(`nuxt typecheck`), `lint`/`lint:fix`(eslint), `test`/`test:watch`(vitest).
   - devDeps: `@nuxt/eslint`, `eslint`, `vue-tsc`, `typescript`, `vitest`, `@nuxt/test-utils`, `@vue/test-utils`, `happy-dom`.
-  - 설정: `nuxt.config.ts`에 `@nuxt/eslint` 모듈, `eslint.config.mjs`(점진 도입용 완화 규칙 + scripts/·supabase/ 제외), `vitest.config.ts`(기본 node 환경).
+  - 설정: `nuxt.config.ts`에 `@nuxt/eslint` 모듈, `eslint.config.mjs`(점진 도입용 완화 규칙 + scripts/·**scratch/**·supabase/ 제외), `vitest.config.ts`(기본 node 환경).
   - 스타터 테스트: `test/utils/stock.test.ts` — `isEtf`/`cleanLlmSummary`/`decodeHtmlEntities`/`getNewsUrl`/`repairNewsUrl` 순수 함수.
-- **잔여(환경 필요)**:
-  1. `npm install --legacy-peer-deps` 후 `npm run test`로 스타터 테스트 통과 확인.
-  2. `npm run typecheck`로 기존 타입 에러 현황 파악 → 점진 수정.
-  3. `npm run lint`로 베이스라인 확인 후 완화 규칙을 단계적으로 강화.
-  4. (선택) CI에 typecheck/lint/test 편입.
+- **실행 결과(2026-06-16, `npm install --legacy-peer-deps` 후)**:
+  - ✅ `npm run test` — **30 passed**(node·nuxt 두 환경에서 스타터 15개씩).
+  - ✅ `npm run build` — 통과(타입/번들 에러 0). 분리 리팩터링 핵심 검증 완료.
+  - 📊 `npm run typecheck` — **66 errors(베이스라인)**. 대부분 `server/api/**`(특히 `indices.get.ts` 32건). 상당수는 Supabase `Database = unknown`(타입 파일 부재)에서 파생된 `never` 계열. → 점진 수정 대상.
+  - 📊 `npm run lint` — `lint:fix` 적용 후 **353 → 46 problems(46 errors)**. 288 warnings 전부 자동수정(주로 `process.client`→`import.meta.client`), 잔여 46건은 대부분 `no-unused-vars`(기존 코드). → 단계적 강화 대상.
+- **잔여(점진)**:
+  1. typecheck 66건 점진 수정 — 우선 `app/types/database.types.ts`(supabase 타입) 생성 시 `never` 계열 다수 해소 가능.
+  2. lint 46건(`no-unused-vars` 위주) 정리 후 완화 규칙(`no-explicit-any` 등) 단계적 복원.
+  3. (선택) CI에 typecheck/lint/test 편입.
 - **참조**: analysis §3(🟡), §5-10.
 
 ---
@@ -78,12 +83,12 @@
 
 > 이번 세션 변경은 **테스트 환경 없이 코드 수정만** 진행했다. `npm install --legacy-peer-deps` 후 아래를 점검한다.
 
-### 8-0. 빌드·도구 기본
-- [ ] `npm install --legacy-peer-deps` 성공(새 devDeps 설치, peer 충돌 없음)
-- [ ] `npm run build` 통과(타입/번들 에러 0) — 분리 리팩터링 핵심 검증
-- [ ] `npm run test` — 스타터 테스트(`test/utils/stock.test.ts`) 통과
-- [ ] `npm run typecheck` — 기존 타입 에러 현황 파악(점진 수정 대상)
-- [ ] `npm run lint` — 베이스라인 확인
+### 8-0. 빌드·도구 기본 (2026-06-16 실행 완료)
+- [x] `npm install --legacy-peer-deps` 성공(266 packages 추가, peer 충돌 없음)
+- [x] `npm run build` 통과(타입/번들 에러 0) — 분리 리팩터링 핵심 검증
+- [x] `npm run test` — 스타터 테스트 **30 passed**
+- [x] `npm run typecheck` — 베이스라인 **66 errors** 파악(점진 수정 대상)
+- [x] `npm run lint` — `lint:fix` 후 **46 errors** 베이스라인(353에서 감소)
 
 ### 8-1. useStock 분리 7~8단계 (커밋 `524ad0b`)
 - [ ] 메인/오늘의 예측: 종목 표시, **예측 제출(낙관적 업데이트·롤백)**, 참여자 수 갱신
@@ -99,5 +104,5 @@
 ### 8-3. Streak KST 통일 (#5, 커밋 `e3ceb72`)
 - [ ] 마이페이지 연속 예측(streak) 수치가 KST 자정 기준으로 정확
 
-### 8-4. 42703 폴백 사전 점검 (#1 준비)
-- [ ] `npx tsx scripts/check_schema_drift.ts` 실행 → 4개 컬럼 존재 확인되면 #1 착수 가능
+### 8-4. 42703 폴백 사전 점검 (#1 준비) — 2026-06-16 완료
+- [x] `npx tsx scripts/check_schema_drift.ts` 실행 → **4개 컬럼 모두 존재 ✅ → #1 착수 가능**

@@ -38,8 +38,8 @@ const formatDate = (dateStr: string) => {
         실시간 참여랭킹
       </h3>
       <button 
-        @click="refresh" 
-        class="w-10 h-10 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95"
+        class="w-10 h-10 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 hover:text-brand-primary transition-all active:scale-95" 
+        @click="refresh"
       >
         <UIcon name="i-heroicons-arrow-path" class="w-5 h-5" :class="{ 'animate-spin': pending }" />
       </button>
@@ -57,7 +57,7 @@ const formatDate = (dateStr: string) => {
         <div v-if="topThree[1]" class="flex-1 flex flex-col items-center group">
           <div class="relative mb-3">
             <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center overflow-hidden">
-              <img v-if="topThree[1].profiles?.avatar_url" :src="topThree[1].profiles.avatar_url" alt="2nd" class="w-full h-full rounded-xl object-cover" />
+              <img v-if="topThree[1].profiles?.avatar_url" :src="topThree[1].profiles.avatar_url" alt="2nd" class="w-full h-full rounded-xl object-cover" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-600 bg-slate-900 rounded-xl">
                 <UIcon :name="topThree[1].profiles?.gender === 'female' ? 'i-mdi-gender-female' : 'i-heroicons-user-20-solid'" class="w-7 h-7" />
               </div>
@@ -76,9 +76,9 @@ const formatDate = (dateStr: string) => {
         <!-- 1st Place -->
         <div v-if="topThree[0]" class="flex-1 flex flex-col items-center group -translate-y-2">
           <div class="relative mb-3 scale-110">
-            <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <div class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl blur-sm opacity-50 group-hover:opacity-100 transition-opacity"/>
             <div class="relative w-14 h-14 rounded-2xl bg-slate-800 border-2 border-brand-primary p-1 flex items-center justify-center overflow-hidden">
-              <img v-if="topThree[0].profiles?.avatar_url" :src="topThree[0].profiles.avatar_url" alt="1st" class="w-full h-full rounded-xl object-cover" />
+              <img v-if="topThree[0].profiles?.avatar_url" :src="topThree[0].profiles.avatar_url" alt="1st" class="w-full h-full rounded-xl object-cover" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-500 bg-slate-900 rounded-xl">
                 <UIcon :name="topThree[0].profiles?.gender === 'female' ? 'i-mdi-gender-female' : 'i-heroicons-user-20-solid'" class="w-7 h-7" />
               </div>
@@ -98,7 +98,7 @@ const formatDate = (dateStr: string) => {
         <div v-if="topThree[2]" class="flex-1 flex flex-col items-center group">
           <div class="relative mb-3">
             <div class="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-700/50 p-1 group-hover:border-slate-500 transition-all flex items-center justify-center overflow-hidden">
-              <img v-if="topThree[2].profiles?.avatar_url" :src="topThree[2].profiles.avatar_url" alt="3rd" class="w-full h-full rounded-xl object-cover" />
+              <img v-if="topThree[2].profiles?.avatar_url" :src="topThree[2].profiles.avatar_url" alt="3rd" class="w-full h-full rounded-xl object-cover" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-600 bg-slate-900 rounded-xl">
                 <UIcon :name="topThree[2].profiles?.gender === 'female' ? 'i-mdi-gender-female' : 'i-heroicons-user-20-solid'" class="w-7 h-7" />
               </div>
@@ -126,7 +126,8 @@ const formatDate = (dateStr: string) => {
       <!-- Leaderboard List -->
       <div class="space-y-2">
         <!-- 1~3위가 아닌 4위부터 리스트 표시 -->
-        <div v-for="(rankingUser, index) in listRankings" :key="index" 
+        <div
+v-for="(rankingUser, index) in listRankings" :key="index" 
              class="glass-dark rounded-2xl p-3.5 flex items-center border border-white/5 group hover:bg-white/5 transition-all"
         >
           <!-- Rank -->
@@ -137,7 +138,7 @@ const formatDate = (dateStr: string) => {
           <!-- Profile Info -->
           <div class="flex-1 flex items-center gap-3 ml-4 min-w-0">
             <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden shrink-0 flex items-center justify-center">
-              <img v-if="rankingUser.profiles?.avatar_url" :src="rankingUser.profiles.avatar_url" alt="user" class="w-full h-full object-cover" />
+              <img v-if="rankingUser.profiles?.avatar_url" :src="rankingUser.profiles.avatar_url" alt="user" class="w-full h-full object-cover" >
               <div v-else class="w-full h-full flex items-center justify-center text-slate-700">
                 <UIcon :name="rankingUser.profiles?.gender === 'female' ? 'i-mdi-gender-female' : 'i-heroicons-user-20-solid'" class="w-5 h-5" />
               </div>

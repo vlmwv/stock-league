@@ -259,7 +259,7 @@ export const useWishlist = () => {
   const toggleHeart = async (stockId: number, groupId?: number, options?: { skipRefresh?: boolean }) => {
     const userId = await resolveUserId()
     if (!userId) {
-      if (process.client) {
+      if (import.meta.client) {
         toast.add({
           title: '로그인이 필요합니다',
           description: '관심 종목 기능을 이용하려면 로그인해 주세요.',
@@ -277,7 +277,7 @@ export const useWishlist = () => {
     if (isNaN(id)) return
 
     // groupId가 undefined인 경우 null(미지정/전체)로 처리
-    let targetGroupId = groupId === undefined ? null : groupId
+    const targetGroupId = groupId === undefined ? null : groupId
 
     const itemIdx = wishlistsWithGroups.value.findIndex(w => w.stock_id === id && w.group_id === targetGroupId)
     const isCurrentlyHeartedInGroup = itemIdx > -1

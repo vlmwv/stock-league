@@ -35,15 +35,15 @@ onMounted(() => {
       <div v-for="i in 3" :key="i" class="glass-dark rounded-3xl p-6 border border-white/5 animate-pulse">
         <div class="flex justify-between items-start mb-6">
           <div class="flex gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-white/5"></div>
+            <div class="w-12 h-12 rounded-2xl bg-white/5"/>
             <div class="space-y-2">
-              <div class="h-3 w-16 bg-white/5 rounded"></div>
-              <div class="h-6 w-32 bg-white/5 rounded"></div>
+              <div class="h-3 w-16 bg-white/5 rounded"/>
+              <div class="h-6 w-32 bg-white/5 rounded"/>
             </div>
           </div>
-          <div class="w-20 h-8 bg-white/5 rounded-xl"></div>
+          <div class="w-20 h-8 bg-white/5 rounded-xl"/>
         </div>
-        <div class="h-20 w-full bg-white/5 rounded-2xl"></div>
+        <div class="h-20 w-full bg-white/5 rounded-2xl"/>
       </div>
     </section>
 
@@ -63,8 +63,8 @@ onMounted(() => {
       <div 
         v-for="stock in targetedStocks" 
         :key="stock.daily_id"
-        @click="goToStock(stock.code)"
         class="glass-dark rounded-3xl p-6 border border-white/5 relative overflow-hidden group transition-all duration-300 cursor-pointer hover:bg-white/5 hover:border-emerald-500/30"
+        @click="goToStock(stock.code)"
       >
         <!-- Header: Stock Info -->
         <div class="flex justify-between items-center mb-6 relative z-10">
@@ -136,7 +136,7 @@ onMounted(() => {
           <!-- Potential Upside -->
           <div class="mt-4 pt-4 border-t border-emerald-500/10 flex items-center justify-between relative z-10">
             <div class="flex items-center gap-2">
-              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"/>
               <span class="text-[9px] font-bold text-slate-400">목표까지 기대 수익률</span>
             </div>
             <div class="flex items-center gap-1">
