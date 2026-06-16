@@ -15,9 +15,12 @@ npm install            # legacy-peer-deps 사용(.npmrc에 설정) — Nuxt 4 + 
 npm run dev            # http://localhost:3000 개발 서버
 npm run build          # nuxt build → .output/ (Node 서버 엔트리)
 npm run preview        # 프로덕션 빌드 미리보기
+npm run typecheck      # nuxt typecheck (vue-tsc)
+npm run lint           # eslint (@nuxt/eslint flat config) — lint:fix로 자동수정
+npm run test           # vitest run (test/**), test:watch로 워치
 ```
 
-**테스트 스위트·린터·타입체크 스크립트는 없다.** `npm run postinstall`은 `nuxt prepare`로 `.nuxt/` 타입을 재생성한다.
+`npm run postinstall`은 `nuxt prepare`로 `.nuxt/` 타입과 `@nuxt/eslint` flat config(`.nuxt/eslint.config.mjs`)를 재생성한다. **품질 도구(테스트/린트/타입체크)는 점진 도입 단계** — `eslint.config.mjs`는 초기 노이즈를 줄이려 `no-explicit-any`·`multi-word-component-names`를 끈 상태고, vitest는 `test/`의 순수 로직 유닛부터 시작한다(기본 node 환경, Nuxt 런타임 필요 시 파일 상단 `// @vitest-environment nuxt`).
 
 ### 일회성 유지보수 스크립트 (`scripts/`)
 Node TS 로더로 실행하며 `dotenv`로 `.env`를 로드한다. `NUXT_PUBLIC_SUPABASE_URL` + `NUXT_SUPABASE_SERVICE_ROLE_KEY`로 Supabase에 직접 접속한다:
