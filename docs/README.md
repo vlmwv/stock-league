@@ -7,6 +7,7 @@
 | 문서 | 설명 |
 | :--- | :--- |
 | [codebase-analysis.md](codebase-analysis.md) | 코드베이스 전체 구조 분석 (계층·데이터 흐름·리스크). 구조 파악의 출발점. |
+| [remaining-issues.md](remaining-issues.md) | 여러 문서에 흩어진 미착수 항목을 모은 실행 백로그. 다음 작업 선정의 출발점. |
 | [ai-recommendation-logic.md](ai-recommendation-logic.md) | '오늘의 예측 리그' 종목 선정 및 AI 추천 점수 산출 알고리즘. |
 | [batch-verification.md](batch-verification.md) | 배치(Edge Function + pg_cron) 동작 검증·디버깅·수동 트리거 방법. |
 | [secrets-guide.md](secrets-guide.md) | Supabase Edge Functions 환경 변수(Secrets) 관리 가이드. |
