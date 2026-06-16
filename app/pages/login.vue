@@ -144,7 +144,7 @@ const handleEmailLogin = async () => {
   loading.value = true
   try {
     // 먼저 로그인을 시도
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value,
     })

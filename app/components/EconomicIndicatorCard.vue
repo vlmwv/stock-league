@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   item: {
     event_name: string
     event_at: string

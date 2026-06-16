@@ -206,7 +206,7 @@ const cardStyle = computed(() => ({
 
 onMounted(() => {
   if (cardRef.value) {
-    const { direction, isSwiping, lengthY } = useSwipe(cardRef, {
+    const { lengthY } = useSwipe(cardRef, {
       threshold: 30, // Reduced threshold for better responsiveness
       onSwipe: () => {
         if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
@@ -223,7 +223,7 @@ onMounted(() => {
           swipeEffect.value = null
         }
       },
-      onSwipeEnd: (e, direction) => {
+      onSwipeEnd: () => {
         if (!props.isTop || props.prediction || isFlying.value || !props.isLeagueOpen || !props.isPredictable) return
 
         const threshold = 120 // Distance needed to trigger prediction

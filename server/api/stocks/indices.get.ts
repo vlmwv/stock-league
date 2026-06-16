@@ -17,7 +17,7 @@ const FALLBACK_INDICES = [
   { region: '원자재', name: 'WTI 원유', value: 78.45, changeRate: -1.12 }
 ] as const
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   const now = Date.now()
 
   // 1. 캐시가 유효한지 확인하고 캐시된 데이터를 반환합니다.

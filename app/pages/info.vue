@@ -369,9 +369,8 @@ const {
   fetchNews, 
   fetchEconomicIndicators, 
   toggleHeart, 
-  hearts, 
-  fetchWishlist,
-  fetchStocksWithStats
+  hearts,
+  fetchWishlist
 } = useStock()
 
 const route = useRoute()

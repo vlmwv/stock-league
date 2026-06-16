@@ -288,7 +288,7 @@ onMounted(async () => {
       <!-- Leaderboard List -->
       <div class="space-y-2">
         <div
-v-for="(rankingUser, index) in listRankings" :key="rankingUser.username" 
+v-for="rankingUser in listRankings" :key="rankingUser.username"
              class="glass-dark rounded-2xl p-3 flex items-center hover:bg-slate-800/50 transition-colors border border-white/5 group"
         >
           <!-- Rank -->

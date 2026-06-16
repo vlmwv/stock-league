@@ -244,15 +244,12 @@ v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center g
 
 
 const { 
-  dailyStocks, 
-  hearts, 
-  myPredictions, 
-  refresh, 
+  dailyStocks,
+  refresh,
   pending,
   fetchWishlist, 
-  fetchPredictions, 
-  toggleHeart, 
-  predict, 
+  fetchPredictions,
+  predict,
   isLeagueOpen, 
   isResultPublished, 
   allPredicted, 

@@ -6,7 +6,6 @@ const props = defineProps<{
 }>()
 
 const { fetchScenarioRankings } = useScenario()
-const currentUser = useSupabaseUser()
 
 const { data: rankings, pending, refresh } = useAsyncData(`scenarioRankings-${props.scenarioId}`, async () => {
   return await fetchScenarioRankings(props.scenarioId)

@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async () => {
   const client = useSupabaseClient()
 
   // getUser()는 서버와 클라이언트 모두에서 가장 안전하게 사용자를 가져오는 방법입니다.

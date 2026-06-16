@@ -191,7 +191,7 @@ definePageMeta({
 })
 
 const router = useRouter()
-const { dailyStocks, wishlistStocks, hearts, myPredictions, predict, toggleHeart, fetchWishlist, fetchPredictions, isLeagueOpen, refresh, wishlistGroups, wishlistsWithGroups, fetchWishlistGroups, deleteWishlistGroup, getPredictionValue } = useStock()
+const { dailyStocks, wishlistStocks, hearts, myPredictions, predict, fetchWishlist, fetchPredictions, isLeagueOpen, refresh, wishlistGroups, wishlistsWithGroups, fetchWishlistGroups, deleteWishlistGroup, getPredictionValue } = useStock()
 
 const selectedGroupId = ref<number | null>(null)
 const isGroupModalOpen = ref(false)

@@ -239,10 +239,9 @@
 <script setup lang="ts">
 const route = useRoute()
 const { 
-  hearts, 
-  toggleHeart, 
-  fetchWishlist, 
-  fetchStocksWithStats, 
+  hearts,
+  fetchWishlist,
+  fetchStocksWithStats,
   wishlistsWithGroups, 
   wishlistGroups, 
   fetchWishlistGroups
@@ -310,25 +309,6 @@ const predictionSortTabs = [
 ] as const
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
-
-const handleToggleHeart = async (stockId: number) => {
-  const wasHearted = isHearted(stockId)
-  await toggleHeart(stockId)
-  const nowHearted = isHearted(stockId)
-  
-  if (wasHearted !== nowHearted) {
-    const stock = allStocks.value.find(s => s.id === stockId)
-    if (stock) {
-      stock.wishlist_count = Math.max(0, (stock.wishlist_count || 0) + (nowHearted ? 1 : -1))
-    }
-    
-    // 관심 탭인 경우 목록에서 제거 (선택 사항이나 보통은 즉시 반영 선호)
-    if (currentSort.value === 'interested' && !nowHearted) {
-       allStocks.value = allStocks.value.filter(s => s.id !== stockId)
-       totalCount.value = Math.max(0, totalCount.value - 1)
-    }
-  }
-}
 
 const loadStocks = async (isAppend = false) => {
   try {

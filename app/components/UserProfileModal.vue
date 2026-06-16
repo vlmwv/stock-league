@@ -275,7 +275,7 @@ const handleFileUpload = async (e: Event) => {
     const fileName = `avatar_${Date.now()}.${fileExt}`
     const filePath = `${user.value!.id}/${fileName}`
 
-    const { data, error: uploadError } = await client.storage
+    const { error: uploadError } = await client.storage
       .from('avatars')
       .upload(filePath, file, {
         upsert: true,

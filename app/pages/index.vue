@@ -293,9 +293,8 @@
 import { repairNewsUrl } from '~/utils/stock'
 const { 
   recommendedStocks, 
-  hearts, 
-  fetchWishlist, 
-  fetchNews, 
+  hearts,
+  fetchNews,
   fetchGlobalAiStats, 
   refreshAll,
   wishlistsWithGroups,

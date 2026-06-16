@@ -31,7 +31,6 @@ export interface Scenario {
 
 export const useScenario = () => {
   const supabase = useSupabaseClient()
-  const session = useSupabaseSession()
   const { resolveUser } = useStockClient()
 
   const scenarios = ref<Scenario[]>([
@@ -51,7 +50,7 @@ export const useScenario = () => {
         const basePrice = 140
         let prevClose = basePrice
         for (let i = 0; i < 144; i++) {
-          let offset = 0
+          let offset: number
           if (i < 40) {
             offset = -0.3 * i
           } else if (i < 80) {
@@ -101,7 +100,7 @@ export const useScenario = () => {
         const basePrice = 30000
         let prevClose = basePrice
         for (let i = 0; i < 102; i++) {
-          let offset = 0
+          let offset: number
           if (i < 40) {
             offset = -250 * i
           } else {
@@ -147,7 +146,7 @@ export const useScenario = () => {
         const basePrice = 450
         let prevClose = basePrice
         for (let i = 0; i < 20; i++) {
-          let offset = 0
+          let offset: number
           if (i < 8) {
             offset = -7 * i
           } else if (i < 15) {
@@ -195,7 +194,7 @@ export const useScenario = () => {
         const basePrice = 9000
         let prevClose = basePrice
         for (let i = 0; i < 120; i++) {
-          let offset = 0
+          let offset: number
           if (i < 65) {
             offset = -64 * i
           } else if (i < 88) {
@@ -245,7 +244,7 @@ export const useScenario = () => {
         const basePrice = 120
         let prevClose = basePrice
         for (let i = 0; i < 140; i++) {
-          let offset = 0
+          let offset: number
           if (i < 35) {
             offset = -0.42 * i
           } else if (i < 92) {
@@ -295,7 +294,7 @@ export const useScenario = () => {
         const basePrice = 490
         let prevClose = basePrice
         for (let i = 0; i < 100; i++) {
-          let offset = 0
+          let offset: number
           if (i < 12) {
             offset = Math.sin(i * 1.5) * 4
           } else if (i < 35) {
@@ -346,7 +345,7 @@ export const useScenario = () => {
         const basePrice = 440
         let prevClose = basePrice
         for (let i = 0; i < 90; i++) {
-          let offset = 0
+          let offset: number
           if (i < 8) {
             offset = Math.cos(i) * 2.5
           } else if (i < 25) {
@@ -398,7 +397,7 @@ export const useScenario = () => {
         const basePrice = 460
         let prevClose = basePrice
         for (let i = 0; i < 110; i++) {
-          let offset = 0
+          let offset: number
           if (i < 15) {
             offset = Math.sin(i * 0.5) * 2
           } else if (i < 40) {
@@ -450,7 +449,7 @@ export const useScenario = () => {
         const basePrice = 550
         let prevClose = basePrice
         for (let i = 0; i < 130; i++) {
-          let offset = 0
+          let offset: number
           if (i < 12) {
             offset = 1.5 * i
           } else if (i < 45) {
@@ -502,7 +501,7 @@ export const useScenario = () => {
         const basePrice = 36000
         let prevClose = basePrice
         for (let i = 0; i < 100; i++) {
-          let offset = 0
+          let offset: number
           if (i < 10) {
             offset = Math.sin(i) * 280
           } else if (i < 30) {

@@ -361,15 +361,12 @@ const isAiHistoryLoading = ref(false)
 const { 
   fetchStockByCode, 
   fetchPriceHistory, 
-  fetchNews, 
-  hearts, 
-  toggleHeart, 
+  fetchNews,
+  hearts,
   fetchWishlist,
   fetchAiHistory,
   wishlistsWithGroups
 } = useStock()
-
-const user = useSupabaseUser()
 
 
 const isGroupModalOpen = ref(false)

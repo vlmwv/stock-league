@@ -552,7 +552,7 @@ const refreshAll = async () => {
 const runBatch = async (batch: any) => {
   batch.isRunning = true
   try {
-    const { data, error } = await supabase.functions.invoke(batch.id)
+    const { error } = await supabase.functions.invoke(batch.id)
     if (error) throw error
     toast.add({
       title: '배치 실행 완료',

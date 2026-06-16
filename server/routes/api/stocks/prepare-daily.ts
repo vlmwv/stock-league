@@ -119,7 +119,7 @@ export default defineEventHandler(async (event) => {
           
           newsItems = (newsRes as any)?.items || []
           disclosureItems = Array.isArray(discRes) ? discRes : ((discRes as any)?.items || [])
-        } catch (fetchErr) {
+        } catch {
           console.warn(`[PrepareDaily] External fetch failed for ${s.name}`)
         }
 

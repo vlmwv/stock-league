@@ -71,10 +71,10 @@
   - ✅ `npm run test` — **30 passed**(node·nuxt 두 환경에서 스타터 15개씩).
   - ✅ `npm run build` — 통과(타입/번들 에러 0). 분리 리팩터링 핵심 검증 완료.
   - ✅ `npm run typecheck` — **66 → 0 errors** (2026-06-17 전량 수정 완료). `indices.get.ts` 32건은 `FALLBACK_INDICES` `as const` 튜플화로 일괄 해소, `never` 계열은 `(client as any)` 캐스팅, 서버 라우트 `user`는 401 가드 추가, `WishlistItem.group_id` `number|null` 모델 보정 등. 부수로 `daily.vue`의 `pending`(항상 undefined였던 잠재버그) 정상 노출.
-  - 📊 `npm run lint` — `lint:fix` 적용 후 **353 → 46 problems(46 errors)**. 288 warnings 전부 자동수정(주로 `process.client`→`import.meta.client`), 잔여 46건은 대부분 `no-unused-vars`(기존 코드). → 단계적 강화 대상.
+  - ✅ `npm run lint` — `lint:fix`(353→46) 후 잔여 **46 → 0** 전량 정리 완료. 미사용 컴포저블 구조분해/지역변수 제거, 미사용 인자 정리(미들웨어 `()`, `catch {}`), `defineProps` 무명화, `offset` 무용 초기화 제거, 죽은 함수(prevMonth/nextMonth·handleToggleHeart) 제거, `appDataDir/**` 린트 제외.
 - **잔여(점진)**:
   1. ✅ typecheck 66건 → 0 (완료). 추후 `app/types/database.types.ts`(supabase gen types) 도입 시 `(client as any)` 캐스팅을 정식 타입으로 대체 가능.
-  2. lint 45건(`no-unused-vars` 위주) 정리 후 완화 규칙(`no-explicit-any` 등) 단계적 복원.
+  2. ✅ lint 0건 달성(완료). 추후 완화 규칙(`no-explicit-any` 등) 단계적 복원 가능.
   3. (선택) CI에 typecheck/lint/test 편입.
 - **참조**: analysis §3(🟡), §5-10.
 
@@ -89,7 +89,7 @@
 - [x] `npm run build` 통과(타입/번들 에러 0) — 분리 리팩터링 핵심 검증
 - [x] `npm run test` — 스타터 테스트 **30 passed**
 - [x] `npm run typecheck` — **66 → 0 errors** (전량 수정 완료)
-- [x] `npm run lint` — `lint:fix` 후 **45 errors** 베이스라인(353에서 감소)
+- [x] `npm run lint` — **353 → 0** (전량 정리 완료)
 
 ### 8-1. useStock 분리 7~8단계 (커밋 `524ad0b`)
 - [ ] 메인/오늘의 예측: 종목 표시, **예측 제출(낙관적 업데이트·롤백)**, 참여자 수 갱신

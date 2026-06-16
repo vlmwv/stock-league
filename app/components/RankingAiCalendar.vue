@@ -234,27 +234,6 @@ const calendarCells = computed(() => {
   return cells
 })
 
-// 달력 월 네비게이션
-const prevMonth = () => {
-  if (currentMonth.value === 1) {
-    currentMonth.value = 12
-    currentYear.value--
-  } else {
-    currentMonth.value--
-  }
-  loadMonthlyData()
-}
-
-const nextMonth = () => {
-  if (currentMonth.value === 12) {
-    currentMonth.value = 1
-    currentYear.value++
-  } else {
-    currentMonth.value++
-  }
-  loadMonthlyData()
-}
-
 const goToday = () => {
   currentYear.value = today.getFullYear()
   currentMonth.value = today.getMonth() + 1

@@ -152,7 +152,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { hearts, fetchUserStats, fetchUserHistory, fetchWishlist } = useStock()
+const { fetchUserStats, fetchUserHistory } = useStock()
 const user = useSupabaseUser()
 
 const stats = ref<any>(null)

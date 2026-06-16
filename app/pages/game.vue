@@ -2,9 +2,8 @@
 import { useScenario } from '~/composables/useScenario'
 
 const { 
-  isLeagueOpen, 
-  isResultPublished, 
-  allPredicted, 
+  isLeagueOpen,
+  allPredicted,
   participantCount, 
   totalMemberCount,
   refreshAll
