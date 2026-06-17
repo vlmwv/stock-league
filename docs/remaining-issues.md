@@ -1,6 +1,6 @@
 # 잔여 이슈 백로그
 
-> 작성일: 2026-06-16 · 대상: `ninanoai.com` (주식 예측 리그)
+> 작성일: 2026-06-16 · 갱신: 2026-06-17(#1 폴백 제거·#7 도구 전량 그린 반영) · 대상: `ninanoai.com` (주식 예측 리그)
 > 출처: [codebase-analysis.md](codebase-analysis.md) §5 · [refactor-usestock-plan.md](refactor-usestock-plan.md) §4
 > 여러 문서에 흩어진 미착수 항목을 한 곳에 모은 실행 백로그. 완료 항목은 각 출처 문서에서 ✅로 관리한다.
 
@@ -10,7 +10,7 @@
 |---|:---:|------|------|------|
 | 1 | ✅ 완료 | ~~42703 스키마 드리프트 폴백 제거~~ — 드리프트 점검(4개 컬럼 존재) 후 폴백 6곳 제거 완료 | composables | analysis §5-6 |
 | 2 | ✅ 완료 | ~~`usePredictions` 분리 (7단계)~~ — `usePredictions.ts` 분리 완료 | composables | refactor §4 |
-| 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 95줄로 축소 | composables | refactor §4 |
+| 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 96줄로 축소 | composables | refactor §4 |
 | 4 | 🟡 저 | 시나리오 데이터 DB 이관 | useScenario + DB | analysis §5-7 |
 | 5 | 🟡 저 | 배치 실패 외부 알림 도입 | Edge Function | analysis §5-8 |
 | 6 | 🟡 저 | `transfer-hall-of-fame` 구현 | Edge Function | analysis §5-9 |
@@ -33,12 +33,12 @@
 ## 2. ✅ `usePredictions` 분리 (useStock 7단계) — 완료
 
 - **결과**: 예측 제출/조회·참여자 수 로직을 `usePredictions.ts`로 분리(`myPredictions`/`participantCount`/`totalMemberCount` + `predict`/`fetchPredictions`/`fetchParticipantCount`/`getPrediction*`). `predict`의 리그 검증을 위해 `useDailyStocks` 결과를 주입. 파사드는 `...predictions` 스프레드로 반환 키 8개를 1:1 동일 유지(소비자 영향 0).
-- **잔여 검증**: `node_modules` 설치 후 `npm run build` 통과 + 예측 제출/낙관적 업데이트 동작 스모크 확인 필요.
+- **자동 검증 완료**: `npm run build`·`test`(30)·`typecheck`(0)·`lint`(0) 전량 그린(§8-0). 남은 것은 브라우저 수동 스모크(§8-1)뿐.
 - **참조**: refactor-usestock-plan.md §4 (7단계).
 
 ## 3. ✅ `useStock` 파사드 최종 정리 (useStock 8단계) — 완료
 
-- **결과**: `notifications` computed를 `useNews(recommended)`로 이관. 파사드는 크로스 도메인 오케스트레이션(`refreshAll`·`watch(user)`·`allPredicted`)과 반환 표면 조합만 남기고 **95줄**로 축소(착수 시 2089줄). 반환 키 전체 1:1 동일 → 소비자 영향 0.
+- **결과**: `notifications` computed를 `useNews(recommended)`로 이관. 파사드는 크로스 도메인 오케스트레이션(`refreshAll`·`watch(user)`·`allPredicted`)과 반환 표면 조합만 남기고 **96줄**로 축소(착수 시 2089줄). 반환 키 전체 1:1 동일 → 소비자 영향 0.
 - **잔여**: (선택) 9단계 소비자 마이그레이션 — 단일 도메인만 쓰는 컴포넌트를 직접 컴포저블로 교체. 강제 아님.
 - **참조**: refactor-usestock-plan.md §4 (8단계).
 
@@ -82,7 +82,7 @@
 
 ## 8. 환경 구성 시 확인 범위 (스모크 체크리스트)
 
-> 이번 세션 변경은 **테스트 환경 없이 코드 수정만** 진행했다. `npm install --legacy-peer-deps` 후 아래를 점검한다.
+> 자동 검증(빌드·테스트·타입체크·린트)은 8-0에서 완료(전량 그린, 2026-06-17). 남은 항목은 **브라우저 수동 스모크**(8-1 ~ 8-3)뿐이다.
 
 ### 8-0. 빌드·도구 기본 (2026-06-16 실행 완료)
 - [x] `npm install --legacy-peer-deps` 성공(266 packages 추가, peer 충돌 없음)

@@ -79,7 +79,7 @@
 
 | # | 상태 | 리스크 | 위치 | 영향 |
 |---|------|--------|------|------|
-| 🔴 | ✅ | **`useStock.ts` 단일 거대 파일** — 영역별 컴포저블로 분리 완료(2089→294줄, 12개 컴포저블). `docs/refactor-usestock-plan.md` 참고 | composables | 유지보수성·테스트 불가·머지 충돌 |
+| 🔴 | ✅ | **`useStock.ts` 단일 거대 파일** — 영역별 컴포저블로 분리 완료(2089→96줄 파사드 + 도메인 11개). `docs/refactor-usestock-plan.md` 참고 | composables | 유지보수성·테스트 불가·머지 충돌 |
 | 🔴 | ✅ | **스키마 드리프트 폴백(에러 42703)** — 드리프트 점검(4개 컬럼 존재) 후 폴백 6곳 제거, 단일 쿼리로 정리 | useDailyStocks / useUserProfile / useRankings / api | 마이그레이션 미확정의 흔적, 정리 완료 |
 | 🟠 | ✅ | **로직 복제** — `isEtf`/KST 계산 앱↔Edge Function 중복 → 두 `isEtf` 완전 동기화 확인(Deno 제약상 분리 불가, CLAUDE.md에 동기화 규칙 명문화) | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치 |
 | 🟠 | ✅ | **Streak 계산이 로컬 타임존** → `getKstDate()` 기반 KST 통일 완료 | useUserProfile.ts | UTC/KST 자정 불일치 버그 |
@@ -97,7 +97,7 @@
 ## 5. 권장 개선 방향
 
 ### ✅ 완료
-1. **(고) `useStock.ts` 분할** — `useDailyStocks`, `useWishlist`, `useRankings`, `useNews`, `useUserProfile`, `useAiHistory` 등 12개 컴포저블로 분리(2089→294줄).
+1. **(고) `useStock.ts` 분할** — `useDailyStocks`, `usePredictions`, `useWishlist`, `useRankings`, `useNews`, `useUserProfile`, `useAiHistory` 등 도메인 11개로 분리(2089→96줄 파사드).
 2. **(고) 인증 하이브리드 로직 단일화** — `useStockClient.resolveUser()`를 단일 진입점으로 신설, 8곳의 인라인 `getUser()` 블록을 제거. 보안 가드(server 미들웨어·admin 미들웨어)는 유지. 클라이언트 게이팅은 기존 `resolveUserId()`와 동일하게 `getSession()` 채택(서버가 실제 인가 담당).
 3. **(중) Streak 계산 KST 통일** — `getKstDate()` + UTC 자정 타임스탬프 비교로 TZ 무관하게 변경(`useUserProfile.ts`).
 4. **(중) 중복 로직 정리** — `isEtf` 두 구현이 완전 동기화 상태임을 확인. Deno 런타임 제약상 앱↔Edge 분리는 불가, CLAUDE.md의 동기화 규칙으로 관리(코드 변경 불필요).
