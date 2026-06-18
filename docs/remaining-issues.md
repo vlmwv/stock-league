@@ -11,7 +11,7 @@
 | 1 | ✅ 완료 | ~~42703 스키마 드리프트 폴백 제거~~ — 드리프트 점검(4개 컬럼 존재) 후 폴백 6곳 제거 완료 | composables | analysis §5-6 |
 | 2 | ✅ 완료 | ~~`usePredictions` 분리 (7단계)~~ — `usePredictions.ts` 분리 완료 | composables | refactor §4 |
 | 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 96줄로 축소 | composables | refactor §4 |
-| 4 | 🔄 코드완료 | 시나리오 데이터 DB 이관 — 마이그레이션·시드 스크립트·DB 조회 전환 완료(시드 실행은 환경 필요) | useScenario + DB | analysis §5-7 |
+| 4 | ✅ 완료 | ~~시나리오 데이터 DB 이관~~ — 마이그레이션 적용·시드(10개/1056캔들)·anon RLS 조회 검증까지 완료 | useScenario + DB | analysis §5-7 |
 | 5 | 🟡 저 | 배치 실패 외부 알림 도입 | Edge Function | analysis §5-8 |
 | 6 | 🟡 저 | `transfer-hall-of-fame` 구현 | Edge Function | analysis §5-9 |
 | 7 | ✅ 실행 | 테스트/린트/타입체크 — 환경 구성·전 도구 실행·베이스라인 확보 완료(아래 §7) | 프로젝트 전반 | analysis §5-10 |
@@ -42,19 +42,19 @@
 - **잔여**: (선택) 9단계 소비자 마이그레이션 — 단일 도메인만 쓰는 컴포넌트를 직접 컴포저블로 교체. 강제 아님.
 - **참조**: refactor-usestock-plan.md §4 (8단계).
 
-## 4. 🔄 시나리오 데이터 DB 이관 — 코드 완료(시드 실행은 환경 필요)
+## 4. ✅ 시나리오 데이터 DB 이관 — 완료(DB 적용·시드·검증)
 
-- **현상**: `useScenario.ts`에 10개 시나리오(약 1440 캔들, 절차적 생성)가 하드코딩 → 번들 크기·확장성 부담.
+- **현상(과거)**: `useScenario.ts`에 10개 시나리오(절차적 생성 캔들)가 하드코딩 → 번들 크기·확장성 부담.
 - **코드 변경(완료)**:
   - 마이그레이션 `supabase/migrations/20260617000000_create_scenarios.sql` — `public.scenarios`(메타 + `candles`/`events` JSONB, public read RLS). id 1~10 유지 → `scenario_attempts.scenario_id` 정합.
   - 원본 데이터(생성기 포함)를 `scripts/scenario-seed-data.ts`로 이동 → **앱 번들에서 분리**(useScenario 628→152줄).
   - 시드 스크립트 `scripts/seed_scenarios.ts` — 생성기를 실행해 구운 캔들/이벤트를 `scenarios`에 upsert.
   - `useScenario`는 `useAsyncData('scenarios')`로 DB 조회(SSR 로드, 반환 표면 `scenarios` 불변 → 소비자 영향 0).
-- **잔여(환경 필요·실행 순서 중요)**:
-  1. 마이그레이션 적용: `supabase db push`(또는 대시보드).
-  2. 시드 실행: `npx tsx scripts/seed_scenarios.ts` (service role, 10개·약 1440 캔들 upsert).
-  3. **순서 주의**: 시드 전에 배포하면 시나리오 목록이 빈다(DB 조회). 마이그레이션→시드→배포 순서 준수.
-  4. (선택) 시드 후 무결성 FK 추가(마이그레이션 주석 참고), `supabase gen types`로 `scenarios` 타입 반영 → `(supabase as any)` 캐스팅 정식화.
+- **DB 적용·검증(완료, 2026-06-18)**:
+  - `supabase db push` → `20260617000000_create_scenarios.sql` 원격 적용.
+  - `npx tsx scripts/seed_scenarios.ts` → **10개 시나리오 / 1056 캔들** upsert.
+  - anon 키(RLS public read) 조회로 10행 정상 확인(각 시나리오 캔들/이벤트/ETF 일치).
+- **선택 후속**: 무결성 FK 추가(마이그레이션 주석 참고), `supabase gen types`로 `scenarios` 타입 반영 → `(supabase as any)` 캐스팅 정식화. 브라우저 스모크(§8-5 마지막 항목).
 - **참조**: analysis §3(🟡), §5-7.
 
 ## 5. 🟡 배치 실패 외부 알림 도입
@@ -117,8 +117,9 @@
 ### 8-4. 42703 폴백 사전 점검 (#1 준비) — 2026-06-16 완료
 - [x] `npx tsx scripts/check_schema_drift.ts` 실행 → **4개 컬럼 모두 존재 ✅ → #1 착수 가능**
 
-### 8-5. 시나리오 DB 이관 (#4) — 실행 순서 준수
-- [ ] 마이그레이션 적용(`20260617000000_create_scenarios.sql`) — `supabase db push`
-- [ ] `npx tsx scripts/seed_scenarios.ts` → 10개 시나리오·약 1440 캔들 upsert 확인
-- [ ] 게임 라운지/시나리오 목록에 10개 노출, 시나리오 게임 진입·차트·도전 정상
+### 8-5. 시나리오 DB 이관 (#4) — 2026-06-18 적용 완료
+- [x] 마이그레이션 적용(`20260617000000_create_scenarios.sql`) — `supabase db push`
+- [x] `npx tsx scripts/seed_scenarios.ts` → 10개 시나리오·**1056 캔들** upsert 확인
+- [x] anon(RLS public read) 조회 10행 정상 검증
+- [ ] (브라우저) 게임 라운지/시나리오 목록 10개 노출, 시나리오 게임 진입·차트·도전 정상
 - [ ] (배포 순서) 마이그레이션 → 시드 → 앱 배포. 시드 전 배포 시 목록이 비므로 주의
