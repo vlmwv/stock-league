@@ -42,7 +42,7 @@
 
 - 데이터 소스는 **대부분 `useSupabaseClient()` 직접 쿼리(RLS)**, API 호출은 단 2곳(`/api/stocks/themes`, `/api/scenarios/rankings`)뿐.
 - 추천 기준가(rec_price) 계산은 `utils/stockHistory.ts`로 추출해 3곳 중복을 제거했고, 스키마 드리프트 42703 폴백은 컬럼 존재 확인 후 제거 완료.
-- `useScenario.ts`(632줄)는 10개 시나리오를 **하드코딩**(약 1440개 캔들 데이터)으로 메모리에 로드 — 잔여 백로그(DB 이관 예정).
+- `useScenario.ts`(152줄)는 10개 시나리오를 **DB(`public.scenarios`)에서 `useAsyncData`로 조회**한다. 과거 하드코딩(약 1440 캔들, 절차적 생성) 원본은 `scripts/scenario-seed-data.ts`로 이동해 앱 번들에서 분리했고, `scripts/seed_scenarios.ts`로 시드한다.
 - `app/stores/stock.ts`(죽은 Pinia 스토어)는 **삭제됨**.
 - `app/utils/stock.ts` 순수 함수: `isEtf`, `decodeHtmlEntities`, `cleanLlmSummary`, `getNewsUrl`, `repairNewsUrl`.
 
@@ -84,7 +84,7 @@
 | 🟠 | ✅ | **로직 복제** — `isEtf`/KST 계산 앱↔Edge Function 중복 → 두 `isEtf` 완전 동기화 확인(Deno 제약상 분리 불가, CLAUDE.md에 동기화 규칙 명문화) | utils/stock.ts ↔ functions | 한쪽만 고치면 불일치 |
 | 🟠 | ✅ | **Streak 계산이 로컬 타임존** → `getKstDate()` 기반 KST 통일 완료 | useUserProfile.ts | UTC/KST 자정 불일치 버그 |
 | 🟠 | ✅ | **인증 하이브리드 검증** — 8곳 인라인 복제 → `useStockClient.resolveUser()` 단일 진입점으로 통합 | useStockClient + 4파일 | 회귀 위험 높은 취약 지점 |
-| 🟡 | ⬜ | **시나리오 10개 하드코딩**(약 1440개 캔들) | useScenario.ts | 번들 크기·확장성 |
+| 🟡 | 🔄 | **시나리오 10개 하드코딩**(약 1440개 캔들) → `scenarios` 테이블 이관(코드 완료, 시드 실행은 환경 필요) | useScenario.ts / scripts | 번들 크기·확장성 |
 | 🟡 | ⬜ | **배치 모니터링 부재** — DB 로그만, 외부 알림 없음 | 전체 Edge Function | 무음 실패 위험 |
 | 🟡 | ✅ | **테스트/린트/타입체크** — 스택·환경·실행 완료. **typecheck 66→0·lint 353→0**·test 30✓·build✓ 전량 그린 | 프로젝트 전반 | 회귀 방어선 확보 |
 | 🟡 | ⬜ | **`transfer-hall-of-fame` 미구현** | supabase/functions | 명세 대비 누락 |
@@ -105,7 +105,7 @@
 
 ### ⬜ 잔여 (우선순위순)
 6. ✅ **(중) 42703 폴백 제거** — `scripts/check_schema_drift.ts`로 4개 컬럼(라이브 DB) 존재 확인 후 폴백 6곳 제거 완료(useDailyStocks 2·useRankings·useUserProfile·api). 단일 쿼리로 정리, build·test 통과.
-7. **(저) 시나리오 데이터 DB 이관** — 하드코딩 10개 시나리오(약 1440 캔들)를 테이블로 이관(마이그레이션 신설 + `useScenario.ts` 로딩 경로 변경).
+7. 🔄 **(저) 시나리오 데이터 DB 이관** — `scenarios` 테이블 마이그레이션 + 원본을 `scripts/scenario-seed-data.ts`로 분리(번들 제외) + `seed_scenarios.ts` 시드 + `useScenario`를 `useAsyncData` 조회로 전환. 코드 완료, 시드 실행은 환경 필요(remaining-issues §4·§8-5).
 8. **(저) 배치 실패 외부 알림 도입** — Edge Function 무음 실패 대비(DB 로그 외 알림 채널).
 9. **(저) `transfer-hall-of-fame` 구현** — `index.ts` 부재, 명세 대비 누락.
 10. ✅ **(저) 테스트/린트/타입체크 도입** — Nuxt 4 표준 스택(vitest·@nuxt/eslint·vue-tsc) + 스크립트 + 스타터 테스트. **전 도구 그린 달성**: test 30 pass·build 통과·**typecheck 66→0·lint 353→0**. 추후 완화 규칙(`no-explicit-any` 등) 단계적 복원은 remaining-issues.md §7.
