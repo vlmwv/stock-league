@@ -83,11 +83,26 @@ export const useNews = (recommended: Ref<any[] | undefined>) => {
     }
   }
 
-  const fetchEconomicIndicators = async () => {
-    const { data, error } = await client
+  const fetchEconomicIndicators = async (year?: number, month?: number) => {
+    let query = client
       .from('economic_indicators')
       .select('*')
-      .order('event_at', { ascending: false })
+
+    if (year !== undefined && month !== undefined) {
+      const startDate = new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00+09:00`).toISOString()
+      
+      let nextYear = year
+      let nextMonth = month + 1
+      if (nextMonth > 12) {
+        nextMonth = 1
+        nextYear++
+      }
+      const endDate = new Date(`${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00+09:00`).toISOString()
+
+      query = query.gte('event_at', startDate).lt('event_at', endDate)
+    }
+
+    const { data, error } = await query.order('event_at', { ascending: false })
 
     if (error) {
       console.error('Error fetching economic indicators:', error)

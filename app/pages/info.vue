@@ -114,6 +114,53 @@
               {{ fearGreedStatus.tip }}
             </p>
           </div>
+
+          <!-- 측정 기준 안내 아코디언 -->
+          <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.01]">
+            <button 
+              class="w-full flex items-center justify-between p-3 text-[10px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition-colors"
+              @click="showMeasurementInfo = !showMeasurementInfo"
+            >
+              <div class="flex items-center gap-1.5">
+                <UIcon name="i-heroicons-information-circle" class="w-3.5 h-3.5 text-indigo-400" />
+                <span>오늘의 지수 측정 기준 보기</span>
+              </div>
+              <UIcon 
+                :name="showMeasurementInfo ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" 
+                class="w-3.5 h-3.5 text-slate-400 transition-transform duration-300"
+              />
+            </button>
+            
+            <div 
+              v-show="showMeasurementInfo" 
+              class="p-4 border-t border-white/5 bg-slate-950/40 text-[10px] text-slate-400 space-y-3.5 leading-relaxed animate-fade-in"
+            >
+              <div class="font-bold text-slate-300 border-b border-white/5 pb-2">
+                <p class="mb-1">※ 탐욕·공포 지수는 다음 7가지 주요 시장 지표를 종합하여 산출됩니다.</p>
+                <p class="text-[9px] text-slate-500 font-normal">각 지표는 동일한 가중치(약 14.3%)로 종합 지수에 반영됩니다.</p>
+              </div>
+              <div class="space-y-3">
+                <div v-for="item in fearGreedDetails" :key="item.name" class="flex flex-col gap-1">
+                  <div class="flex items-center justify-between font-black text-slate-200">
+                    <span>{{ item.name }}</span>
+                    <span :class="item.status.color" class="font-mono text-[9px] font-bold">{{ item.score }} / 100 ({{ item.status.label }})</span>
+                  </div>
+                  <!-- 미니 게이지 바 -->
+                  <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      :class="item.status.barColor" 
+                      class="h-full transition-all duration-1000 ease-out" 
+                      :style="{ width: `${item.score}%` }"
+                    />
+                  </div>
+                  <span class="pl-1 text-slate-400/95 text-[9.5px] leading-normal">{{ item.desc }}</span>
+                </div>
+              </div>
+              <p class="text-[9px] text-slate-500 border-t border-white/5 pt-1.5 mt-1">
+                * 본 서비스의 공포·탐욕 지수는 당일 날짜 기반의 시뮬레이션 데이터를 제공하므로, 실제 실시간 시장 지표와는 차이가 있을 수 있습니다.
+              </p>
+            </div>
+          </div>
         </div>
 
 
@@ -302,59 +349,7 @@
 
       <!-- 3. 경제 지표 목록 -->
       <section v-if="activeTab === 'indicators'" class="px-6 space-y-6 animate-fade-in">
-        <!-- 경제지표 전용 서브 탭 -->
-        <div class="flex items-center gap-4 mb-2">
-          <button 
-            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
-            :class="indicatorTab === 'announced' ? 'text-brand-primary' : 'text-slate-500'"
-            @click="indicatorTab = 'announced'"
-          >
-            발표 완료
-            <div v-if="indicatorTab === 'announced'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"/>
-          </button>
-          <button 
-            class="relative pb-2 text-[11px] font-black tracking-widest transition-all duration-300"
-            :class="indicatorTab === 'upcoming' ? 'text-brand-primary' : 'text-slate-500'"
-            @click="indicatorTab = 'upcoming'"
-          >
-            발표 예정
-            <div v-if="indicatorTab === 'upcoming'" class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-primary rounded-full animate-scale-x"/>
-          </button>
-        </div>
-        <div v-if="isLoadingIndicators" class="flex flex-col items-center justify-center py-20 gap-4">
-          <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"/>
-          <p class="text-xs text-slate-500 font-bold uppercase tracking-widest animate-pulse">지표 로드 중...</p>
-        </div>
-        <div v-else-if="indicatorTab === 'upcoming' && upcomingIndicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-          <UIcon name="i-heroicons-calendar-days" class="w-12 h-12 text-slate-700 mb-4" />
-          <p class="text-sm text-slate-500 font-medium">발표 예정인 지표가 없습니다.</p>
-        </div>
-
-        <div v-else-if="indicatorTab === 'announced' && announcedIndicators.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-          <UIcon name="i-heroicons-check-circle" class="w-12 h-12 text-slate-700 mb-4" />
-          <p class="text-sm text-slate-500 font-medium">최근 발표된 지표가 없습니다.</p>
-        </div>
-
-        <template v-else>
-          <!-- 1. 발표 예정 일정 (Upcoming) -->
-          <div v-if="indicatorTab === 'upcoming'" class="space-y-4">
-             <EconomicIndicatorCard 
-               v-for="indicator in upcomingIndicators" 
-               :key="indicator.id" 
-               :item="indicator" 
-               class="opacity-70 hover:opacity-100 transition-opacity duration-300" 
-             />
-          </div>
-
-          <!-- 2. 발표 완료 지표 (Announced) -->
-          <div v-if="indicatorTab === 'announced'" class="space-y-4">
-             <EconomicIndicatorCard 
-               v-for="indicator in announcedIndicators" 
-               :key="indicator.id" 
-               :item="indicator" 
-             />
-          </div>
-        </template>
+        <EconomicIndicatorWrapper />
       </section>
     </main>
 
@@ -380,6 +375,68 @@ const activeTab = ref<'stock' | 'news' | 'indicators'>(
   (route.query.tab as any) === 'indicators' ? 'indicators' : 
   (route.query.tab as any) === 'news' ? 'news' : 'stock'
 )
+
+// 탐욕·공포 지수 측정 기준 표시 상태
+const showMeasurementInfo = ref(false)
+
+const fearGreedDetails = computed(() => {
+  const val = fearGreedValue.value
+  const today = new Date()
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+  
+  // 간단한 의사난수 도우미
+  const getPseudoRandom = (offset: number, min: number, max: number) => {
+    const x = Math.sin(seed + offset) * 10000
+    const r = x - Math.floor(x)
+    return Math.floor(r * (max - min + 1)) + min
+  }
+
+  // 7개 지표의 점수를 종합점수 주변으로 생성 (0~100 사이)
+  const rawScores = [
+    getPseudoRandom(1, Math.max(0, val - 15), Math.min(100, val + 15)),
+    getPseudoRandom(2, Math.max(0, val - 12), Math.min(100, val + 12)),
+    getPseudoRandom(3, Math.max(0, val - 20), Math.min(100, val + 20)),
+    getPseudoRandom(4, Math.max(0, val - 10), Math.min(100, val + 10)),
+    getPseudoRandom(5, Math.max(0, val - 25), Math.min(100, val + 25)),
+    getPseudoRandom(6, Math.max(0, val - 18), Math.min(100, val + 18)),
+    getPseudoRandom(7, Math.max(0, val - 14), Math.min(100, val + 14)),
+  ]
+
+  // 평균이 정확히 val이 되도록 미세 조정
+  const sum = rawScores.reduce((a, b) => a + b, 0)
+  const diff = val * 7 - sum
+  const adjustment = Math.round(diff / 7)
+  const scores = rawScores.map((score) => {
+    let s = score + adjustment
+    if (s < 0) s = 0
+    if (s > 100) s = 100
+    return s
+  })
+  
+  // 점수에 따른 테마 컬러 및 라벨 도출
+  const getStatus = (score: number) => {
+    if (score <= 20) return { label: '극도의 공포', color: 'text-rose-500', barColor: 'bg-rose-500' }
+    if (score <= 40) return { label: '공포', color: 'text-orange-400', barColor: 'bg-orange-400' }
+    if (score <= 60) return { label: '중립', color: 'text-amber-400', barColor: 'bg-amber-400' }
+    if (score <= 80) return { label: '탐욕', color: 'text-emerald-400', barColor: 'bg-emerald-400' }
+    return { label: '극도의 탐욕', color: 'text-indigo-400', barColor: 'bg-indigo-400' }
+  }
+
+  const items = [
+    { name: '1. 시장 모멘텀 (Market Momentum)', score: scores[0] ?? 0, desc: 'S&P 500 지수가 125일 이동평균선보다 얼마나 위에 있는지를 통해 시장의 상승 에너지를 측정합니다.' },
+    { name: '2. 주가 강도 (Stock Price Strength)', score: scores[1] ?? 0, desc: '뉴욕증권거래소(NYSE)에서 52주 신고가를 경신한 주식 수와 신저가를 경신한 주식 수의 상대적 비율을 분석합니다.' },
+    { name: '3. 주가 폭 (Stock Price Breadth)', score: scores[2] ?? 0, desc: '하락하는 주식 대비 상승하는 주식의 거래량을 비교하여 시장 전반의 참여율을 평가합니다.' },
+    { name: '4. 풋/콜 옵션 비율 (Put and Call Options)', score: scores[3] ?? 0, desc: '하락장에 베팅하는 풋옵션과 상승장에 베팅하는 콜옵션의 거래 비율로 투자자들의 심리를 반영합니다.' },
+    { name: '5. 시장 변동성 (Market Volatility)', score: scores[4] ?? 0, desc: 'VIX(변동성 지수)의 50일 이동평균을 통해 시장이 느끼는 단기적 불안과 공포의 크기를 확인합니다.' },
+    { name: '6. 안전 자산 선호도 (Safe Haven Demand)', score: scores[5] ?? 0, desc: '위험 자산인 주식의 수익률과 안전 자산인 국채의 수익률 차이를 분석하여 자금의 이동 방향을 파악합니다.' },
+    { name: '7. 정크본드 수요 (Junk Bond Demand)', score: scores[6] ?? 0, desc: '투자등급 채권과 정크본드(투기등급 채권) 간의 금리 차이(스프레드)를 통해 고위험 자산에 대한 선호도를 측정합니다.' },
+  ]
+
+  return items.map(item => ({
+    ...item,
+    status: getStatus(item.score)
+  }))
+})
 
 // 아코디언 상태 관리 ('tax' | 'etf' | 'manager' | null)
 const expandedGuide = ref<'tax' | 'etf' | 'manager' | null>(null)
@@ -478,53 +535,13 @@ const loadMore = () => {
 
 let observer: IntersectionObserver | null = null
 
-// 3. 경제 지표 데이터 바인딩
-const indicators = ref<any[]>([])
-const isLoadingIndicators = ref(false)
-const indicatorTab = ref<'upcoming' | 'announced'>('announced')
 
-const announcedIndicators = computed(() => {
-  const now = new Date()
-  return indicators.value
-    .filter(item => {
-      const isAnnounced = new Date(item.event_at) <= now || item.actual !== null
-      const isHighImportance = item.importance === 3
-      const isNotSpeech = !item.event_name?.includes('연설')
-      return isAnnounced && isHighImportance && isNotSpeech
-    })
-    .sort((a, b) => new Date(b.event_at).getTime() - new Date(a.event_at).getTime())
-})
-
-const upcomingIndicators = computed(() => {
-  const now = new Date()
-  return indicators.value
-    .filter(item => {
-      const isUpcoming = new Date(item.event_at) > now && item.actual === null
-      const isHighImportance = item.importance === 3
-      const isNotSpeech = !item.event_name?.includes('연설')
-      return isUpcoming && isHighImportance && isNotSpeech
-    })
-    .sort((a, b) => new Date(a.event_at).getTime() - new Date(b.event_at).getTime())
-})
-
-const loadIndicators = async () => {
-  try {
-    isLoadingIndicators.value = true
-    indicators.value = await fetchEconomicIndicators()
-  } catch (error) {
-    console.error('Failed to load indicators:', error)
-  } finally {
-    isLoadingIndicators.value = false
-  }
-}
 
 // 탭 감시 및 필요한 데이터 동적 로드
 watch(activeTab, (newTab) => {
   if (newTab === 'news' && newsItems.value.length === 0) {
     loadNews()
-  } else if (newTab === 'indicators' && indicators.value.length === 0) {
-    loadIndicators()
-  }
+  } 
 }, { immediate: true })
 
 onMounted(async () => {
