@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
         last_price: parseInt((item.closePrice || '0').replace(/,/g, '')),
         change_amount: parseInt((item.compareToPreviousClosePrice || '0').replace(/,/g, '')),
         change_rate: parseFloat((item.fluctuationsRatio || '0')),
-        market_cap: parseInt((item.marketValue || '0').replace(/,/g, '')),
+        market_cap: Math.round(parseInt((item.marketValue || '0').replace(/,/g, ''), 10) / 10) || 0,
         updated_at: new Date().toISOString()
       }
     })
