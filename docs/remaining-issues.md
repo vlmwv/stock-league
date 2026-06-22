@@ -73,7 +73,7 @@
   - ✅ `npm run typecheck` — **66 → 0 errors** (2026-06-17 전량 수정 완료). `indices.get.ts` 32건은 `FALLBACK_INDICES` `as const` 튜플화로 일괄 해소, `never` 계열은 `(client as any)` 캐스팅, 서버 라우트 `user`는 401 가드 추가, `WishlistItem.group_id` `number|null` 모델 보정 등. 부수로 `daily.vue`의 `pending`(항상 undefined였던 잠재버그) 정상 노출.
   - ✅ `npm run lint` — `lint:fix`(353→46) 후 잔여 **46 → 0** 전량 정리 완료. 미사용 컴포저블 구조분해/지역변수 제거, 미사용 인자 정리(미들웨어 `()`, `catch {}`), `defineProps` 무명화, `offset` 무용 초기화 제거, 죽은 함수(prevMonth/nextMonth·handleToggleHeart) 제거, `appDataDir/**` 린트 제외.
 - **잔여(점진)**:
-  1. ✅ typecheck 66건 → 0 (완료). 추후 `app/types/database.types.ts`(supabase gen types) 도입 시 `(client as any)` 캐스팅을 정식 타입으로 대체 가능.
+  1. ✅ typecheck 66건 → 0 (완료). 단, 현재 `@nuxtjs/supabase`가 `~/types/database.types.ts`를 참조하나 파일이 없어 typecheck 시 `Database = unknown` **경고**가 출력됨(에러 아님, 통과에는 영향 없음). 추후 `app/types/database.types.ts`(supabase gen types) 도입 시 이 경고가 해소되고 `(client as any)` 캐스팅을 정식 타입으로 대체 가능.
   2. ✅ lint 0건 달성(완료). 추후 완화 규칙(`no-explicit-any` 등) 단계적 복원 가능.
   3. (선택) CI에 typecheck/lint/test 편입.
 - **참조**: analysis §3(🟡), §5-10.
