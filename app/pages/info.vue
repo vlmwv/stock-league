@@ -115,29 +115,15 @@
             </p>
           </div>
 
-          <!-- 측정 기준 안내 아코디언 -->
+          <!-- 측정 기준 안내 (상시 노출) -->
           <div class="border border-white/5 rounded-2xl overflow-hidden bg-white/[0.01]">
-            <button 
-              class="w-full flex items-center justify-between p-3 text-[10px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition-colors"
-              @click="showMeasurementInfo = !showMeasurementInfo"
-            >
-              <div class="flex items-center gap-1.5">
-                <UIcon name="i-heroicons-information-circle" class="w-3.5 h-3.5 text-indigo-400" />
-                <span>오늘의 지수 측정 기준 보기</span>
-              </div>
-              <UIcon 
-                :name="showMeasurementInfo ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" 
-                class="w-3.5 h-3.5 text-slate-400 transition-transform duration-300"
-              />
-            </button>
-            
-            <div 
-              v-show="showMeasurementInfo" 
-              class="p-4 border-t border-white/5 bg-slate-950/40 text-[10px] text-slate-400 space-y-3.5 leading-relaxed animate-fade-in"
-            >
+            <div class="p-4 bg-slate-950/40 text-[10px] text-slate-400 space-y-3.5 leading-relaxed">
               <div class="font-bold text-slate-300 border-b border-white/5 pb-2">
-                <p class="mb-1">※ 탐욕·공포 지수는 다음 7가지 주요 시장 지표를 종합하여 산출됩니다.</p>
-                <p class="text-[9px] text-slate-500 font-normal">각 지표는 동일한 가중치(약 14.3%)로 종합 지수에 반영됩니다.</p>
+                <p class="mb-1 text-slate-200 flex items-center gap-1.5 font-black">
+                  <UIcon name="i-heroicons-information-circle" class="w-3.5 h-3.5 text-indigo-400" />
+                  <span>탐욕·공포 지수 수치 측정 기준 (7대 지표)</span>
+                </p>
+                <p class="text-[9px] text-slate-500 font-normal">※ 7가지 주요 시장 지표를 종합하여 산출하며, 각 지표는 동일한 가중치(약 14.3%)로 종합 지수에 반영됩니다.</p>
               </div>
               <div class="space-y-3">
                 <div v-for="item in fearGreedDetails" :key="item.name" class="flex flex-col gap-1">
@@ -376,8 +362,7 @@ const activeTab = ref<'stock' | 'news' | 'indicators'>(
   (route.query.tab as any) === 'news' ? 'news' : 'stock'
 )
 
-// 탐욕·공포 지수 측정 기준 표시 상태
-const showMeasurementInfo = ref(false)
+
 
 const fearGreedDetails = computed(() => {
   const val = fearGreedValue.value

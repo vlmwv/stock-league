@@ -412,6 +412,14 @@ onMounted(() => {
 
           <!-- 추천 요약 카드 (극도로 간소화된 모던 뱃지 - 잘림 0%) -->
           <div v-if="cell.summaryInfo" class="mt-2 w-full flex flex-col items-center gap-1.5 relative z-10">
+            <!-- 대표 종목명 표시 -->
+            <span 
+              class="text-[10px] font-black text-slate-700 dark:text-slate-300 truncate max-w-full text-center"
+              :title="cell.summaryInfo.repStockName"
+            >
+              {{ cell.summaryInfo.repStockName }}
+            </span>
+
             <!-- 대표 수익률 표시 (기호와 숫자만 깔끔하게) -->
             <span 
               class="text-[9.5px] font-black tracking-tight flex items-center gap-0.5 px-2 py-0.5 rounded-lg shadow-sm"
