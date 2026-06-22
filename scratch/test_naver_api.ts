@@ -1,29 +1,23 @@
-import dotenv from 'dotenv'
+import fetch from 'node-fetch'
 
-dotenv.config()
-
-async function run() {
-  const codes = '005930,000660,373220,035420,035720'
-  const naverApiUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${codes}`
-  
-  console.log(`Fetching from Naver API: ${naverApiUrl}`)
-  try {
-    const response = await fetch(naverApiUrl)
-    if (!response.ok) {
-      console.error(`Error status: ${response.status}`)
-      return
+async function test() {
+  const category = 'KOSPI'
+  const url = `https://m.stock.naver.com/api/stocks/marketValue/${category}?page=1&pageSize=100`
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
-    const data = await response.json()
-    console.log('API Response structure (top-level keys):', Object.keys(data))
-    if (data.datas) {
-      console.log('Samsung Electronics:', JSON.stringify(data.datas[0], null, 2))
-      console.log('SK Hynix:', JSON.stringify(data.datas[1], null, 2))
-    } else {
-      console.log('No datas array found in response:', data)
-    }
-  } catch (error) {
-    console.error('Fetch error:', error)
+  })
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${category} top 100`)
   }
+  const data = (await res.json()) as any
+  const stocks = data.stocks || []
+  
+  console.log('Top 10 Stocks from Naver API:')
+  stocks.slice(0, 10).forEach((s: any, idx: number) => {
+    console.log(`${idx + 1}. ${s.stockName} (${s.itemCode}): marketValue=${s.marketValue}, closePrice=${s.closePrice}`)
+  })
 }
 
-run()
+test().catch(console.error)

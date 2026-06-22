@@ -13,21 +13,19 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-async function check() {
+async function checkLogs() {
   const { data, error } = await supabase
-    .from('stocks')
-    .select('id, name, code, sector, market_cap_rank, market_cap')
-    .order('market_cap_rank', { ascending: true })
-    .limit(30)
+    .from('batch_execution_logs')
+    .select('*')
+    .order('started_at', { ascending: false })
+    .limit(10)
 
   if (error) {
-    console.error('Error fetching stocks:', error)
+    console.error('Error fetching logs:', error)
   } else {
-    console.log('Top 30 stocks in DB:')
-    data.forEach(s => {
-      console.log(`- ${s.name} (${s.code}): sector=${s.sector}, rank=${s.market_cap_rank}, market_cap=${s.market_cap}`)
-    })
+    console.log('Recent batch execution logs:')
+    console.log(JSON.stringify(data, null, 2))
   }
 }
 
-check()
+checkLogs()
