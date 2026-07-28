@@ -7,17 +7,19 @@ export const useStockClient = () => {
   const user = useSupabaseUser()
   const toast = useToast()
 
-  // 캐시된 user가 없으면 getSession()으로 세션의 유저 객체를 직접 조회한다.
   // 클라이언트 측 인증 판정의 단일 진입점 — 페이지/컴포저블에서 동일 블록을 복제하지 말 것.
+  // useSupabaseUser()가 id 없는 부분 객체로 채워지는 경우가 있어(헤더는 로그인으로 보이지만 id가 없음
+  // → resolveUserId가 null이 되어 "로그인 필요"로 오판), 유효한 id가 없으면 auth.getUser()로
+  // 서버 검증해 정식 user(id 포함)를 확보한다. getSession()은 같은 부분 세션을 반환할 수 있어 쓰지 않는다.
   const resolveUser = async () => {
-    if (user.value) return user.value
+    if (user.value?.id) return user.value
     try {
-      const { data, error } = await client.auth.getSession()
+      const { data, error } = await client.auth.getUser()
       if (error) {
-        console.warn('[useStockClient] Failed to resolve auth session:', error.message)
+        console.warn('[useStockClient] Failed to resolve user:', error.message)
         return null
       }
-      return data.session?.user ?? null
+      return data.user ?? null
     } catch (e) {
       console.error('[useStockClient] resolveUser exception:', e)
       return null

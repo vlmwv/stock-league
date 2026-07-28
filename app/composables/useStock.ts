@@ -2,7 +2,7 @@
 // 오늘의 종목/추천/찜/예측/프로필/랭킹/뉴스/AI이력은 각 use* 컴포저블로 분리되어 있으며,
 // 여기서는 도메인을 가로지르는 오케스트레이션(refreshAll·watch(user)·allPredicted)만 담당한다.
 export const useStock = () => {
-  const { user } = useStockClient()
+  const { user, resolveUserId } = useStockClient()
 
   // 오늘의 종목/추천/시총/타겟가 + 리그 상태 + 자동 새로고침 (분리된 useDailyStocks)
   const daily = useDailyStocks()
@@ -43,15 +43,20 @@ export const useStock = () => {
 
   // 사용자 상태 감시 (클라이언트 측에서만 1회 실행 유도)
   if (import.meta.client) {
-    watch(user, async (newUser, oldUser) => {
-      // 실제 유저 아이디가 변경된 경우에만 동기화
-      if (newUser?.id && newUser.id !== oldUser?.id) {
+    // useSupabaseUser()가 id 없는 부분 객체로 채워질 수 있어 newUser.id 비교가 동작하지 않는다.
+    // user 변화를 트리거로만 쓰고, 실제 식별은 resolveUserId(서버 검증 폴백 포함)로 판정한다.
+    let syncedUserId: string | null = null
+    watch(user, async () => {
+      const userId = await resolveUserId()
+      if (userId && userId !== syncedUserId) {
+        syncedUserId = userId
         console.log('[useStock] User session changed, syncing data...')
         await Promise.all([
           fetchWishlist(),
           fetchPredictions()
         ])
-      } else if (!newUser && oldUser) {
+      } else if (!userId && syncedUserId) {
+        syncedUserId = null
         console.log('[useStock] User logged out, clearing data')
         hearts.value = []
         myPredictions.value = []
