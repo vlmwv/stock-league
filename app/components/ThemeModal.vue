@@ -61,14 +61,14 @@
               <div class="text-right shrink-0">
                 <div 
                   class="text-xs font-black tracking-tight flex items-center gap-0.5 justify-end"
-                  :class="stock.change_rate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                  :class="changeTextClass(stock.change_rate >= 0)"
                 >
                   <span class="text-[10px]">{{ stock.change_rate >= 0 ? '▲' : '▼' }}</span>
                   {{ Math.abs(stock.change_amount).toLocaleString() }}
                 </div>
                 <div 
                   class="text-[9px] font-bold mt-0.5 opacity-80"
-                  :class="stock.change_rate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                  :class="changeTextClass(stock.change_rate >= 0)"
                 >
                   {{ stock.change_rate >= 0 ? '+' : '' }}{{ stock.change_rate }}%
                 </div>

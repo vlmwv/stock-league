@@ -69,7 +69,7 @@
               <!-- 3라인: 변동율 (다른 줄로 완전히 분리해 표시) -->
               <span 
                 class="text-[8px] font-mono font-black tracking-tighter flex items-center leading-none mt-1"
-                :class="indexItem.changeRate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                :class="changeTextClass(indexItem.changeRate >= 0)"
               >
                 <UIcon :name="indexItem.changeRate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" class="w-1.5 h-1.5 mr-0.5 flex-shrink-0" />
                 {{ indexItem.changeRate >= 0 ? '+' : '' }}{{ indexItem.changeRate }}%
@@ -194,7 +194,7 @@
                     </div>
                     <div 
                       class="text-[10px] font-black leading-none mt-1"
-                      :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                      :class="changeTextClass(stock.change_amount >= 0)"
                     >
                       {{ stock.change_amount > 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }}
                       <span class="opacity-60">({{ stock.change_rate }}%)</span>

@@ -78,5 +78,9 @@ export const cleanLlmSummary = (text: string): string => {
   return text.replace(/^\s*(?:\[|\()GEMINI 요약(?:\]|\))\s*/gi, '').trim()
 }
 
+// 상승/하락 텍스트 색상 클래스. 한국 관례상 상승=로즈(적색 계열), 하락=인디고(청색 계열).
+export const changeTextClass = (isUp: boolean): string =>
+  isUp ? 'text-rose-400' : 'text-indigo-400'
+
 
 

@@ -135,7 +135,7 @@ v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center g
               </div>
               <div 
                 class="text-[10px] font-bold"
-                :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                :class="changeTextClass(stock.change_amount >= 0)"
               >
                 {{ stock.change_amount >= 0 ? '+' : '' }}{{ stock.change_amount.toLocaleString() }} ({{ stock.change_rate }}%)
               </div>

@@ -99,7 +99,7 @@
                 <span class="w-1 h-1 rounded-full bg-slate-800"/>
                 <span 
                   class="text-[10px] font-black"
-                  :class="item.prediction_type === 'up' ? 'text-rose-400' : 'text-indigo-400'"
+                  :class="changeTextClass(item.prediction_type === 'up')"
                 >
                   {{ item.prediction_type === 'up' ? '상승' : '하락' }} 예측
                 </span>

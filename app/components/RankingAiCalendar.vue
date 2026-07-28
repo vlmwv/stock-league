@@ -1,282 +1,29 @@
 <script setup lang="ts">
 const router = useRouter()
-const { fetchAiHistoryMonthly } = useStock()
 
-// 달력 상태 관리
-const today = new Date()
-const currentYear = ref(today.getFullYear())
-const currentMonth = ref(today.getMonth() + 1) // 1-indexed
+// 달력 상태·그리드 계산은 useAiCalendar가 담당
+const {
+  currentYear,
+  currentMonth,
+  loading,
+  yearOptions,
+  calendarCells,
+  activeDateCell,
+  todayStr,
+  loadMonthlyData,
+  goToday,
+  handleCellClick
+} = useAiCalendar()
 
-const loading = ref(true)
-const monthlyHistory = ref<any[]>([])
-
-// 연도 옵션 계산 (2024년 ~ 현재 + 2년)
-const yearOptions = computed(() => {
-  const startYear = 2024
-  const endYear = today.getFullYear() + 2
-  const options = []
-  for (let y = startYear; y <= endYear; y++) {
-    options.push(y)
-  }
-  return options
-})
-
-// 한국 주요 공휴일 정의 (2024년 ~ 2028년)
-const KOREAN_HOLIDAYS: Record<string, string> = {
-  // 2024년
-  '2024-01-01': '신정',
-  '2024-02-09': '설날 연휴',
-  '2024-02-10': '설날',
-  '2024-02-11': '설날 연휴',
-  '2024-02-12': '대체공휴일',
-  '2024-03-01': '삼일절',
-  '2024-04-10': '총선일',
-  '2024-05-05': '어린이날',
-  '2024-05-06': '대체공휴일',
-  '2024-05-15': '부처님오신날',
-  '2024-06-06': '현충일',
-  '2024-08-15': '광복절',
-  '2024-09-16': '추석 연휴',
-  '2024-09-17': '추석',
-  '2024-09-18': '추석 연휴',
-  '2024-10-03': '개천절',
-  '2024-10-09': '한글날',
-  '2024-12-25': '성탄절',
-
-  // 2025년
-  '2025-01-01': '신정',
-  '2025-01-28': '설날 연휴',
-  '2025-01-29': '설날',
-  '2025-01-30': '설날 연휴',
-  '2025-03-01': '삼일절',
-  '2025-03-03': '대체공휴일',
-  '2025-05-05': '어린이날/부처님오신날',
-  '2025-05-06': '대체공휴일',
-  '2025-06-06': '현충일',
-  '2025-08-15': '광복절',
-  '2025-10-03': '개천절',
-  '2025-10-05': '추석 연휴',
-  '2025-10-06': '추석/대체공휴일',
-  '2025-10-07': '추석 연휴',
-  '2025-10-08': '대체공휴일',
-  '2025-10-09': '한글날',
-  '2025-12-25': '성탄절',
-
-  // 2026년
-  '2026-01-01': '신정',
-  '2026-02-16': '설날 연휴',
-  '2026-02-17': '설날',
-  '2026-02-18': '설날 연휴',
-  '2026-03-01': '삼일절',
-  '2026-03-02': '대체공휴일',
-  '2026-05-05': '어린이날',
-  '2026-05-24': '부처님오신날',
-  '2026-05-25': '대체공휴일',
-  '2026-06-06': '현충일',
-  '2026-08-15': '광복절',
-  '2026-08-17': '대체공휴일',
-  '2026-09-24': '추석 연휴',
-  '2026-09-25': '추석',
-  '2026-09-26': '추석 연휴',
-  '2026-10-03': '개천절',
-  '2026-10-05': '대체공휴일',
-  '2026-10-09': '한글날',
-  '2026-12-25': '성탄절',
-
-  // 2027년
-  '2027-01-01': '신정',
-  '2027-02-06': '설날 연휴',
-  '2027-02-07': '설날',
-  '2027-02-08': '설날 연휴',
-  '2027-02-09': '대체공휴일',
-  '2027-03-01': '삼일절',
-  '2027-05-05': '어린이날',
-  '2027-05-13': '부처님오신날',
-  '2027-06-06': '현충일',
-  '2027-06-07': '대체공휴일',
-  '2027-08-15': '광복절',
-  '2027-08-16': '대체공휴일',
-  '2027-09-14': '추석 연휴',
-  '2027-09-15': '추석',
-  '2027-09-16': '추석 연휴',
-  '2027-10-03': '개천절',
-  '2027-10-04': '대체공휴일',
-  '2027-10-09': '한글날',
-  '2027-10-11': '대체공휴일',
-  '2027-12-25': '성탄절',
-
-  // 2028년
-  '2028-01-01': '신정',
-  '2028-01-26': '설날 연휴',
-  '2028-01-27': '설날',
-  '2028-01-28': '설날 연휴',
-  '2028-03-01': '삼일절',
-  '2028-05-02': '부처님오신날',
-  '2028-05-05': '어린이날',
-  '2028-06-06': '현충일',
-  '2028-08-15': '광복절',
-  '2028-10-02': '추석 연휴',
-  '2028-10-03': '추석/개천절',
-  '2028-10-04': '추석 연휴',
-  '2028-10-05': '대체공휴일',
-  '2028-10-09': '한글날',
-  '2028-12-25': '성탄절'
-}
-
-// 날짜별 데이터 그룹화
-const historyByDate = computed(() => {
-  const map = new Map<string, any[]>()
-  monthlyHistory.value.forEach(item => {
-    const existing = map.get(item.game_date)
-    if (existing) {
-      existing.push(item)
-    } else {
-      map.set(item.game_date, [item])
-    }
-  })
-  return map
-})
-
-// 월간 데이터를 비동기로 로드
-const loadMonthlyData = async () => {
-  loading.value = true
-  try {
-    const data = await fetchAiHistoryMonthly(currentYear.value, currentMonth.value)
-    monthlyHistory.value = data
-    // 데이터 로드 완료 후 기본 셀 선택
-    setTimeout(selectDefaultCell, 50)
-  } catch (error) {
-    console.error('[RankingAiCalendar] Failed to load monthly AI history:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 달력 그리드 일자 계산
-const calendarCells = computed(() => {
-  const year = currentYear.value
-  const month = currentMonth.value
-  
-  // 해당 월 1일의 요일 (0: 일요일, ..., 6: 토요일)
-  const firstDayOfWeek = new Date(year, month - 1, 1).getDay()
-  // 해당 월의 총 일수
-  const daysInMonth = new Date(year, month, 0).getDate()
-  
-  const cells: Array<{
-    day: number | null
-    dateStr: string | null
-    isCurrentMonth: boolean
-    items: any[]
-    summaryInfo: {
-      theme: string
-      repStockName: string
-      repStockRate: number
-      totalCount: number
-      winCount: number
-    } | null
-    holidayName: string | null
-  }> = []
-  
-  // 1일 시작 전 빈 칸 채우기
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null, holidayName: null })
-  }
-  
-  // 해당 월의 날짜 채우기
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const dayItems = historyByDate.value.get(dateStr) || []
-    
-    let summaryInfo = null
-    if (dayItems.length > 0) {
-      // 1) 대표 테마: 첫 번째 종목 혹은 ai_score가 가장 높은 종목의 섹터(sector)
-      const sortedByScore = [...dayItems].sort((a, b) => b.ai_score - a.ai_score)
-      const repStock = sortedByScore[0]
-      const theme = repStock.sector && repStock.sector !== '-' ? repStock.sector : '개별이슈'
-      
-      // 2) 대표 종목명 및 누적 수익률 (수익률이 가장 우수하거나 AI 점수가 높은 종목)
-      const repStockName = repStock.name
-      const repStockRate = repStock.cumulative_change_rate
-      
-      // 3) 승률 통계 (ai_result === 'win' 이거나 누적 수익률이 양수인 경우 승리로 처리)
-      const totalCount = dayItems.length
-      const winCount = dayItems.filter(item => item.ai_result === 'win' || item.cumulative_change_rate > 0).length
-      
-      summaryInfo = {
-        theme,
-        repStockName,
-        repStockRate,
-        totalCount,
-        winCount
-      }
-    }
-    
-    // 한국 공휴일 정보 획득
-    const holidayName = KOREAN_HOLIDAYS[dateStr] || null
-    
-    cells.push({
-      day: d,
-      dateStr,
-      isCurrentMonth: true,
-      items: dayItems,
-      summaryInfo,
-      holidayName
-    })
-  }
-  
-  // 7열 맞추기 위해 뒷부분 빈 칸 채우기
-  const totalCells = Math.ceil(cells.length / 7) * 7
-  const fillCount = totalCells - cells.length
-  for (let i = 0; i < fillCount; i++) {
-    cells.push({ day: null, dateStr: null, isCurrentMonth: false, items: [], summaryInfo: null, holidayName: null })
-  }
-  
-  return cells
-})
-
-const goToday = () => {
-  currentYear.value = today.getFullYear()
-  currentMonth.value = today.getMonth() + 1
-  loadMonthlyData()
-}
-
-// 상세 정보 모달 제어
+// 상세 정보 모달 제어 (뷰/인터랙션 관심사)
 const detailModalOpen = ref(false)
 const selectedCell = ref<any>(null)
-
-// 선택된 날짜 상세 패널 상태
-const activeDateCell = ref<any>(null)
-
-// 데이터가 들어있는 오늘 또는 가장 빠른 셀 기본 선택
-const selectDefaultCell = () => {
-  if (calendarCells.value && calendarCells.value.length > 0) {
-    const todayCell = calendarCells.value.find(c => c.dateStr === todayStr && c.summaryInfo)
-    if (todayCell) {
-      activeDateCell.value = todayCell
-      return
-    }
-    const dataCell = calendarCells.value.find(c => c.summaryInfo)
-    if (dataCell) {
-      activeDateCell.value = dataCell
-    } else {
-      activeDateCell.value = null
-    }
-  }
-}
 
 const openDetailModal = (cell: any) => {
   if (!cell.summaryInfo) return
   selectedCell.value = cell
   detailModalOpen.value = true
 }
-
-const handleCellClick = (cell: any) => {
-  if (!cell.summaryInfo) return
-  activeDateCell.value = cell
-}
-
-// 오늘 날짜 문자열 (YYYY-MM-DD)
-const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
 // 주말 및 공휴일 여부 체크
 const isWeekendOrHoliday = (cell: any) => {
@@ -288,11 +35,11 @@ const isWeekendOrHoliday = (cell: any) => {
 // 수익률에 따른 카드 동적 클래스 반환
 const getCellBgClass = (cell: any) => {
   if (!cell.day) return 'bg-slate-100/50 dark:bg-slate-950/20 opacity-30 pointer-events-none'
-  
+
   if (isWeekendOrHoliday(cell)) {
     return 'bg-slate-100/70 dark:bg-slate-950/40 opacity-60 border-dashed border-slate-200 dark:border-white/5'
   }
-  
+
   if (cell.summaryInfo) {
     const rate = cell.summaryInfo.repStockRate
     if (rate > 0) {
@@ -303,7 +50,7 @@ const getCellBgClass = (cell: any) => {
       return 'bg-gradient-to-br from-slate-50 via-slate-100/30 to-slate-50 dark:from-slate-500/5 dark:via-slate-900/40 dark:to-slate-900/10 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 cursor-pointer'
     }
   }
-  
+
   return 'bg-white/90 dark:bg-slate-900/15 border-slate-200/60 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-900/25'
 }
 
@@ -578,7 +325,7 @@ onMounted(() => {
                     <div class="flex flex-col items-center justify-center">
                       <span 
                         class="text-[10px] font-black tracking-tight"
-                        :class="item.cumulative_change_rate >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                        :class="changeTextClass(item.cumulative_change_rate >= 0)"
                       >
                         {{ item.cumulative_change_rate >= 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
                       </span>

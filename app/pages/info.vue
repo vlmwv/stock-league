@@ -363,21 +363,13 @@
 </template>
 
 <script setup lang="ts">
-import { repairNewsUrl } from '~/utils/stock'
-
-const { 
-  fetchNews, 
-  fetchEconomicIndicators, 
-  toggleHeart, 
-  hearts,
-  fetchWishlist
-} = useStock()
+const { fetchNews, fetchEconomicIndicators, toggleHeart, hearts, fetchWishlist } = useStock()
 
 const route = useRoute()
 
 // 탭 정보 ('stock' | 'news' | 'indicators')
 const activeTab = ref<'stock' | 'news' | 'indicators'>(
-  (route.query.tab as any) === 'indicators' ? 'indicators' : 
+  (route.query.tab as any) === 'indicators' ? 'indicators' :
   (route.query.tab as any) === 'news' ? 'news' : 'stock'
 )
 
@@ -391,23 +383,18 @@ const toggleAccordion = (section: 'tax' | 'etf' | 'manager') => {
   }
 }
 
-// 1. 주식 정보 데이터 바인딩
+// 뉴스 피드(페이징)·경제 지표·공포/탐욕 지수는 각 컴포저블이 담당
+const {
+  newsItems, isLoading, totalCount, hasMore, isFetchingMore,
+  loadNews, loadMore, navigateToNews
+} = useNewsFeed(fetchNews)
 
+const {
+  indicators, isLoadingIndicators, indicatorTab,
+  announcedIndicators, upcomingIndicators, loadIndicators
+} = useEconomicIndicators(fetchEconomicIndicators)
 
-
-
-
-// 2. 최신 뉴스 데이터 바인딩
-const newsItems = ref<any[]>([])
-const isLoading = ref(true)
-const totalCount = ref(0)
-
-// 페이징 상태
-const page = ref(1)
-const pageSize = 20
-const hasMore = ref(true)
-const isFetchingMore = ref(false)
-const sentinel = ref<HTMLElement | null>(null)
+const { fearGreedValue, fearGreedStatus } = useFearGreedIndex()
 
 const isHearted = (id: number) => hearts.value.includes(Number(id))
 
@@ -415,108 +402,26 @@ const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '-'
-  
+
   const now = new Date()
   const diff = now.getTime() - date.getTime()
-  
+
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
 
   if (minutes < 1) return '방금 전'
   if (minutes < 60) return `${minutes}분 전`
   if (hours < 24) return `${hours}시간 전`
-  
+
   return date.toLocaleDateString('ko-KR', {
     month: 'short',
     day: 'numeric'
   })
 }
 
-const navigateToNews = (item: any) => {
-  const url = repairNewsUrl(item.url, item.stockCode)
-  if (url) {
-    window.open(url, '_blank')
-  }
-}
-
-const loadNews = async (isAppend = false) => {
-  try {
-    if (!isAppend) {
-      isLoading.value = true
-      page.value = 1
-      hasMore.value = true
-    } else {
-      isFetchingMore.value = true
-    }
-
-    const response = await fetchNews(pageSize, page.value, 'all')
-    const data = response.data || []
-    totalCount.value = response.count || 0
-    
-    if (isAppend) {
-      newsItems.value = [...newsItems.value, ...data]
-    } else {
-      newsItems.value = data
-    }
-
-    if (data.length < pageSize) {
-      hasMore.value = false
-    }
-  } catch (error) {
-    console.error('Failed to load news:', error)
-  } finally {
-    isLoading.value = false
-    isFetchingMore.value = false
-  }
-}
-
-const loadMore = () => {
-  if (!hasMore.value || isFetchingMore.value || isLoading.value) return
-  page.value++
-  loadNews(true)
-}
-
+// 무한 스크롤 감지용 sentinel + observer (DOM/라이프사이클 관심사)
+const sentinel = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
-
-// 3. 경제 지표 데이터 바인딩
-const indicators = ref<any[]>([])
-const isLoadingIndicators = ref(false)
-const indicatorTab = ref<'upcoming' | 'announced'>('announced')
-
-const announcedIndicators = computed(() => {
-  const now = new Date()
-  return indicators.value
-    .filter(item => {
-      const isAnnounced = new Date(item.event_at) <= now || item.actual !== null
-      const isHighImportance = item.importance === 3
-      const isNotSpeech = !item.event_name?.includes('연설')
-      return isAnnounced && isHighImportance && isNotSpeech
-    })
-    .sort((a, b) => new Date(b.event_at).getTime() - new Date(a.event_at).getTime())
-})
-
-const upcomingIndicators = computed(() => {
-  const now = new Date()
-  return indicators.value
-    .filter(item => {
-      const isUpcoming = new Date(item.event_at) > now && item.actual === null
-      const isHighImportance = item.importance === 3
-      const isNotSpeech = !item.event_name?.includes('연설')
-      return isUpcoming && isHighImportance && isNotSpeech
-    })
-    .sort((a, b) => new Date(a.event_at).getTime() - new Date(b.event_at).getTime())
-})
-
-const loadIndicators = async () => {
-  try {
-    isLoadingIndicators.value = true
-    indicators.value = await fetchEconomicIndicators()
-  } catch (error) {
-    console.error('Failed to load indicators:', error)
-  } finally {
-    isLoadingIndicators.value = false
-  }
-}
 
 // 탭 감시 및 필요한 데이터 동적 로드
 watch(activeTab, (newTab) => {
@@ -545,69 +450,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (observer) observer.disconnect()
-})
-
-const fearGreedValue = computed(() => {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = today.getMonth() + 1
-  const dd = today.getDate()
-  
-  // 날짜 기반 의사 난수 생성
-  const seed = (yyyy * 10000 + mm * 100 + dd)
-  const x = Math.sin(seed) * 10000
-  const randomVal = Math.floor((x - Math.floor(x)) * 40) + 40 // 40~80 사이 유도
-  return randomVal
-})
-
-const fearGreedStatus = computed(() => {
-  const val = fearGreedValue.value
-  if (val <= 20) {
-    return {
-      label: '극도의 공포',
-      english: 'Extreme Fear',
-      colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
-      gaugeColor: '#f43f5e',
-      bgColor: 'bg-rose-500/5',
-      tip: '🚨 시장에 공포가 가득합니다! 역사적으로 극도의 공포 구간은 매력적인 장기 매수 기회였습니다. 감정에 휩쓸려 패닉 셀을 하기보다 가치 있는 종목의 분할 매수를 검토해 보세요.'
-    }
-  } else if (val <= 40) {
-    return {
-      label: '공포',
-      english: 'Fear',
-      colorClass: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
-      gaugeColor: '#fb923c',
-      bgColor: 'bg-orange-400/5',
-      tip: '⚠️ 투자 심리가 위축되어 있습니다. 단기 변동성이 커질 수 있으니 레버리지 투자를 지양하고, 현금 비중을 유지하며 우량 자산 위주로 포트폴리오를 다듬을 때입니다.'
-    }
-  } else if (val <= 60) {
-    return {
-      label: '중립',
-      english: 'Neutral',
-      colorClass: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-      gaugeColor: '#fbbf24',
-      bgColor: 'bg-amber-400/5',
-      tip: '⚖️ 시장의 방향성이 탐색되는 중립 구간입니다. 호재와 악재가 팽팽히 맞서고 있으니 섣부른 추격 매수보다는 개별 기업의 펀더멘탈과 다가올 실적 발표에 주목하세요.'
-    }
-  } else if (val <= 80) {
-    return {
-      label: '탐욕',
-      english: 'Greed',
-      colorClass: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-      gaugeColor: '#34d399',
-      bgColor: 'bg-emerald-400/5',
-      tip: '📈 투자 심리가 활발한 탐욕 구간입니다. 단기적으로 추가 상승 여력이 있을 수 있지만, 과열 조짐이 서서히 보이기 시작하므로 신규 진입 시 철저한 분할 매수로 대응하세요.'
-    }
-  } else {
-    return {
-      label: '극도의 탐욕',
-      english: 'Extreme Greed',
-      colorClass: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
-      gaugeColor: '#818cf8',
-      bgColor: 'bg-indigo-400/5',
-      tip: '🔥 시장이 극도로 과열되었습니다! 남들이 탐욕을 부릴 때 두려워하라는 거장의 말처럼, 현재 구간에서는 무리한 추격 매수를 피하고 보유 자산의 일부 수익 실현을 고민해 볼 시점입니다.'
-    }
-  }
 })
 </script>
 

@@ -8,6 +8,25 @@ export interface RecPriceHistoryRow {
   close_price: number
 }
 
+export interface OhlcRow {
+  open_price?: number | null
+  high_price?: number | null
+  low_price?: number | null
+  close_price: number
+}
+
+// 시세 이력 한 행에서 OHLC를 구한다.
+// 과거 데이터라 open/high/low가 비어 있으면 종가(close_price)로 폴백한다.
+export const resolveOhlc = (row: OhlcRow) => {
+  const close = row.close_price
+  return {
+    open: row.open_price ?? close,
+    high: row.high_price ?? close,
+    low: row.low_price ?? close,
+    close
+  }
+}
+
 // 추천 항목들의 기준가(추천 전일 종가)를 찾기 위해 필요한 시세 이력을 한 번에 조회한다.
 // 주말/공휴일을 고려해 가장 이른 game_date보다 10일 더 이전부터 조회한다.
 export const loadRecPriceHistory = async (

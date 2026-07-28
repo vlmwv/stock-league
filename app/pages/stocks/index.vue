@@ -160,7 +160,7 @@
                   <span class="text-slate-300 shrink-0">{{ stock.last_price.toLocaleString() }}</span>
                   <span
                     class="font-black flex items-center gap-0.5 shrink-0"
-                    :class="stock.change_amount >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                    :class="changeTextClass(stock.change_amount >= 0)"
                   >
                     <span class="text-[10px]">{{ stock.change_amount >= 0 ? '▲' : '▼' }}</span>
                     <span>{{ Math.abs(stock.change_amount).toLocaleString() }}</span>

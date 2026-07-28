@@ -103,7 +103,7 @@ onMounted(() => {
             <div class="flex items-center gap-1 mt-1">
               <span 
                 class="text-[9px] font-black"
-                :class="Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? 'text-rose-400' : 'text-indigo-400'"
+                :class="changeTextClass(Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0)"
               >
                 {{ Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? '▲' : '▼' }}
                 {{ Math.abs(Number(calculateChangeRate(stock.rec_price, stock.last_price))) }}%
