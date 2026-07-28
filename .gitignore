@@ -27,3 +27,6 @@ logs
 # Local DB
 app/data.db
 *.db
+
+# Supabase CLI local cache
+supabase/.temp/
