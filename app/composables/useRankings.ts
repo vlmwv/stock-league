@@ -1,3 +1,5 @@
+import { computeCompetitionRank } from '~/utils/ranking'
+
 // 전체(역대) 랭킹 조회 및 공동 순위(Competition Ranking) 계산.
 export const useRankings = () => {
   const { client } = useStockClient()
@@ -33,7 +35,8 @@ export const useRankings = () => {
       return {
         user_id: p.id,
         username: p.username,
-        full_name: p.full_name,
+        // 실명 표시를 선택하지 않은 사용자의 원본 실명은 노출하지 않는다(PII 보호)
+        full_name: p.display_name_type === 'full_name' ? p.full_name : null,
         display_name_type: p.display_name_type,
         displayName: p.display_name_type === 'full_name' ? (p.full_name || p.username) : p.username,
         avatar_url: p.avatar_url,
@@ -46,20 +49,8 @@ export const useRankings = () => {
       }
     })
 
-    // 공동 순위(Competition Ranking) 계산
-    let lastValue = -1
-    let lastRank = 0
-    return results.map((r, i) => {
-      const currentValue = sortBy === 'win_rate' ? r.win_rate :
-                         sortBy === 'prediction_count' ? r.prediction_count :
-                         sortBy === 'win_count' ? r.win_count : r.points
-
-      if (currentValue !== lastValue) {
-        lastRank = i + 1
-        lastValue = currentValue
-      }
-      return { ...r, rank: lastRank }
-    })
+    // 공동 순위(Competition Ranking) 계산 — 순수 로직은 ~/utils/ranking 에서 관리(테스트 대상)
+    return computeCompetitionRank(results, sortBy)
   }
 
   return { fetchRankings }

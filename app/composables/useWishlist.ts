@@ -1,4 +1,4 @@
-import { decodeHtmlEntities } from '~/utils/stock'
+import { decodeHtmlEntities, mapStockCore } from '~/utils/stock'
 
 interface WishlistGroup {
   id: number
@@ -15,7 +15,7 @@ interface WishlistItem {
 
 // 관심 종목(찜)과 폴더(그룹) 관리. 낙관적 업데이트 + 실패 시 롤백.
 export const useWishlist = () => {
-  const { client, toast, resolveUserId } = useStockClient()
+  const { client, toast, resolveUserId, confirmLoginRedirect } = useStockClient()
 
   const hearts = useState<number[]>('wishlist', () => [])
   const wishlistGroups = useState<WishlistGroup[]>('wishlistGroups', () => [])
@@ -236,15 +236,7 @@ export const useWishlist = () => {
     if (error) return []
 
     const stocksMap = (data || []).map((s: any) => ({
-      id: s.id,
-      name: s.name,
-      code: s.code,
-      last_price: s.last_price || 0,
-      change_amount: s.change_amount || 0,
-      change_rate: s.change_rate || 0,
-      ai_recommendation_count: s.ai_recommendation_count || 0,
-      ai_win_count: s.ai_win_count || 0,
-      ai_processed_count: s.ai_processed_count || 0,
+      ...mapStockCore(s),
       summary: decodeHtmlEntities(s.summary || '')
     }))
 
@@ -266,9 +258,7 @@ export const useWishlist = () => {
           color: 'warning',
           icon: 'i-heroicons-user'
         })
-        if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-          navigateTo('/login')
-        }
+        confirmLoginRedirect()
       }
       return
     }

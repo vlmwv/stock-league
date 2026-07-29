@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     console.error('[API Scenarios Attempts] Query Error:', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message
+      statusMessage: '도전 이력을 불러오지 못했습니다.'
     })
   }
 

@@ -58,5 +58,13 @@ export default defineEventHandler(async (event) => {
     return []
   }
 
-  return data || []
+  // PII 보호: 이 엔드포인트는 비로그인에도 공개되므로, 사용자가 실명 표시를 선택하지 않았다면
+  // 원본 실명(full_name)을 내려보내지 않는다. 표시명 결정은 클라이언트가 username으로 폴백한다.
+  return (data || []).map((row: any) => {
+    const profile = row.profiles
+    if (profile && profile.display_name_type !== 'full_name') {
+      return { ...row, profiles: { ...profile, full_name: null } }
+    }
+    return row
+  })
 })

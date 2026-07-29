@@ -1,4 +1,4 @@
-import { decodeHtmlEntities } from '~/utils/stock'
+import { decodeHtmlEntities, mapStockCore } from '~/utils/stock'
 
 // 종목 디렉토리: 통계 포함 목록(검색/정렬/페이징/관심 폴더 필터), 단건 조회, 시세 이력, 전역 AI 통계.
 // 관심 폴더 필터(onlyHearted)를 위해 wishlist의 hearts 상태를 주입받는다.
@@ -123,21 +123,13 @@ export const useStockDirectory = (hearts: Ref<number[]>) => {
 
         return {
           data: (fallbackData as any[]).map(s => ({
-            id: s.id,
-            name: s.name,
-            code: s.code,
-            last_price: s.last_price || 0,
-            change_amount: s.change_amount || 0,
-            change_rate: s.change_rate || 0,
+            ...mapStockCore(s),
             market_cap_rank: s.market_cap_rank,
             summary: decodeHtmlEntities(s.summary || ''),
             market: s.market || '',
             sector: s.sector || '',
             wishlist_count: 0,
-            win_count: 0,
-            ai_recommendation_count: 0,
-            ai_win_count: 0,
-            ai_processed_count: 0
+            win_count: 0
           })),
           count: fallbackCount || 0
         }
@@ -147,21 +139,13 @@ export const useStockDirectory = (hearts: Ref<number[]>) => {
 
       return {
         data: (stocksData as any[]).map(s => ({
-          id: Number(s.id),
-          name: s.name,
-          code: s.code,
-          last_price: s.last_price || 0,
-          change_amount: s.change_amount || 0,
-          change_rate: s.change_rate || 0,
+          ...mapStockCore(s),
           market_cap_rank: s.market_cap_rank,
           summary: decodeHtmlEntities(s.summary || ''),
           market: s.market || '',
           sector: s.sector || '',
           wishlist_count: s.wishlist_count || 0,
           win_count: s.win_count || 0,
-          ai_recommendation_count: s.ai_recommendation_count || 0,
-          ai_win_count: s.ai_win_count || 0,
-          ai_processed_count: s.ai_processed_count || 0,
           volume: s.volume || 0,
           last_recommendation_date: s.last_recommendation_date,
           market_cap: s.market_cap || 0,

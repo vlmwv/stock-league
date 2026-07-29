@@ -44,9 +44,10 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) {
+    console.error('[API Wishlist Post]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '관심 종목 추가에 실패했습니다.',
     })
   }
 

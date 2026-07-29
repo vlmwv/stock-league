@@ -24,9 +24,10 @@ export default defineEventHandler(async (event) => {
     .limit(10)
 
   if (error) {
+    console.error('[API Recommend]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '추천 종목을 불러오지 못했습니다.',
     })
   }
 

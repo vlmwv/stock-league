@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
   if (attemptError) {
     console.error(`[API Scenarios Rankings] attempts error:`, attemptError.message)
-    throw createError({ statusCode: 500, statusMessage: attemptError.message })
+    throw createError({ statusCode: 500, statusMessage: '시나리오 랭킹을 불러오지 못했습니다.' })
   }
 
   if (!attempts || attempts.length === 0) {

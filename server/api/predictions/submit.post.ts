@@ -55,9 +55,10 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) {
+    console.error('[API Predict]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '예측 저장에 실패했습니다.',
     })
   }
 

@@ -36,9 +36,10 @@ export default defineEventHandler(async (event) => {
     .order('id', { ascending: true })
 
   if (error) {
+    console.error('[API Daily]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '오늘의 종목을 불러오지 못했습니다.',
     })
   }
 

@@ -1,3 +1,5 @@
+import { getKstDateString } from '~/utils/kst'
+
 // useStockList: 종목 목록 페이지(stocks/index.vue)의 검색·정렬·필터·페이지네이션.
 // 실제 조회(fetchStocksWithStats)는 useStock/useStockDirectory가 담당하므로 주입받고,
 // 정렬 탭 매핑·무한 스크롤 누적·필터 변경 감시를 여기서 관리한다.
@@ -128,32 +130,34 @@ export const useStockList = (
     if (!dateStr) return ''
     const date = new Date(dateStr)
 
-    // KST 기준으로 오늘과 어제 계산
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    // 시스템 TZ와 무관하게 KST 기준으로 오늘/어제 판정 (문자열 비교)
+    const todayStr = getKstDateString(new Date())
+    const yesterdayStr = getKstDateString(new Date(Date.now() - 24 * 60 * 60 * 1000))
+    const dStr = getKstDateString(date)
 
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
+    if (dStr === todayStr) return '오늘'
+    if (dStr === yesterdayStr) return '어제'
 
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-
-    if (d.getTime() === today.getTime()) return '오늘'
-    if (d.getTime() === yesterday.getTime()) return '어제'
-
-    // 그 외에는 MM/DD 형식으로 반환 (Intl 사용으로 안전하게)
+    // 그 외에는 KST 기준 MM/DD 형식으로 반환
     return new Intl.DateTimeFormat('ko-KR', {
+      timeZone: 'Asia/Seoul',
       month: '2-digit',
       day: '2-digit'
     }).format(date).replace('. ', '/').replace('.', '')
   }
 
   // 검색어 변경 감지 (Debounce)
-  let searchTimeout: any = null
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null
   watch(searchQuery, () => {
     if (searchTimeout) clearTimeout(searchTimeout)
     searchTimeout = setTimeout(() => {
       loadStocks()
     }, 400)
+  })
+
+  // 언마운트 시 대기 중인 debounce 타이머 정리 (언마운트 후 loadStocks 호출 방지)
+  onUnmounted(() => {
+    if (searchTimeout) clearTimeout(searchTimeout)
   })
 
   // 정렬 탭 변경 시 데이터 다시 불러오기

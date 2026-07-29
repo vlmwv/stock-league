@@ -9,9 +9,10 @@ export default defineEventHandler(async (event) => {
     .select('id, name, code, sector, last_price, change_amount, change_rate, market_cap_rank')
 
   if (error) {
+    console.error('[API Themes]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '테마 정보를 불러오지 못했습니다.',
     })
   }
 

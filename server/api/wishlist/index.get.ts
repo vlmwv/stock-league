@@ -28,9 +28,10 @@ export default defineEventHandler(async (event) => {
     .order('created_at', { ascending: false })
 
   if (error) {
+    console.error('[API Wishlist Get]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '관심 종목을 불러오지 못했습니다.',
     })
   }
 

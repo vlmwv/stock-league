@@ -68,6 +68,35 @@ export const isEtf = (name: string): boolean => {
   const upperName = (name || '').toUpperCase()
   return etfKeywords.some(keyword => upperName.includes(keyword))
 }
+
+/**
+ * daily_stocks 조인의 stocks 서브객체 또는 stocks 단독 row에서 공통 종목 필드를 추출한다.
+ * 여러 컴포저블(useDailyStocks/useWishlist/useStockDirectory)에 복붙돼 있던 매핑 블록의 단일 출처.
+ * 컨텍스트별 추가 필드(ai_score/target_price/market_cap_rank 등)는 호출 측에서 스프레드 후 덧붙인다.
+ */
+export interface RawStockRow {
+  id: number | string
+  name: string
+  code: string
+  last_price?: number | null
+  change_amount?: number | null
+  change_rate?: number | null
+  ai_recommendation_count?: number | null
+  ai_win_count?: number | null
+  ai_processed_count?: number | null
+}
+
+export const mapStockCore = (stock: RawStockRow) => ({
+  id: Number(stock.id),
+  name: stock.name,
+  code: stock.code,
+  last_price: stock.last_price || 0,
+  change_amount: stock.change_amount || 0,
+  change_rate: stock.change_rate || 0,
+  ai_recommendation_count: stock.ai_recommendation_count || 0,
+  ai_win_count: stock.ai_win_count || 0,
+  ai_processed_count: stock.ai_processed_count || 0
+})
 /**
  * AI 요약 텍스트에서 불필요한 "(GEMINI 요약)", "[GEMINI 요약]" 등의 접두사를 제거합니다.
  * @param text 원본 요약 텍스트

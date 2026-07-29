@@ -1,11 +1,12 @@
-import { decodeHtmlEntities, isEtf } from '~/utils/stock'
+import { decodeHtmlEntities, isEtf, mapStockCore } from '~/utils/stock'
 import { loadRecPriceHistory, resolveRecPrice } from '~/utils/stockHistory'
+import { LEAGUE_SELECT_TIME, RESULT_PUBLISH_TIME, PREDICT_CLOSE_TIME } from '~/utils/kst'
 
 // 오늘(또는 21:20 이후 내일)의 리그 종목, AI 추천 top5, 시총 순위, 타겟가 종목을 조회하고
 // 리그 오픈/결과 발표 상태를 KST 기준으로 판정한다. 21:20 경과 시 종목을 자동 새로고침한다.
 export const useDailyStocks = () => {
   const { client } = useStockClient()
-  const { getKstDate, getKstHourMinute, kstTime } = useKstTime()
+  const { getKstDate, getKstHourMinute, getActiveLeagueDate, kstTime } = useKstTime()
 
   // 실시간 시각 갱신 (30초). 21:20 경과 시 내일 종목 자동 새로고침.
   if (import.meta.client) {
@@ -16,7 +17,7 @@ export const useDailyStocks = () => {
         const prev = kstTime.value.timeVal
         kstTime.value = getKstHourMinute()
         // 21:20이 되는 순간 종목 데이터를 자동 새로고침 (내일 종목 로드)
-        if (prev < 2120 && kstTime.value.timeVal >= 2120) {
+        if (prev < LEAGUE_SELECT_TIME && kstTime.value.timeVal >= LEAGUE_SELECT_TIME) {
           console.log('[useDailyStocks] 21:20 경과: 내일 종목 자동 새로고침')
           refresh()
         }
@@ -30,18 +31,8 @@ export const useDailyStocks = () => {
     // KST (UTC+9) 기준으로 오늘 날짜 구하기
     const today = getKstDate()
 
-    // 1. 참여 가능하거나 최근인 게임 종목을 가져옵니다.
-    const { hour, minute } = getKstHourMinute()
-    const currentTimeVal = hour * 100 + minute // 예: 21:20 -> 2120
-
-    // 21:20 이후라면 내일 종목을 우선적으로 찾습니다.
-    let searchDate = today
-    if (currentTimeVal >= 2120) {
-      // 내일 날짜 구하기
-      const tomorrow = new Date(new Date().getTime() + (24 * 60 * 60 * 1000))
-      const options = { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' } as const
-      searchDate = new Intl.DateTimeFormat('sv-SE', options).format(tomorrow)
-    }
+    // 21:20 이후라면 내일 리그를, 그 전이면 오늘 리그를 대상으로 한다(getActiveLeagueDate가 판정).
+    const searchDate = getActiveLeagueDate()
 
     const { data: nextGameDateData } = await client
       .from('daily_stocks')
@@ -148,17 +139,9 @@ export const useDailyStocks = () => {
 
     // Map to local Stock interface and filter ETFs
     return (data || []).filter((ds: any) => ds.stocks && !isEtf(ds.stocks.name)).map((ds: any) => ({
-      id: Number(ds.stocks.id),
+      ...mapStockCore(ds.stocks),
       daily_id: ds.id,
       game_date: ds.game_date,
-      name: ds.stocks.name,
-      code: ds.stocks.code,
-      last_price: ds.stocks.last_price || 0,
-      change_amount: ds.stocks.change_amount || 0,
-      change_rate: ds.stocks.change_rate || 0,
-      ai_recommendation_count: ds.stocks.ai_recommendation_count || 0,
-      ai_win_count: ds.stocks.ai_win_count || 0,
-      ai_processed_count: ds.stocks.ai_processed_count || 0,
       ai_score: ds.ai_score || 0,
       ai_result: ds.ai_result || 'pending',
       target_price: ds.target_price,
@@ -202,15 +185,7 @@ export const useDailyStocks = () => {
       return dailyData
         .filter((d: any) => d.stocks && !isEtf(d.stocks.name))
         .map((d: any) => ({
-          id: Number(d.stocks.id),
-          name: d.stocks.name,
-          code: d.stocks.code,
-          last_price: d.stocks.last_price || 0,
-          change_amount: d.stocks.change_amount || 0,
-          change_rate: d.stocks.change_rate || 0,
-          ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
-          ai_win_count: d.stocks.ai_win_count || 0,
-          ai_processed_count: d.stocks.ai_processed_count || 0,
+          ...mapStockCore(d.stocks),
           ai_score: d.ai_score || 0,
           target_price: d.target_price,
           target_date: d.target_date,
@@ -259,15 +234,7 @@ export const useDailyStocks = () => {
     return (fallbackData || [])
       .filter((d: any) => d.stocks && !isEtf(d.stocks.name))
       .map((d: any) => ({
-        id: Number(d.stocks.id),
-        name: d.stocks.name,
-        code: d.stocks.code,
-        last_price: d.stocks.last_price || 0,
-        change_amount: d.stocks.change_amount || 0,
-        change_rate: d.stocks.change_rate || 0,
-        ai_recommendation_count: d.stocks.ai_recommendation_count || 0,
-        ai_win_count: d.stocks.ai_win_count || 0,
-        ai_processed_count: d.stocks.ai_processed_count || 0,
+        ...mapStockCore(d.stocks),
         ai_score: d.ai_score || 0,
         target_price: d.target_price,
         target_date: d.target_date,
@@ -286,16 +253,8 @@ export const useDailyStocks = () => {
 
     if (error) return []
     return (data || []).map((s: any) => ({
-      id: s.id,
-      name: s.name,
-      code: s.code,
-      last_price: s.last_price || 0,
-      change_amount: s.change_amount || 0,
-      change_rate: s.change_rate || 0,
+      ...mapStockCore(s),
       market_cap_rank: s.market_cap_rank,
-      ai_recommendation_count: s.ai_recommendation_count || 0,
-      ai_win_count: s.ai_win_count || 0,
-      ai_processed_count: s.ai_processed_count || 0,
       summary: decodeHtmlEntities(s.summary || '')
     }))
   }, { immediate: false })
@@ -371,11 +330,11 @@ export const useDailyStocks = () => {
 
   // League Status (Closed after 08:00 KST, Open after 21:20 KST)
   const isLeagueOpen = computed(() => {
-    const { hour, timeVal: currentTimeVal } = kstTime.value
+    const { timeVal: currentTimeVal } = kstTime.value
     const today = getKstDate()
 
     // 현재 시간이 참여 가능 시간대인지 판단 (21:20 ~ 다음날 08:00)
-    const isInOpenWindow = currentTimeVal >= 2120 || hour < 8
+    const isInOpenWindow = currentTimeVal >= LEAGUE_SELECT_TIME || currentTimeVal < PREDICT_CLOSE_TIME
 
     if (stocks.value && (stocks.value as any).length >= 5) {
       const firstStockDate = (stocks.value as any)[0].game_date
@@ -390,7 +349,7 @@ export const useDailyStocks = () => {
 
       // 오늘 데이터인 경우 08:00 전까지만 오픈
       if (firstStockDate === today) {
-        return hour < 8
+        return currentTimeVal < PREDICT_CLOSE_TIME
       }
     }
 
@@ -411,7 +370,7 @@ export const useDailyStocks = () => {
 
       // 오늘 데이터인 경우 20:30 이후면 발표됨 (데이터가 있을 때만)
       if (firstStockDate === today) {
-        return currentTimeVal >= 2030
+        return currentTimeVal >= RESULT_PUBLISH_TIME
       }
     }
 

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { isEtf } from '../_shared/stock.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY') || ''
@@ -26,19 +27,6 @@ async function fetchMarketIndices(): Promise<string> {
   } catch (e) {
     return '시장 지수 정보가 제공되지 않았습니다.'
   }
-}
-
-/**
- * 종목이 ETF인지 여부 확인
- */
-function isEtf(name: string): boolean {
-  const etfKeywords = [
-    'ETF', 'ETN', 'KODEX', 'TIGER', 'KBSTAR', 'ACE', 'SOL', 'ARIRANG', 
-    'HANARO', 'KOSEF', 'RISE', 'PLUS', 'TIMEFOLIO', 'WOORI', 'HI', 
-    'UNIPLAT', 'HANA', 'KOSEF'
-  ]
-  const upperName = name.toUpperCase()
-  return etfKeywords.some(keyword => upperName.includes(keyword))
 }
 
 function clampScore(score: number): number {

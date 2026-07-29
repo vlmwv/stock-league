@@ -1,7 +1,7 @@
 // usePredictions: 예측 제출/조회(myPredictions)와 참여자 수(participantCount/totalMemberCount) 도메인.
 // predict는 리그 종목 여부·오픈 여부 검증을 위해 useDailyStocks 결과(daily)를 주입받는다.
 export const usePredictions = (daily: ReturnType<typeof useDailyStocks>) => {
-  const { client, toast, resolveUserId } = useStockClient()
+  const { client, toast, resolveUserId, confirmLoginRedirect } = useStockClient()
   const { getKstDate, getActiveLeagueDate } = useKstTime()
   const { stocks, dailyStocks, isLeagueOpen } = daily
 
@@ -78,20 +78,18 @@ export const usePredictions = (daily: ReturnType<typeof useDailyStocks>) => {
     // 0. 리그 종목 여부 검증 (사용자가 임의로 다른 종목을 예측하지 못하도록 제한)
     const isLeagueStock = dailyStocks.value.some(s => Number(s.id) === Number(stockId))
     if (!isLeagueStock) {
-      alert('오늘의 리그 종목이 아닙니다.')
+      toast.add({ title: '오늘의 리그 종목이 아닙니다.', color: 'warning', icon: 'i-heroicons-exclamation-triangle' })
       return false
     }
 
     if (!isLeagueOpen.value) {
-      alert('오늘의 예측은 08:00에 마감되었습니다.')
+      toast.add({ title: '오늘의 예측은 08:00에 마감되었습니다.', color: 'warning', icon: 'i-heroicons-clock' })
       return false
     }
 
     const userId = await resolveUserId()
     if (!userId) {
-      if (import.meta.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-        navigateTo('/login')
-      }
+      confirmLoginRedirect()
       return false
     }
 

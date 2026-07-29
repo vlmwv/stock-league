@@ -15,9 +15,10 @@ export default defineEventHandler(async (event) => {
     .maybeSingle()
 
   if (error) {
+    console.error('[API Profile]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '프로필을 불러오지 못했습니다.',
     })
   }
 

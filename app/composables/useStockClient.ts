@@ -28,5 +28,12 @@ export const useStockClient = () => {
 
   const resolveUserId = async () => (await resolveUser())?.id ?? null
 
-  return { client, user, toast, resolveUser, resolveUserId }
+  // "로그인 필요" 확인 후 로그인 페이지로 이동. 여러 컴포저블에 복제돼 있던 confirm 블록의 단일 출처.
+  const confirmLoginRedirect = () => {
+    if (import.meta.client && confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
+      navigateTo('/login')
+    }
+  }
+
+  return { client, user, toast, resolveUser, resolveUserId, confirmLoginRedirect }
 }

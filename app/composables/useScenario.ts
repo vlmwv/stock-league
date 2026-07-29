@@ -100,46 +100,31 @@ export const useScenario = () => {
   }
 
   // 4. 게임 최종 완료 기록 저장하기
-  const submitScenarioAttempt = async (scenarioId: number, correctCount: number, totalDays: number) => {
+  // 점수 위조 방지를 위해 클라이언트는 점수를 계산하지 않고 예측 배열만 서버로 보낸다.
+  // 서버(/api/scenarios/attempt)가 시나리오 캔들로 정답을 재계산해 저장한다.
+  const submitScenarioAttempt = async (scenarioId: number, predictions: ('up' | 'down')[]) => {
     const currentUser = await resolveUser()
     if (!currentUser?.id) {
       return { success: false, message: '로그인이 필요합니다.' }
     }
-    const playDays = totalDays > 7 ? totalDays - 7 : totalDays
-    const score = Math.round((correctCount / playDays) * 10000) / 100
 
     try {
-      // 중복 도전 검사
-      const { data: existing, error: existError } = await supabase
-        .from('scenario_attempts')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .eq('scenario_id', scenarioId)
-        .maybeSingle()
-
-      if (existError) throw existError
-      if (existing) {
-        return { success: false, message: '이미 도전이 완료된 시나리오입니다.' }
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) {
+        return { success: false, message: '로그인이 필요합니다.' }
       }
 
-      // 점수 저장
-      const { data, error } = await (supabase as any)
-        .from('scenario_attempts')
-        .insert({
-          user_id: currentUser.id,
-          scenario_id: scenarioId,
-          correct_count: correctCount,
-          score: score,
-          total_days: totalDays
-        })
-        .select()
-        .single()
-
-      if (error) throw error
+      const data = await $fetch('/api/scenarios/attempt', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: { scenarioId, predictions }
+      })
       return { success: true, data }
     } catch (err: any) {
-      console.error('[useScenario] submitScenarioAttempt error:', err)
-      return { success: false, message: err.message || '기록 저장 중 오류가 발생했습니다.' }
+      const message = err?.data?.statusMessage || err?.statusMessage || err?.message || '기록 저장 중 오류가 발생했습니다.'
+      console.error('[useScenario] submitScenarioAttempt error:', message)
+      return { success: false, message }
     }
   }
 

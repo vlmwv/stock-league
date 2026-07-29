@@ -216,7 +216,7 @@ v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center g
 
           <div v-if="!isLeagueOpen" class="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
             <span class="px-4 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-black text-slate-400 uppercase tracking-widest shadow-2xl">
-              {{ (getKstDate() === (stock as any).game_date && getKstTimeVal() >= 2120) ? '내일 종목 준비 중' : '응모 마감' }}
+              {{ (getKstDate() === (stock as any).game_date && getKstTimeVal() >= LEAGUE_SELECT_TIME) ? '내일 종목 준비 중' : '응모 마감' }}
             </span>
           </div>
 
@@ -241,9 +241,9 @@ v-if="getPrediction(stock.id)" class="absolute top-4 right-4 flex items-center g
 </template>
 
 <script setup lang="ts">
+import { LEAGUE_SELECT_TIME } from '~/utils/kst'
 
-
-const { 
+const {
   dailyStocks,
   refresh,
   pending,
@@ -315,7 +315,7 @@ const statusMessage = computed(() => {
     if (isLeagueOpen.value) {
       return '오늘의 5종목을 예측해 보세요.'
     } else {
-      if (timeVal >= 2120) {
+      if (timeVal >= LEAGUE_SELECT_TIME) {
         return allPredicted.value ? '내일 리그 응모를 완료했습니다! 결과 발표를 기다려 주세요.' : '내일의 리그 종목을 준비 중입니다. 잠시만 기다려 주세요.'
       }
       return allPredicted.value ? '오늘의 예측을 완료했습니다! 결과 발표를 기다려 주세요.' : '오늘의 예측이 마감되었습니다. 다음 종목 응모는 21시 20분부터 진행할 수 있습니다.'

@@ -1,3 +1,5 @@
+import { RESULT_PUBLISH_TIME } from '~/utils/kst'
+
 // 사용자 프로필/통계: 프로필+랭크+승률+스트릭 집계(fetchUserStats), 프로필 수정(updateProfile),
 // 예측 이력 페이징(fetchUserHistory). 전역 상태 currentUserProfile에 통계를 캐싱한다.
 export const useUserProfile = () => {
@@ -180,7 +182,7 @@ export const useUserProfile = () => {
       .filter((p: any) => {
         if (p.result === 'pending') {
           if (p.game_date < today) return false
-          if (p.game_date === today && timeVal >= 2030) return false
+          if (p.game_date === today && timeVal >= RESULT_PUBLISH_TIME) return false
         }
         return true
       })

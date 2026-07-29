@@ -25,9 +25,10 @@ export default defineEventHandler(async (event) => {
     .eq('stock_id', stock_id)
 
   if (error) {
+    console.error('[API Wishlist Delete]', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: error.message,
+      statusMessage: '관심 종목 삭제에 실패했습니다.',
     })
   }
 

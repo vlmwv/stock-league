@@ -4,7 +4,7 @@
 export const useScenarioGame = (scenarioId: number) => {
   const router = useRouter()
   const { scenarios, submitScenarioAttempt, fetchUserAttempts } = useScenario()
-  const { user, resolveUser } = useStockClient()
+  const { user, resolveUser, confirmLoginRedirect, toast } = useStockClient()
 
   const scenario = computed(() => scenarios.value.find(s => s.id === scenarioId))
   const totalDays = computed(() => scenario.value?.candles.length || 30)
@@ -20,6 +20,12 @@ export const useScenarioGame = (scenarioId: number) => {
   const isSubmitting = ref(false)
   const hasAlreadyAttempted = ref(false)
   const activeTab = ref<'game' | 'ranking'>('game')
+
+  // 피드백(정답 공개) 후 다음 날로 넘어가는 지연 타이머 — 화면 이탈 시 정리해 언마운트 후 상태 갱신을 막는다.
+  let feedbackTimer: ReturnType<typeof setTimeout> | null = null
+  onUnmounted(() => {
+    if (feedbackTimer) clearTimeout(feedbackTimer)
+  })
 
   // 현재 화면에 노출될 캔들 데이터 슬라이싱
   const visibleCandles = computed(() => {
@@ -55,9 +61,7 @@ export const useScenarioGame = (scenarioId: number) => {
     const currentUser = await resolveUser()
 
     if (!currentUser?.id) {
-      if (confirm('로그인이 필요한 기능입니다.\n로그인 페이지로 이동할까요?')) {
-        router.push('/login')
-      }
+      confirmLoginRedirect()
       return
     }
 
@@ -80,7 +84,7 @@ export const useScenarioGame = (scenarioId: number) => {
     isFeedbackMode.value = true
 
     // 1.5초 후 피드백 모드 해제 및 다음 날로 갱신
-    setTimeout(async () => {
+    feedbackTimer = setTimeout(async () => {
       isFeedbackMode.value = false
       selectedPredict.value = null
 
@@ -100,12 +104,15 @@ export const useScenarioGame = (scenarioId: number) => {
   const submitScore = async () => {
     if (isSubmitting.value) return
     isSubmitting.value = true
-    const res = await submitScenarioAttempt(scenarioId, correctCount.value, totalDays.value)
+    const res = await submitScenarioAttempt(scenarioId, predictions.value)
     isSubmitting.value = false
     if (res.success) {
+      // 서버가 재계산한 정답 수를 신뢰 소스로 반영(표시값 드리프트 방지)
+      const serverCorrect = (res.data as any)?.correct_count
+      if (typeof serverCorrect === 'number') correctCount.value = serverCorrect
       hasAlreadyAttempted.value = true
     } else {
-      alert(res.message)
+      toast.add({ title: res.message, color: 'error', icon: 'i-heroicons-exclamation-triangle' })
     }
   }
 
