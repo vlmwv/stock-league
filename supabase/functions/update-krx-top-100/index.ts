@@ -73,18 +73,9 @@ Deno.serve(async (req) => {
       }
     })
 
-    // 5. 기존 종목들의 market_cap_rank 초기화 (순위권 밖으로 밀려난 종목 처리)
-    const { error: resetError } = await supabase
-      .from('stocks')
-      .update({ market_cap_rank: null })
-      .neq('id', 0) // 더미 조건으로 모든 행 업데이트 (전체 업데이트 허용용)
-
-    if (resetError) {
-      console.error('Failed to reset market_cap_rank:', resetError)
-      throw resetError
-    }
-
-    // 6. 새로운 Top 100 종목 Upsert (code 컬럼 기준)
+    // 5. 새로운 Top 100 종목 Upsert (code 컬럼 기준)
+    // 순위 소실 방지: 먼저 신규 순위를 반영한 뒤(6단계) 밀려난 종목만 초기화한다.
+    // (기존에는 전체 rank를 NULL로 리셋한 직후 upsert가 실패하면 모든 순위가 사라졌다.)
     const { error: upsertError } = await supabase
       .from('stocks')
       .upsert(records, { onConflict: 'code' })
@@ -92,6 +83,19 @@ Deno.serve(async (req) => {
     if (upsertError) {
       console.error('Failed to upsert stocks:', upsertError)
       throw upsertError
+    }
+
+    // 6. Top 100에서 밀려난 기존 종목의 market_cap_rank만 초기화
+    const topCodes = records.map(r => r.code)
+    const { error: resetError } = await supabase
+      .from('stocks')
+      .update({ market_cap_rank: null })
+      .not('market_cap_rank', 'is', null)
+      .not('code', 'in', `(${topCodes.join(',')})`)
+
+    if (resetError) {
+      console.error('Failed to reset market_cap_rank:', resetError)
+      throw resetError
     }
 
     // 로그 종료 기록
