@@ -41,7 +41,9 @@ const {
   getVolumeColor,
   activeCandle,
   activeCandleIndex,
-  activeCandleColorClass
+  activeCandleColorClass,
+  activeCandleChange,
+  activeChangeColorClass
 } = useScenarioChart(visibleCandles)
 </script>
 
@@ -164,6 +166,22 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
                 <span class="text-slate-300 font-bold">{{ activeCandle?.volume.toLocaleString() }}</span>
               </div>
             </div>
+
+            <!-- 전일대비 등락 (시세판 규칙: 상승 빨강 / 하락 파랑) -->
+            <div class="grid grid-cols-2 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[10px] font-mono">
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">전일대비</span>
+                <span class="font-bold" :class="activeChangeColorClass">
+                  {{ activeCandleChange ? `${activeCandleChange.diff > 0 ? '+' : activeCandleChange.diff < 0 ? '-' : ''}${formatPrice(Math.abs(activeCandleChange.diff))}` : '–' }}
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">등락률</span>
+                <span class="font-bold" :class="activeChangeColorClass">
+                  {{ activeCandleChange ? `${activeCandleChange.rate > 0 ? '+' : ''}${activeCandleChange.rate.toFixed(2)}%` : '–' }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- SVG Canvas -->
@@ -262,21 +280,6 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
               />
             </g>
           </svg>
-
-          <!-- Feedback Overlay -->
-          <div
-v-if="isFeedbackMode" 
-               class="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] transition-all z-20"
-               :class="isCorrect ? 'bg-emerald-500/10' : 'bg-rose-500/10'"
-          >
-            <div
-class="px-6 py-3 rounded-2xl border flex items-center gap-2 animate-scale-in shadow-2xl"
-                 :class="isCorrect ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-400' : 'bg-rose-950/80 border-rose-500/30 text-rose-400'"
-            >
-              <UIcon :name="isCorrect ? 'i-heroicons-sparkles' : 'i-heroicons-x-circle'" class="w-6 h-6" />
-              <span class="text-sm font-black uppercase tracking-wider">{{ isCorrect ? '정답입니다! 🎉' : '오답입니다 😢' }}</span>
-            </div>
-          </div>
         </div>
 
         <!-- 속보 / 뉴스 힌트 카드 -->
@@ -377,6 +380,21 @@ class="text-[9px] font-black uppercase tracking-widest"
         <ScenarioRanking :scenario-id="scenarioId" />
       </div>
     </main>
+
+    <!-- Feedback Popup — 스크롤 위치와 무관하게 화면 중앙에 결과 노출 (glass-dark 밖에 둬야 fixed가 뷰포트 기준으로 동작) -->
+    <div
+v-if="isFeedbackMode"
+         class="fixed inset-0 flex items-center justify-center backdrop-blur-[2px] transition-all z-50 pointer-events-none"
+         :class="isCorrect ? 'bg-emerald-500/10' : 'bg-rose-500/10'"
+    >
+      <div
+class="px-6 py-3 rounded-2xl border flex items-center gap-2 animate-scale-in shadow-2xl"
+           :class="isCorrect ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-400' : 'bg-rose-950/80 border-rose-500/30 text-rose-400'"
+      >
+        <UIcon :name="isCorrect ? 'i-heroicons-sparkles' : 'i-heroicons-x-circle'" class="w-6 h-6" />
+        <span class="text-sm font-black uppercase tracking-wider">{{ isCorrect ? '정답입니다! 🎉' : '오답입니다 😢' }}</span>
+      </div>
+    </div>
   </div>
 </template>
 

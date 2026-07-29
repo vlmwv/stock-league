@@ -84,6 +84,26 @@ export const useScenarioChart = (visibleCandles: Ref<any[]>) => {
     return candles[index].close >= candles[index].open ? 'text-rose-400' : 'text-blue-400'
   })
 
+  // 활성 캔들의 전일 종가 대비 등락 (시세판 규칙: 상승/하락을 전일 종가 기준으로 표시)
+  // 전일 데이터가 없는 첫 캔들은 null을 반환한다.
+  const activeCandleChange = computed(() => {
+    const candles = visibleCandles.value
+    const index = activeCandleIndex.value
+    const cur = candles[index]
+    if (!cur || index <= 0) return null
+    const prevClose = candles[index - 1].close
+    const diff = cur.close - prevClose
+    const rate = prevClose !== 0 ? (diff / prevClose) * 100 : 0
+    return { diff, rate }
+  })
+
+  // 전일대비 색상 (상승=빨강, 하락=파랑, 보합=회색)
+  const activeChangeColorClass = computed(() => {
+    const change = activeCandleChange.value
+    if (!change || change.diff === 0) return 'text-slate-400'
+    return change.diff > 0 ? 'text-rose-400' : 'text-blue-400'
+  })
+
   return {
     isDark,
     chartWidth,
@@ -99,6 +119,8 @@ export const useScenarioChart = (visibleCandles: Ref<any[]>) => {
     getVolumeColor,
     activeCandle,
     activeCandleIndex,
-    activeCandleColorClass
+    activeCandleColorClass,
+    activeCandleChange,
+    activeChangeColorClass
   }
 }
