@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 -- (이미 등록되어 있다면 건너뛰거나 아래 DO 블록으로 업데이트됩니다)
 DO $$
 DECLARE
-  v_service_role_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzkzMDMwNywiZXhwIjoyMDg5NTA2MzA3fQ.caByRDqXSCjY4txk_mRxBlT4cKG2O2jNuugbTo3RUfo'; -- <--- 여기에 실제 키 입력
+  v_service_role_key text := 'YOUR_SERVICE_ROLE_KEY_HERE'; -- <--- 여기에 실제 키 입력(저장소에 커밋 금지)
 BEGIN
     -- 기존 시크릿이 있으면 삭제 후 생성 (업데이트 목적)
     DELETE FROM vault.secrets WHERE name = 'service_role_key';

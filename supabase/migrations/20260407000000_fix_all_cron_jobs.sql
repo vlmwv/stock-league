@@ -17,10 +17,11 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- 2. 서비스 롤 키(Service Role Key)를 Vault에 재등록
--- .env 파일의 NUXT_SUPABASE_SERVICE_ROLE_KEY 값을 사용하여 인증 정보를 갱신합니다.
+-- 보안: 실제 키를 저장소에 커밋하지 말 것. 아래 플레이스홀더를 Supabase SQL Editor에서
+-- 실제 service_role 키로 교체해 1회 실행하거나, Vault에 직접 등록한다.
 DELETE FROM vault.secrets WHERE name = 'service_role_key';
 SELECT vault.create_secret(
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptcWpvb2lkbWlicXJpZ3ppaXBxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzkzMDMwNywiZXhwIjoyMDg5NTA2MzA3fQ.Drda7pthX3fbl1liUwzGEKz-3gpHqChzNS8cefiHyt0',
+    'YOUR_SERVICE_ROLE_KEY_HERE',
     'service_role_key'
 );
 
