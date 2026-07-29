@@ -13,7 +13,7 @@
 | 3 | ✅ 완료 | ~~`useStock` 파사드 최종 정리 (8단계)~~ — `notifications` useNews 이관, 96줄로 축소 | composables | refactor §4 |
 | 4 | ✅ 완료 | ~~시나리오 데이터 DB 이관~~ — 마이그레이션 적용·시드(10개/1056캔들)·anon RLS 조회 검증까지 완료 | useScenario + DB | analysis §5-7 |
 | 5 | 🟡 저 | 배치 실패 외부 알림 도입 | Edge Function | analysis §5-8 |
-| 6 | 🟡 저 | `transfer-hall-of-fame` 구현 | Edge Function | analysis §5-9 |
+| 6 | ✅ 완료 | ~~`transfer-hall-of-fame` 구현~~ — 직전 달(1월 실행 시 직전 연도 추가) rankings 상위 100 → hall_of_fame 멱등 upsert. 배포 필요 | Edge Function | analysis §5-9 |
 | 7 | ✅ 실행 | 테스트/린트/타입체크 — 환경 구성·전 도구 실행·베이스라인 확보 완료(아래 §7) | 프로젝트 전반 | analysis §5-10 |
 
 ---
@@ -63,10 +63,15 @@
 - **접근**: 핵심 배치(`process-daily-results`, `calculate-rankings`, `select-daily-stocks`) 실패 시 외부 채널(슬랙/이메일 등) 알림. 공통 알림 헬퍼를 `supabase/functions/_shared`에 두는 안 검토.
 - **참조**: analysis §3(🟡), §5-8.
 
-## 6. 🟡 `transfer-hall-of-fame` 구현
+## 6. ✅ `transfer-hall-of-fame` 구현 — 완료(배포 필요)
 
-- **현상**: 명세상 월간/연간 명예의 전당 이관 함수이나 `index.ts` 부재(미구현).
-- **접근**: 월말/연말 cron 트리거 기준으로 랭킹 → 명예의 전당 테이블 이관 로직 구현 후 cron 등록.
+- **현상(과거)**: 명세상 월간/연간 명예의 전당 이관 함수이나 `index.ts` 부재(미구현).
+- **구현(완료)**: `supabase/functions/transfer-hall-of-fame/index.ts` 작성. `calculate-rankings` 패턴 준수(env `SUPABASE_URL`/`SERVICE_ROLE_KEY`, `batch_execution_logs` 로깅, 에러 핸들링).
+  - cron은 `fix_cron_urls.sql`에 이미 `'5 0 1 * *'`(매월 1일 09:05 KST)로 등록됨 → 별도 cron 추가 불필요.
+  - 로직: **직전 달**(항상) rankings(`monthly`) 상위 `TOP_N=100`을 `hall_of_fame`으로 upsert. **1월 실행 시 직전 연도**(`yearly`)도 이관.
+  - 매핑: `ranking_type`→`period_type`, `win_count`→`points`. `onConflict: user_id,period_type,period_key`로 **멱등**(재실행 안전).
+  - 수동 백필: body `{ monthKey, yearKey }`로 특정 기간만 이관 가능.
+- **잔여**: `supabase functions deploy transfer-hall-of-fame`로 배포(앱 Railway 배포와 별개).
 - **참조**: analysis §3(🟡), §5-9.
 
 ## 7. ✅ 테스트/린트/타입체크 — 환경 구성·실행·베이스라인 확보 완료
