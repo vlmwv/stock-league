@@ -1,12 +1,14 @@
-// useStockChart: 종목 상세(stocks/[code].vue) 캔들/거래량 차트의 시리즈·옵션·주석을 구성한다.
-// 시세 이력·AI 추천 이력·뉴스·마커 토글을 주입받아 ApexCharts용 computed를 반환한다.
+// useStockChart: 종목 상세(stocks/[code].vue) 라인(종가)/캔들/거래량 차트의 시리즈·옵션·주석을 구성한다.
+// 시세 이력·AI 추천 이력·뉴스·마커 토글·차트 유형·표시 기간을 주입받아 ApexCharts용 computed를 반환한다.
 export const useStockChart = (params: {
   priceHistory: Ref<any[]>
   aiHistory: Ref<any[]>
   news: Ref<any[]>
   showMarkers: Ref<boolean>
+  chartType: Ref<'line' | 'candle'>
+  periodDays: Ref<number>
 }) => {
-  const { priceHistory, aiHistory, news, showMarkers } = params
+  const { priceHistory, aiHistory, news, showMarkers, chartType, periodDays } = params
   const colorMode = useColorMode()
   const isDark = computed(() => colorMode.value === 'dark')
 
@@ -16,9 +18,36 @@ export const useStockChart = (params: {
     return aiHistory.value[0]?.target_price || null
   })
 
-  const chartSeries = computed(() => {
+  // 기간 탭(1주/1달/3달)에 맞춰 표시할 이력만 추림 (가장 최근 데이터 날짜 기준 달력일 컷오프)
+  const visibleHistory = computed(() => {
     if (priceHistory.value.length === 0) return []
-    const dataForChart = [...priceHistory.value].reverse()
+    const latest = new Date(priceHistory.value[0].price_date).getTime()
+    const cutoff = latest - periodDays.value * 24 * 60 * 60 * 1000
+    return priceHistory.value.filter(h => new Date(h.price_date).getTime() >= cutoff)
+  })
+
+  // 표시 구간의 등락 방향 — 라인 색상 연동 (상승 빨강 / 하락 파랑)
+  const isTrendUp = computed(() => {
+    const rows = visibleHistory.value
+    if (rows.length < 2) return true
+    const first = resolveOhlc(rows[rows.length - 1]).close
+    const last = resolveOhlc(rows[0]).close
+    return last >= first
+  })
+  const lineColor = computed(() => (isTrendUp.value ? '#ef4444' : '#3b82f6'))
+
+  const chartSeries = computed(() => {
+    if (visibleHistory.value.length === 0) return []
+    const dataForChart = [...visibleHistory.value].reverse()
+    if (chartType.value === 'line') {
+      return [{
+        name: '종가',
+        data: dataForChart.map(h => ({
+          x: new Date(h.price_date).getTime(),
+          y: resolveOhlc(h).close
+        }))
+      }]
+    }
     return [{
       name: '시세',
       data: dataForChart.map(h => {
@@ -32,8 +61,8 @@ export const useStockChart = (params: {
   })
 
   const volumeSeries = computed(() => {
-    if (priceHistory.value.length === 0) return []
-    const dataForChart = [...priceHistory.value].reverse()
+    if (visibleHistory.value.length === 0) return []
+    const dataForChart = [...visibleHistory.value].reverse()
     return [{
       name: '거래량',
       data: dataForChart.map(h => {
@@ -55,12 +84,12 @@ export const useStockChart = (params: {
       points: []
     }
 
-    // 1. 목표가 표시 (가장 최근 추천 기준)
+    // 1. 목표가 표시 (가장 최근 추천 기준, 점선)
     if (latestTargetPrice.value) {
       ann.yaxis.push({
         y: latestTargetPrice.value,
         borderColor: '#10b981', // Emerald 500
-        strokeDashArray: 0, // 실선으로 변경
+        strokeDashArray: 4,
         borderWidth: 2,
         label: {
           borderColor: '#10b981',
@@ -79,35 +108,39 @@ export const useStockChart = (params: {
     }
 
     // 2. 추천 시점 및 추천가 표시 (차트 범위 내)
-    if (priceHistory.value.length > 0 && aiHistory.value.length > 0) {
-      const dates = priceHistory.value.map(h => h.price_date)
+    //    라인 모드에서는 포인트 마커만 작게 표시하고, 캔들 모드에서는 세로선+라벨까지 표시한다.
+    if (visibleHistory.value.length > 0 && aiHistory.value.length > 0) {
+      const dates = visibleHistory.value.map(h => h.price_date)
       const minDate = dates[dates.length - 1]
       const maxDate = dates[0]
+      const isLine = chartType.value === 'line'
 
       aiHistory.value.forEach(item => {
         if (item.game_date >= minDate && item.game_date <= maxDate) {
           const timestamp = new Date(item.game_date).getTime()
 
-          // 세로선 (추천 시점)
-          ann.xaxis.push({
-            x: timestamp,
-            borderColor: '#6366f1', // Indigo 500
-            strokeDashArray: 0, // 실선
-            borderWidth: 2,
-            label: {
-              borderColor: '#6366f1',
-              orientation: 'horizontal',
-              offsetY: 0,
-              style: {
-                color: '#fff',
-                background: '#6366f1',
-                fontSize: '11px',
-                fontWeight: 900,
-                padding: { left: 8, right: 8, top: 4, bottom: 4 }
-              },
-              text: '✨ AI 추천'
-            }
-          })
+          // 세로선 (추천 시점) — 캔들 모드에서만
+          if (!isLine) {
+            ann.xaxis.push({
+              x: timestamp,
+              borderColor: '#6366f1', // Indigo 500
+              strokeDashArray: 0, // 실선
+              borderWidth: 2,
+              label: {
+                borderColor: '#6366f1',
+                orientation: 'horizontal',
+                offsetY: 0,
+                style: {
+                  color: '#fff',
+                  background: '#6366f1',
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  padding: { left: 8, right: 8, top: 4, bottom: 4 }
+                },
+                text: '✨ AI 추천'
+              }
+            })
+          }
 
           // 포인트 (추천가)
           if (item.rec_price) {
@@ -115,7 +148,7 @@ export const useStockChart = (params: {
               x: timestamp,
               y: item.rec_price,
               marker: {
-                size: 6,
+                size: isLine ? 4 : 6,
                 fillColor: '#ffffff',
                 strokeColor: '#6366f1',
                 strokeWidth: 3,
@@ -132,7 +165,7 @@ export const useStockChart = (params: {
                   fontWeight: 900,
                   padding: { left: 5, right: 5, top: 2, bottom: 2 }
                 },
-                text: `추천가 ${item.rec_price.toLocaleString()}원`
+                text: isLine ? 'AI' : `추천가 ${item.rec_price.toLocaleString()}원`
               }
             })
           }
@@ -140,15 +173,15 @@ export const useStockChart = (params: {
       })
     }
 
-    // 3. 주요 뉴스/이슈 마커 추가 (마커 체크박스가 켜져 있고 뉴스가 로드되었을 때)
-    if (showMarkers.value && news.value.length > 0 && priceHistory.value.length > 0) {
-      const dates = priceHistory.value.map(h => h.price_date)
+    // 3. 주요 뉴스/이슈 마커 추가 (캔들 모드 + 마커 체크박스가 켜져 있고 뉴스가 로드되었을 때)
+    if (chartType.value === 'candle' && showMarkers.value && news.value.length > 0 && visibleHistory.value.length > 0) {
+      const dates = visibleHistory.value.map(h => h.price_date)
       const minDate = dates[dates.length - 1]
       const maxDate = dates[0]
 
       // 날짜별 시세 정보 맵핑
       const priceMap = new Map<string, any>()
-      priceHistory.value.forEach(h => {
+      visibleHistory.value.forEach(h => {
         priceMap.set(h.price_date, h)
       })
 
@@ -235,11 +268,13 @@ export const useStockChart = (params: {
     return ann
   })
 
-  const chartOptions = computed(() => ({
+  const chartOptions = computed(() => {
+    const isLine = chartType.value === 'line'
+    return {
     chart: {
       id: 'stock-candlestick',
       group: 'stock-charts',
-      type: 'candlestick',
+      type: isLine ? 'area' : 'candlestick',
       locales: [{
         name: 'ko',
         options: {
@@ -260,7 +295,7 @@ export const useStockChart = (params: {
       }],
       defaultLocale: 'ko',
       toolbar: {
-        show: true,
+        show: !isLine,
         tools: {
           download: false,
           selection: false,
@@ -273,7 +308,7 @@ export const useStockChart = (params: {
         autoSelected: 'zoom'
       },
       zoom: {
-        enabled: true,
+        enabled: !isLine,
         type: 'x',
         autoScaleYaxis: true
       },
@@ -284,6 +319,14 @@ export const useStockChart = (params: {
     dataLabels: {
       enabled: false
     },
+    ...(isLine
+      ? {
+          colors: [lineColor.value],
+          stroke: { curve: 'straight' as const, width: 2.5 },
+          fill: { type: 'gradient', gradient: { shadeIntensity: 0, opacityFrom: 0.25, opacityTo: 0, stops: [0, 100] } },
+          markers: { size: 0, hover: { size: 5 } }
+        }
+      : {}),
     plotOptions: {
       candlestick: {
         colors: {
@@ -340,23 +383,29 @@ export const useStockChart = (params: {
     tooltip: {
       theme: isDark.value ? 'dark' : 'light',
       x: { format: 'MM월 dd일' },
-      y: {
-        title: {
-          formatter: (seriesName: any) => {
-            if (seriesName === 'Open') return '시가'
-            if (seriesName === 'High') return '고가'
-            if (seriesName === 'Low') return '저가'
-            if (seriesName === 'Close') return '종가'
-            return seriesName
+      y: isLine
+        ? {
+            formatter: (val: number) => `${val?.toLocaleString()}원`,
+            title: { formatter: () => '종가' }
           }
-        }
-      },
+        : {
+            title: {
+              formatter: (seriesName: any) => {
+                if (seriesName === 'Open') return '시가'
+                if (seriesName === 'High') return '고가'
+                if (seriesName === 'Low') return '저가'
+                if (seriesName === 'Close') return '종가'
+                return seriesName
+              }
+            }
+          },
       style: {
         fontSize: '10px'
       }
     },
     annotations: chartAnnotations.value
-  }))
+    }
+  })
 
   const volumeChartOptions = computed(() => ({
     chart: {

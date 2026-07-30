@@ -58,8 +58,8 @@
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">주가 및 거래량</h3>
             <div class="flex items-center gap-3">
-              <!-- 마커 체크박스 -->
-              <label class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
+              <!-- 마커 체크박스 (캔들 모드에서만 노출) -->
+              <label v-if="chartType === 'candle'" class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
                 <input
                   v-model="showMarkers"
                   type="checkbox"
@@ -67,19 +67,28 @@
                 >
                 <span>마커</span>
               </label>
-              <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
-                최근 50일
+              <!-- 라인/캔들 토글 -->
+              <div class="flex p-0.5 bg-slate-800/50 rounded-full border border-white/5 gap-0.5">
+                <button
+                  v-for="type in chartTypeOptions"
+                  :key="type.key"
+                  class="px-3 py-1 rounded-full text-[10px] font-black transition-all"
+                  :class="chartType === type.key ? 'bg-brand-primary text-slate-900' : 'text-slate-500 hover:text-slate-300'"
+                  @click="chartType = type.key"
+                >
+                  {{ type.label }}
+                </button>
               </div>
             </div>
           </div>
           
           <div v-if="chartSeries.length > 0" class="space-y-2">
             <client-only>
-              <!-- 1. 상단 캔들스틱 차트 -->
+              <!-- 1. 상단 시세 차트 (라인/캔들) -->
               <div class="h-[200px]">
                 <apexchart
-                  :key="`candlestick-${chartSeries.length}-${chartAnnotations.points.length}-${showMarkers}`"
-                  type="candlestick"
+                  :key="`price-${chartType}-${periodDays}-${chartSeries.length}-${chartAnnotations.yaxis.length}-${chartAnnotations.xaxis.length}-${chartAnnotations.points.length}-${showMarkers}`"
+                  :type="chartType === 'line' ? 'area' : 'candlestick'"
                   height="200"
                   :options="chartOptions"
                   :series="chartSeries"
@@ -88,7 +97,7 @@
               <!-- 2. 하단 거래량 차트 -->
               <div class="h-[80px] border-t border-white/5 pt-2">
                 <apexchart
-                  :key="`volume-${volumeSeries.length}-${showMarkers}`"
+                  :key="`volume-${periodDays}-${volumeSeries.length}-${showMarkers}`"
                   type="bar"
                   height="80"
                   :options="volumeChartOptions"
@@ -96,6 +105,18 @@
                 />
               </div>
             </client-only>
+            <!-- 3. 기간 선택 탭 -->
+            <div class="flex justify-center gap-1 pt-2">
+              <button
+                v-for="period in periodOptions"
+                :key="period.days"
+                class="px-4 py-1.5 rounded-full text-[10px] font-black transition-all border"
+                :class="periodDays === period.days ? 'bg-brand-primary text-slate-900 border-transparent' : 'text-slate-500 border-white/5 hover:text-slate-300 hover:bg-slate-800/50'"
+                @click="periodDays = period.days"
+              >
+                {{ period.label }}
+              </button>
+            </div>
           </div>
           <div v-else class="h-[280px] flex items-center justify-center text-slate-600 text-sm font-bold italic">
             충분한 가격 데이터가 없습니다.
@@ -345,6 +366,17 @@ const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
 const showMarkers = ref(true)
+const chartType = ref<'line' | 'candle'>('line')
+const periodDays = ref(30)
+const chartTypeOptions = [
+  { key: 'line' as const, label: '라인' },
+  { key: 'candle' as const, label: '캔들' }
+]
+const periodOptions = [
+  { label: '1주', days: 7 },
+  { label: '1달', days: 30 },
+  { label: '3달', days: 90 }
+]
 const tabs = [
   { key: 'history', label: '주가 이력' },
   { key: 'news', label: '종목 뉴스' },
@@ -384,7 +416,9 @@ const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOp
   priceHistory,
   aiHistory,
   news: currentNewsItems,
-  showMarkers
+  showMarkers,
+  chartType,
+  periodDays
 })
 
 const code = route.params.code as string
@@ -493,7 +527,7 @@ onMounted(async () => {
   
   // 3. 관련 데이터(이력, 찜, 뉴스, AI이력)를 병렬로 로드
   await Promise.all([
-    fetchPriceHistory(stock.value.id, 50).then(data => priceHistory.value = data),
+    fetchPriceHistory(stock.value.id, 90).then(data => priceHistory.value = data),
     fetchWishlist(),
     loadStockContent(),
     loadAiHistory()
