@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { targetedStocks, pendingTargeted, refreshTargetedStocks } = useStock()
+const { getKstDate } = useKstTime()
 
 const calculateUpside = (current: number, target: number) => {
   if (!current || !target) return '0'
@@ -11,6 +12,25 @@ const calculateChangeRate = (base: number, current: number) => {
   if (!base || !current) return '0'
   const change = ((current - base) / base) * 100
   return change.toFixed(1)
+}
+
+// "MM.DD 추천 · D+n" 형태의 메타 뱃지 텍스트
+const recBadge = (gameDate: string) => {
+  if (!gameDate) return ''
+  const md = gameDate.slice(5).replace('-', '.')
+  const days = Math.floor((new Date(getKstDate()).getTime() - new Date(gameDate).getTime()) / (1000 * 60 * 60 * 24))
+  return days <= 0 ? `${md} 추천 · 오늘` : `${md} 추천 · D+${days}`
+}
+
+// 목표 달성률(%): 추천가→목표가 구간에서 현재가의 위치. 목표가가 없거나 추천가 이하면 null
+const targetProgress = (stock: any): number | null => {
+  if (!stock.target_price || !stock.rec_price || stock.target_price <= stock.rec_price) return null
+  return Math.round(((stock.last_price - stock.rec_price) / (stock.target_price - stock.rec_price)) * 100)
+}
+
+// 게이지/마커 표시용: 목표가 초과 시 100%, 추천가 미만 하락 시 0%로 클램프
+const clampedProgress = (stock: any): number => {
+  return Math.min(100, Math.max(0, targetProgress(stock) ?? 0))
 }
 
 const router = useRouter()
@@ -80,35 +100,48 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Price Comparison: 추천시점 vs 현재 -->
-        <div class="grid grid-cols-2 gap-3 mb-4 relative z-10">
-          <div class="bg-slate-800/40 rounded-2xl p-4 border border-white/5 relative group/item">
-            <div class="flex items-center gap-2 mb-2 opacity-60">
-              <UIcon name="i-heroicons-calendar" class="w-3 h-3 text-slate-500" />
-              <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">추천 시점</p>
-            </div>
-            <p class="text-sm font-black text-slate-100">{{ stock.rec_price?.toLocaleString() }}<span class="text-[10px] ml-0.5 opacity-50">원</span></p>
-            <p class="text-[8px] font-bold text-slate-500 mt-1">{{ stock.game_date }}</p>
+        <!-- 현재가 및 추천가 대비 수익률 -->
+        <div class="mb-4 relative z-10">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[9px] font-black text-slate-400 tracking-widest">{{ recBadge(stock.game_date) }}</span>
+            <span class="text-[7px] font-black text-emerald-400 animate-pulse">LIVE</span>
+          </div>
+          <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-2xl font-black text-slate-100 tracking-tighter">{{ stock.last_price?.toLocaleString() }}원</span>
+            <span
+              class="text-base font-black tracking-tight"
+              :class="changeTextClass(Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0)"
+            >
+              {{ Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? '▲ +' : '▼ -' }}{{ Math.abs(Number(calculateChangeRate(stock.rec_price, stock.last_price))) }}%
+            </span>
+            <span class="text-[10px] font-bold text-slate-500">추천가 대비</span>
           </div>
 
-          <div class="bg-slate-800/40 rounded-2xl p-4 border border-white/5 relative">
-            <div class="flex items-center justify-between mb-2 opacity-60">
-              <div class="flex items-center gap-2">
-                <UIcon name="i-heroicons-clock" class="w-3 h-3 text-slate-500" />
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">현재 시점</p>
-              </div>
-              <span class="text-[7px] font-black text-emerald-400 animate-pulse">LIVE</span>
+          <!-- 가격 트랙: 추천가 → 현재가 → 목표가 -->
+          <div v-if="targetProgress(stock) !== null">
+            <div class="relative h-1.5 bg-white/10 rounded-full mx-1">
+              <div
+                class="absolute left-0 top-0 h-1.5 rounded-full"
+                :class="Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? 'bg-rose-500/80' : 'bg-indigo-500/80'"
+                :style="{ width: clampedProgress(stock) + '%' }"
+              />
+              <div
+                class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-[3px] bg-bg-deep"
+                :class="Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? 'border-rose-400' : 'border-indigo-400'"
+                :style="{ left: clampedProgress(stock) + '%' }"
+              />
             </div>
-            <p class="text-sm font-black text-slate-100">{{ stock.last_price?.toLocaleString() }}<span class="text-[10px] ml-0.5 opacity-50">원</span></p>
-            <div class="flex items-center gap-1 mt-1">
-              <span 
-                class="text-[9px] font-black"
-                :class="changeTextClass(Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0)"
-              >
-                {{ Number(calculateChangeRate(stock.rec_price, stock.last_price)) >= 0 ? '▲' : '▼' }}
-                {{ Math.abs(Number(calculateChangeRate(stock.rec_price, stock.last_price))) }}%
-              </span>
-              <span class="text-[7px] font-bold text-slate-600 uppercase tracking-widest ml-1">수익률</span>
+            <div class="flex items-center justify-between mt-2.5 gap-2">
+              <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">추천가 {{ stock.rec_price?.toLocaleString() }}</span>
+              <span
+                v-if="(targetProgress(stock) ?? 0) >= 100"
+                class="text-[10px] font-black text-emerald-400 whitespace-nowrap"
+              >목표 달성 · {{ targetProgress(stock) }}%</span>
+              <span
+                v-else
+                class="text-[10px] font-bold text-slate-500 whitespace-nowrap"
+              >목표 달성률 {{ clampedProgress(stock) }}%</span>
+              <span class="text-[10px] font-bold text-emerald-400 whitespace-nowrap">목표가 {{ stock.target_price.toLocaleString() }}</span>
             </div>
           </div>
         </div>

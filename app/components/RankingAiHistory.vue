@@ -2,23 +2,23 @@
 const router = useRouter()
 const { fetchAiHistory } = useStock()
 
-const formatDateTime = (dateStr: string) => {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  const options = { 
-    timeZone: 'Asia/Seoul', 
-    month: '2-digit', 
-    day: '2-digit', 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: false
-  } as const
-  
-  const formatter = new Intl.DateTimeFormat('ko-KR', options)
-  const parts = formatter.formatToParts(date)
-  const getPart = (type: string) => parts.find(p => p.type === type)?.value || ''
-  
-  return `${getPart('month')}.${getPart('day')} ${getPart('hour')}:${getPart('minute')}`
+// "MM.DD 추천 · D+n" 형태의 메타 뱃지 텍스트
+const recBadge = (item: any) => {
+  const md = (item.game_date || '').slice(5).replace('-', '.')
+  return item.days_passed <= 0 ? `${md} 추천 · 오늘` : `${md} 추천 · D+${item.days_passed}`
+}
+
+const isPending = (item: any) => item.days_passed <= 0 && item.ai_result === 'pending'
+
+// 목표 달성률(%): 추천가→목표가 구간에서 현재가의 위치. 목표가가 없거나 추천가 이하면 null
+const targetProgress = (item: any): number | null => {
+  if (!item.target_price || !item.rec_price || item.target_price <= item.rec_price) return null
+  return Math.round(((item.last_price - item.rec_price) / (item.target_price - item.rec_price)) * 100)
+}
+
+// 게이지/마커 표시용: 목표가 초과 시 100%, 추천가 미만 하락 시 0%로 클램프
+const clampedProgress = (item: any): number => {
+  return Math.min(100, Math.max(0, targetProgress(item) ?? 0))
 }
 
 const history = ref<any[]>([])
@@ -133,10 +133,10 @@ onMounted(async () => {
 
           <div class="relative z-10">
             <!-- 종목 정보 및 상단 정보 -->
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-5">
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-black text-slate-500 uppercase tracking-widest">{{ formatDateTime(item.created_at) }} 추천</span>
+                  <span class="px-2.5 py-0.5 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[10px] font-black text-brand-primary tracking-widest">{{ recBadge(item) }}</span>
                   <UBadge v-if="item.status === 'withdrawn'" color="error" variant="subtle" class="rounded-lg font-bold text-[10px] uppercase">추천 해제됨</UBadge>
                 </div>
                 <div class="flex items-baseline gap-1.5 mt-0.5">
@@ -151,64 +151,56 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- 가격 정보 비교 -->
-            <div class="grid grid-cols-3 gap-2 mb-6">
-              <div class="space-y-1">
-                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">추천가</p>
-                <p class="text-sm font-black text-slate-300 tracking-tight">{{ item.rec_price?.toLocaleString() }}원</p>
-              </div>
-              <div class="flex flex-col items-center justify-center pt-2">
-                <div class="h-px bg-white/10 w-full mb-2"/>
-                <span class="text-xs font-black text-slate-500 uppercase tracking-[0.1em] whitespace-nowrap bg-bg-deep px-2">
-                   {{ item.days_passed === 0 ? '오늘' : `${item.days_passed}일 경과` }}
+            <!-- 현재가 및 추천가 대비 수익률 -->
+            <div class="flex items-baseline gap-2 mb-5">
+              <span class="text-2xl font-black text-slate-100 tracking-tighter">{{ item.last_price?.toLocaleString() }}원</span>
+              <template v-if="isPending(item)">
+                <span class="text-xs font-black text-slate-500 uppercase tracking-widest">결과 대기 중</span>
+              </template>
+              <template v-else>
+                <span class="text-base font-black tracking-tight" :class="changeTextClass(item.cumulative_change_rate >= 0)">
+                  {{ item.cumulative_change_rate >= 0 ? '▲' : '▼' }} {{ item.cumulative_change_rate > 0 ? '+' : '' }}{{ item.cumulative_change_rate }}%
                 </span>
-              </div>
-              <div class="space-y-1 text-right">
-                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">현재가</p>
-                <p class="text-sm font-black text-slate-100 tracking-tight">{{ item.last_price?.toLocaleString() }}원</p>
-              </div>
+                <span class="text-[10px] font-bold text-slate-500">추천가 대비</span>
+              </template>
             </div>
 
-            <!-- 수익률 하이라이트 -->
-            <div 
-              class="rounded-2xl p-4 border transition-all duration-500 flex flex-col items-center justify-center gap-1 shadow-2xl"
-              :class="(item.days_passed <= 0 && item.ai_result === 'pending')
-                ? 'bg-slate-500/10 border-slate-500/20 text-slate-400 shadow-slate-500/5'
-                : (item.cumulative_change_rate >= 0 
-                  ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5' 
-                  : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/5')"
-            >
-              <div class="flex items-center gap-2">
-                <UIcon 
-                  v-if="item.days_passed > 0"
-                  :name="item.cumulative_change_rate >= 0 ? 'i-heroicons-arrow-trending-up-20-solid' : 'i-heroicons-arrow-trending-down-20-solid'" 
-                  class="w-5 h-5" 
+            <!-- 가격 트랙: 추천가 → 현재가 → 목표가 -->
+            <div v-if="targetProgress(item) !== null" class="mb-2">
+              <div class="relative h-1.5 bg-white/10 rounded-full mx-1">
+                <div
+                  class="absolute left-0 top-0 h-1.5 rounded-full"
+                  :class="isPending(item) ? 'bg-slate-500/60' : (item.cumulative_change_rate >= 0 ? 'bg-rose-500/80' : 'bg-indigo-500/80')"
+                  :style="{ width: clampedProgress(item) + '%' }"
                 />
-                <UIcon 
+                <div
+                  class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-[3px] bg-bg-deep"
+                  :class="isPending(item) ? 'border-slate-400' : (item.cumulative_change_rate >= 0 ? 'border-rose-400' : 'border-indigo-400')"
+                  :style="{ left: clampedProgress(item) + '%' }"
+                />
+              </div>
+              <div class="flex items-center justify-between mt-2.5 gap-2">
+                <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap">추천가 {{ item.rec_price?.toLocaleString() }}</span>
+                <span
+                  v-if="isPending(item)"
+                  class="text-[10px] font-black text-slate-500 whitespace-nowrap"
+                >결과 대기 중</span>
+                <span
+                  v-else-if="(targetProgress(item) ?? 0) >= 100"
+                  class="text-[10px] font-black text-emerald-400 whitespace-nowrap"
+                >목표 달성 · {{ targetProgress(item) }}%</span>
+                <span
                   v-else
-                  name="i-heroicons-clock" 
-                  class="w-4 h-4 opacity-50" 
-                />
-                <span class="text-2xl font-black tracking-tighter">
-                  {{ (item.days_passed <= 0 && item.ai_result === 'pending') ? '-' : (item.cumulative_change_rate > 0 ? '+' : '') + item.cumulative_change_rate + '%' }}
-                </span>
+                  class="text-[10px] font-bold text-slate-500 whitespace-nowrap"
+                >목표 달성률 {{ clampedProgress(item) }}%</span>
+                <span class="text-[10px] font-bold text-emerald-400 whitespace-nowrap">목표가 {{ item.target_price.toLocaleString() }}<template v-if="item.target_date"> · ~{{ item.target_date.slice(5).replace('-', '.') }}</template></span>
               </div>
-
-              <p class="text-xs font-black uppercase tracking-[0.2em] opacity-80">
-                {{ (item.days_passed <= 0 && item.ai_result === 'pending') ? '결과 대기 중' : '수익률' }}
-              </p>
             </div>
 
-            <!-- 목표가 정보 추가 -->
-            <div v-if="item.target_price" class="mt-5 grid grid-cols-2 gap-4 py-3 px-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-              <div class="space-y-0.5">
-                <p class="text-xs font-black text-emerald-500/60 uppercase tracking-widest">목표가</p>
-                <p class="text-sm font-black text-emerald-400 font-mono">{{ item.target_price.toLocaleString() }}원</p>
-              </div>
-              <div class="space-y-0.5 text-right">
-                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">목표기한</p>
-                <p class="text-sm font-black text-slate-300">{{ item.target_date }}</p>
-              </div>
+            <!-- 목표가가 없거나 트랙 표시가 불가한 경우: 추천가/목표가 요약 행 -->
+            <div v-else class="flex items-center justify-between py-2.5 px-4 bg-white/5 rounded-2xl border border-white/5">
+              <span class="text-[10px] font-bold text-slate-500">추천가 <span class="text-xs font-black text-slate-300">{{ item.rec_price?.toLocaleString() }}원</span></span>
+              <span v-if="item.target_price" class="text-[10px] font-bold text-slate-500">목표가 <span class="text-xs font-black text-emerald-400">{{ item.target_price.toLocaleString() }}원</span><template v-if="item.target_date"> · ~{{ item.target_date.slice(5).replace('-', '.') }}</template></span>
             </div>
 
             <!-- AI 요약 -->
