@@ -19,7 +19,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # eslint-flat-config-utils가 Object.groupBy(Node 21+)를 사용하므로 22 필요
+          node-version: 22
           cache: npm
 
       # Nuxt 4 + oxc-parser 네이티브 바인딩 이슈 회피를 위해 legacy-peer-deps 사용(.npmrc와 동일)
