@@ -6,14 +6,14 @@ export default defineEventHandler(async (event) => {
   // 1. 보안 검증 (Service Role Key 체크)
   const authHeader = getHeader(event, 'Authorization')
   
-  // runtimeConfig 사용 (Railway 변수는 NUXT_ 프리픽스 필수)
+  // runtimeConfig 사용
   let SERVICE_ROLE_KEY = config.supabaseServiceRoleKey
   const GEMINI_API_KEY = config.geminiApiKey
 
   if (!SERVICE_ROLE_KEY) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'NUXT_SUPABASE_SERVICE_ROLE_KEY environment variable is missing on Railway',
+      statusMessage: 'NUXT_SUPABASE_SERVICE_ROLE_KEY environment variable is missing',
     })
   }
 
@@ -31,16 +31,16 @@ export default defineEventHandler(async (event) => {
   if (!GEMINI_API_KEY) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'NUXT_GEMINI_API_KEY environment variable is missing on Railway',
+      statusMessage: 'NUXT_GEMINI_API_KEY environment variable is missing',
     })
   }
 
-  // Nuxt Supabase 모듈 설정과 관계없이 process.env 에서 직접 읽어옵니다. (Railway 에서는 SUPABASE_URL 변수가 NUXT_ 없이 주입됩니다)
+  // Nuxt Supabase 모듈 설정과 관계없이 process.env 에서 직접 읽어옵니다.
   const supabaseUrl = process.env.SUPABASE_URL || config.public.supabase?.url
   if (!supabaseUrl) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Supabase URL is missing. Ensure SUPABASE_URL exists in Railway env vars.',
+      statusMessage: 'Supabase URL is missing. Ensure NUXT_PUBLIC_SUPABASE_URL is set.',
     })
   }
 

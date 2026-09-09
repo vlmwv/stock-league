@@ -94,6 +94,12 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       openAPI: true
+    },
+    // Vercel 서버리스 함수 리전: Supabase(서울)와 왕복 지연을 줄이기 위해 서울(icn1) 고정
+    vercel: {
+      functions: {
+        regions: ['icn1']
+      }
     }
   }
 })

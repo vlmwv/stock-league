@@ -30,5 +30,5 @@
   - 로직: **직전 달**(항상) rankings(`monthly`) 상위 `TOP_N=100`을 `hall_of_fame`으로 upsert. **1월 실행 시 직전 연도**(`yearly`)도 이관.
   - 매핑: `ranking_type`→`period_type`, `win_count`→`points`. `onConflict: user_id,period_type,period_key`로 **멱등**(재실행 안전).
   - 수동 백필: body `{ monthKey, yearKey }`로 특정 기간만 이관 가능.
-- **잔여**: `supabase functions deploy transfer-hall-of-fame`로 배포(앱 Railway 배포와 별개).
+- **잔여**: `supabase functions deploy transfer-hall-of-fame`로 배포(앱 배포와 별개).
 - **참조**: analysis §3(🟡), §5-9.

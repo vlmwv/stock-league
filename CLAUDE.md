@@ -79,7 +79,7 @@ supabase functions deploy select-daily-stocks  # 단일 배포
 - 기본 컬러 모드는 **다크** 고정. UI는 `@nuxt/ui` v4 + Tailwind, 차트는 `vue3-apexcharts`. PWA 활성화됨.
 
 ## 배포
-**Dockerfile**(Node 20 slim, `npm install --legacy-peer-deps`)로 빌드한다 — Nuxt 4 / oxc-parser 네이티브 바인딩 이슈 회피를 위해 필수. Railway에 배포(`railway.json`, Dockerfile 빌더). Supabase secrets, cron 등록, Kakao OAuth(KOE205) 관련은 `DEPLOY.md` 참고.
+Vercel(Hobby)에 GitHub 연동으로 배포한다 — main push 시 자동 빌드·배포. Nitro가 Vercel preset을 자동 감지하며, 서버리스 함수 리전은 `nuxt.config.ts`의 `nitro.vercel.functions.regions`로 서울(icn1) 고정. Supabase secrets, cron 등록, Kakao OAuth(KOE205) 관련은 `DEPLOY.md` 참고.
 
 ## 작업 규칙 (전역 ~/.claude/CLAUDE.md 준수)
 - 모든 답변은 한글로 한다.
