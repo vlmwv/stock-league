@@ -16,6 +16,63 @@ export const useStockChart = (params: {
     return aiHistory.value[0]?.target_price || null
   })
 
+  // AI 추천 마커: 차트 범위 내 추천 이력 (차트 점 표시·하단 상세 리스트 공용)
+  const aiMarkers = computed(() => {
+    if (priceHistory.value.length === 0 || aiHistory.value.length === 0) return []
+    const dates = priceHistory.value.map(h => h.price_date)
+    const minDate = dates[dates.length - 1]
+    const maxDate = dates[0]
+    return aiHistory.value.filter(item => item.game_date >= minDate && item.game_date <= maxDate)
+  })
+
+  // 뉴스 마커: 차트 범위 내 뉴스를 날짜별로 묶어 번호를 매겨 반환 (차트 번호 배지·하단 상세 리스트 공용)
+  const newsMarkers = computed(() => {
+    if (!showMarkers.value || news.value.length === 0 || priceHistory.value.length === 0) return []
+    const dates = priceHistory.value.map(h => h.price_date)
+    const minDate = dates[dates.length - 1]
+    const maxDate = dates[0]
+
+    // 날짜별 시세 정보 맵핑
+    const priceMap = new Map<string, any>()
+    priceHistory.value.forEach(h => {
+      priceMap.set(h.price_date, h)
+    })
+
+    // 차트 범위 내 뉴스를 날짜별로 그룹핑
+    const newsByDate = new Map<string, any[]>()
+    news.value.forEach(item => {
+      if (!item.published_at) return
+      const dateStr = item.published_at.substring(0, 10)
+      if (dateStr < minDate || dateStr > maxDate) return
+      if (!priceMap.has(dateStr)) return
+      if (!newsByDate.has(dateStr)) {
+        newsByDate.set(dateStr, [])
+      }
+      newsByDate.get(dateStr)!.push(item)
+    })
+
+    // 날짜 오름차순(차트 왼쪽→오른쪽)으로 날짜당 배지 하나씩 번호를 매김
+    const markers: any[] = []
+    let num = 0
+    ;[...newsByDate.keys()].sort().forEach(dateStr => {
+      const historyItem = priceMap.get(dateStr)
+      const high = historyItem.high_price !== null && historyItem.high_price !== undefined ? historyItem.high_price : historyItem.close_price
+      num += 1
+
+      // 최대 3개까지만 표시하여 너무 도배되지 않도록 함
+      const items = newsByDate.get(dateStr)!.slice(0, 3).map(item => {
+        const title = item.title || ''
+        const isPositive = /상승|급등|호재|실적|기대|최대|돌파|수혜|흑자|AI|신제품|상한가/i.test(title)
+        const isNegative = /하락|급락|악재|적자|우려|부진|감소|소송|하한가/i.test(title)
+        const color = isPositive ? '#f87171' : isNegative ? '#60a5fa' : '#22c55e'
+        return { title, color, item }
+      })
+
+      markers.push({ num, dateStr, high, items })
+    })
+    return markers
+  })
+
   const chartSeries = computed(() => {
     if (priceHistory.value.length === 0) return []
     const dataForChart = [...priceHistory.value].reverse()
@@ -73,164 +130,55 @@ export const useStockChart = (params: {
             fontWeight: 900,
             padding: { left: 8, right: 8, top: 4, bottom: 4 }
           },
-          text: `🎯 목표가 ${latestTargetPrice.value.toLocaleString()}원`
+          text: `목표 ${latestTargetPrice.value.toLocaleString()}`
         }
       })
     }
 
-    // 2. 추천 시점 및 추천가 표시 (차트 범위 내)
-    if (priceHistory.value.length > 0 && aiHistory.value.length > 0) {
-      const dates = priceHistory.value.map(h => h.price_date)
-      const minDate = dates[dates.length - 1]
-      const maxDate = dates[0]
-
-      aiHistory.value.forEach(item => {
-        if (item.game_date >= minDate && item.game_date <= maxDate) {
-          const timestamp = new Date(item.game_date).getTime()
-
-          // 세로선 (추천 시점)
-          ann.xaxis.push({
-            x: timestamp,
-            borderColor: '#6366f1', // Indigo 500
-            strokeDashArray: 0, // 실선
-            borderWidth: 2,
-            label: {
-              borderColor: '#6366f1',
-              orientation: 'horizontal',
-              offsetY: 0,
-              style: {
-                color: '#fff',
-                background: '#6366f1',
-                fontSize: '11px',
-                fontWeight: 900,
-                padding: { left: 8, right: 8, top: 4, bottom: 4 }
-              },
-              text: '✨ AI 추천'
-            }
-          })
-
-          // 포인트 (추천가)
-          if (item.rec_price) {
-            ann.points.push({
-              x: timestamp,
-              y: item.rec_price,
-              marker: {
-                size: 6,
-                fillColor: '#ffffff',
-                strokeColor: '#6366f1',
-                strokeWidth: 3,
-                shape: "circle",
-                radius: 4,
-              },
-              label: {
-                borderColor: '#6366f1',
-                offsetY: -5,
-                style: {
-                  color: '#fff',
-                  background: '#6366f1',
-                  fontSize: '10px',
-                  fontWeight: 900,
-                  padding: { left: 5, right: 5, top: 2, bottom: 2 }
-                },
-                text: `추천가 ${item.rec_price.toLocaleString()}원`
-              }
-            })
-          }
+    // 2. 추천 시점 표시: 세로선·텍스트 라벨 없이 추천가 위치에 점 하나만 찍고, 상세는 차트 하단 리스트에서 보여준다
+    aiMarkers.value.forEach(item => {
+      if (!item.rec_price) return
+      ann.points.push({
+        x: new Date(item.game_date).getTime(),
+        y: item.rec_price,
+        marker: {
+          size: 5,
+          fillColor: '#6366f1', // Indigo 500
+          strokeColor: '#ffffff',
+          strokeWidth: 2,
+          shape: 'circle'
         }
       })
-    }
+    })
 
-    // 3. 주요 뉴스/이슈 마커 추가 (마커 체크박스가 켜져 있고 뉴스가 로드되었을 때)
-    if (showMarkers.value && news.value.length > 0 && priceHistory.value.length > 0) {
-      const dates = priceHistory.value.map(h => h.price_date)
-      const minDate = dates[dates.length - 1]
-      const maxDate = dates[0]
+    // 3. 뉴스 마커: 제목 라벨 대신 날짜당 번호 배지 하나만 표시하고, 제목은 차트 하단 리스트에서 번호로 매칭해 보여준다
+    newsMarkers.value.forEach(m => {
+      const priceScale = m.high > 0 ? m.high : 10000
+      const offsetPercent = 0.04 + (m.num % 3) * 0.055 // 이웃 날짜 배지가 겹치지 않게 3단 지그재그 배치
+      const yValue = m.high + (priceScale * offsetPercent)
 
-      // 날짜별 시세 정보 맵핑
-      const priceMap = new Map<string, any>()
-      priceHistory.value.forEach(h => {
-        priceMap.set(h.price_date, h)
-      })
-
-      // 차트 범위 내 뉴스 필터링
-      const filteredNews = news.value.filter(item => {
-        if (!item.published_at) return false
-        const newsDateStr = item.published_at.substring(0, 10)
-        return newsDateStr >= minDate && newsDateStr <= maxDate
-      })
-
-      // 날짜별 뉴스 그룹핑
-      const newsByDate = new Map<string, any[]>()
-      filteredNews.forEach(item => {
-        const dateStr = item.published_at.substring(0, 10)
-        if (!newsByDate.has(dateStr)) {
-          newsByDate.set(dateStr, [])
+      ann.points.push({
+        x: new Date(m.dateStr).getTime(),
+        y: yValue,
+        marker: { size: 0 },
+        label: {
+          borderColor: '#f59e0b',
+          borderWidth: 0,
+          borderRadius: 8,
+          textAnchor: 'middle',
+          offsetX: 0,
+          offsetY: 0,
+          style: {
+            color: '#fff',
+            background: '#f59e0b', // Amber 500
+            fontSize: '9px',
+            fontWeight: 900,
+            padding: { left: 5, right: 5, top: 2, bottom: 2 }
+          },
+          text: String(m.num)
         }
-        newsByDate.get(dateStr)!.push(item)
       })
-
-      // 날짜별 마커 및 텍스트 생성
-      newsByDate.forEach((items, dateStr) => {
-        const historyItem = priceMap.get(dateStr)
-        if (!historyItem) return
-
-        const timestamp = new Date(dateStr).getTime()
-        const high = historyItem.high_price !== null && historyItem.high_price !== undefined ? historyItem.high_price : historyItem.close_price
-
-        items.forEach((news, index) => {
-          // 최대 3개까지만 차트에 표시하여 너무 도배되지 않도록 함
-          if (index >= 3) return
-
-          const priceScale = high > 0 ? high : 10000
-          const offsetPercent = 0.035 + (index * 0.045) // 3.5%, 8%, 12.5% 순으로 위로 띄움
-          const yValue = high + (priceScale * offsetPercent)
-
-          const title = news.title || ''
-          const isPositive = /상승|급등|호재|실적|기대|최대|돌파|수혜|흑자|AI|신제품|상한가/i.test(title)
-          const isNegative = /하락|급락|악재|적자|우려|부진|감소|소송|하한가/i.test(title)
-
-          let textColor = '#22c55e' // 기본 초록 (Green 500)
-          const bgColor = isDark.value ? '#0f172a' : '#f8fafc'
-          let borderColor = '#22c55e'
-
-          if (isPositive) {
-            textColor = '#f87171' // 빨강 (Red 400)
-            borderColor = '#f87171'
-          } else if (isNegative) {
-            textColor = '#60a5fa' // 파랑 (Blue 400)
-            borderColor = '#60a5fa'
-          }
-
-          ann.points.push({
-            x: timestamp,
-            y: yValue,
-            marker: {
-              size: 3,
-              fillColor: textColor,
-              strokeColor: '#0f172a',
-              strokeWidth: 1,
-              shape: 'circle'
-            },
-            label: {
-              borderColor: borderColor,
-              borderWidth: 1,
-              borderRadius: 6,
-              textAnchor: 'middle',
-              offsetX: 0,
-              offsetY: -3,
-              style: {
-                color: textColor,
-                background: bgColor,
-                fontSize: '8px',
-                fontWeight: 700,
-                padding: { left: 5, right: 5, top: 2.5, bottom: 2.5 }
-              },
-              text: title.length > 16 ? title.substring(0, 14) + '...' : title
-            }
-          })
-        })
-      })
-    }
+    })
 
     return ann
   })
@@ -446,5 +394,5 @@ export const useStockChart = (params: {
     }
   }))
 
-  return { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions }
+  return { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers }
 }
