@@ -34,7 +34,6 @@ Project Settings → Environment Variables에 다음 변수를 **Production** �
 - `NUXT_PUBLIC_SITE_URL`: `https://ninanoai.com`
 - `NUXT_SUPABASE_SERVICE_ROLE_KEY`: Supabase service role 키(서버 전용)
 - `NUXT_GEMINI_API_KEY`: Gemini API 키(서버 전용)
-- `NUXT_TWELVE_DATA_API_KEY`: Twelve Data API 키(서버 전용, 지수 조회)
 
 > [!IMPORTANT]
 > Nuxt 4 환경에서는 환경 변수가 `process.env`를 통해 런타임에 주입되어야 합니다. `nuxt.config.ts`의 `runtimeConfig`가 `NUXT_*` 변수를 매핑하므로 반드시 `NUXT_` 프리픽스를 붙여 등록하세요.
