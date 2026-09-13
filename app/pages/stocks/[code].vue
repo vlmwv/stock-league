@@ -54,10 +54,10 @@
 
 
         <!-- 차트 섹션 (이력 탭에서만 보일지 고민하다가, 공통 정보로 상단에 작게 배치하거나 이력 탭에만 넣기로 함. 여기서는 상단 유지) -->
-        <section class="glass-dark rounded-[2.5rem] p-6 border border-white/5 relative overflow-hidden">
-          <div class="flex items-center justify-between mb-8">
+        <section class="glass-dark rounded-[2.5rem] p-4 sm:p-6 border border-white/5 relative overflow-hidden">
+          <div class="flex items-center justify-between gap-2 mb-5 sm:mb-8">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">주가 및 거래량</h3>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <!-- 마커 체크박스 -->
               <label class="flex items-center gap-1.5 text-[10px] font-black text-slate-400 cursor-pointer bg-slate-850 hover:bg-slate-800 px-2.5 py-1 rounded-full border border-white/5 shadow transition-colors select-none">
                 <input
@@ -67,8 +67,17 @@
                 >
                 <span>뉴스</span>
               </label>
-              <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
-                최근 50일
+              <div class="flex items-center rounded-full bg-slate-800/50 border border-white/5 p-0.5" aria-label="차트 기간">
+                <button
+                  v-for="range in chartRanges"
+                  :key="range.value"
+                  type="button"
+                  class="min-h-8 px-2 rounded-full text-[10px] font-black transition-colors"
+                  :class="chartRange === range.value ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-slate-200'"
+                  @click="chartRange = range.value"
+                >
+                  {{ range.label }}
+                </button>
               </div>
             </div>
           </div>
@@ -370,6 +379,11 @@ const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
 const showMarkers = ref(true)
+const chartRange = ref(20)
+const chartRanges = [
+  { label: '20일', value: 20 },
+  { label: '50일', value: 50 }
+]
 const tabs = [
   { key: 'history', label: '주가 이력' },
   { key: 'news', label: '종목 뉴스' },
@@ -409,7 +423,8 @@ const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOp
   priceHistory,
   aiHistory,
   news: currentNewsItems,
-  showMarkers
+  showMarkers,
+  chartRange
 })
 
 const code = route.params.code as string

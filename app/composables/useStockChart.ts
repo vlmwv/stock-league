@@ -5,10 +5,14 @@ export const useStockChart = (params: {
   aiHistory: Ref<any[]>
   news: Ref<any[]>
   showMarkers: Ref<boolean>
+  chartRange: Ref<number>
 }) => {
-  const { priceHistory, aiHistory, news, showMarkers } = params
+  const { priceHistory, aiHistory, news, showMarkers, chartRange } = params
   const colorMode = useColorMode()
   const isDark = computed(() => colorMode.value === 'dark')
+
+  // 시세 이력은 최신순으로 수신된다. 선택한 기간만 모든 차트 요소에 공통 적용한다.
+  const visiblePriceHistory = computed(() => priceHistory.value.slice(0, chartRange.value))
 
   const latestTargetPrice = computed(() => {
     if (aiHistory.value.length === 0) return null
@@ -18,8 +22,8 @@ export const useStockChart = (params: {
 
   // AI 추천 마커: 차트 범위 내 추천 이력 (차트 점 표시·하단 상세 리스트 공용)
   const aiMarkers = computed(() => {
-    if (priceHistory.value.length === 0 || aiHistory.value.length === 0) return []
-    const dates = priceHistory.value.map(h => h.price_date)
+    if (visiblePriceHistory.value.length === 0 || aiHistory.value.length === 0) return []
+    const dates = visiblePriceHistory.value.map(h => h.price_date)
     const minDate = dates[dates.length - 1]
     const maxDate = dates[0]
     return aiHistory.value.filter(item => item.game_date >= minDate && item.game_date <= maxDate)
@@ -27,14 +31,14 @@ export const useStockChart = (params: {
 
   // 뉴스 마커: 차트 범위 내 뉴스를 날짜별로 묶어 번호를 매겨 반환 (차트 번호 배지·하단 상세 리스트 공용)
   const newsMarkers = computed(() => {
-    if (!showMarkers.value || news.value.length === 0 || priceHistory.value.length === 0) return []
-    const dates = priceHistory.value.map(h => h.price_date)
+    if (!showMarkers.value || news.value.length === 0 || visiblePriceHistory.value.length === 0) return []
+    const dates = visiblePriceHistory.value.map(h => h.price_date)
     const minDate = dates[dates.length - 1]
     const maxDate = dates[0]
 
     // 날짜별 시세 정보 맵핑
     const priceMap = new Map<string, any>()
-    priceHistory.value.forEach(h => {
+    visiblePriceHistory.value.forEach(h => {
       priceMap.set(h.price_date, h)
     })
 
@@ -74,8 +78,8 @@ export const useStockChart = (params: {
   })
 
   const chartSeries = computed(() => {
-    if (priceHistory.value.length === 0) return []
-    const dataForChart = [...priceHistory.value].reverse()
+    if (visiblePriceHistory.value.length === 0) return []
+    const dataForChart = [...visiblePriceHistory.value].reverse()
     return [{
       name: '시세',
       data: dataForChart.map(h => {
@@ -89,8 +93,8 @@ export const useStockChart = (params: {
   })
 
   const volumeSeries = computed(() => {
-    if (priceHistory.value.length === 0) return []
-    const dataForChart = [...priceHistory.value].reverse()
+    if (visiblePriceHistory.value.length === 0) return []
+    const dataForChart = [...visiblePriceHistory.value].reverse()
     return [{
       name: '거래량',
       data: dataForChart.map(h => {
@@ -229,6 +233,13 @@ export const useStockChart = (params: {
       background: 'transparent',
       fontFamily: 'Pretendard, Inter, sans-serif'
     },
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        chart: { toolbar: { show: false } },
+        yaxis: { labels: { minWidth: 50, maxWidth: 50 } }
+      }
+    }],
     dataLabels: {
       enabled: false
     },
@@ -316,6 +327,12 @@ export const useStockChart = (params: {
       background: 'transparent',
       fontFamily: 'Pretendard, Inter, sans-serif'
     },
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        yaxis: { labels: { minWidth: 50, maxWidth: 50 } }
+      }
+    }],
     dataLabels: {
       enabled: false
     },

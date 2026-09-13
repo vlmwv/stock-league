@@ -31,10 +31,10 @@ const {
   chartWidth,
   chartHeight,
   volumeHeight,
-  plotWidth,
   hoveredIndex,
   priceLabels,
   getX,
+  getCandleIndexAtX,
   getY,
   getVolumeY,
   getCandleColor,
@@ -45,6 +45,16 @@ const {
   activeCandleChange,
   activeChangeColorClass
 } = useScenarioChart(visibleCandles)
+
+const chartSvg = ref<SVGSVGElement | null>(null)
+
+const selectCandleAtPointer = (event: PointerEvent) => {
+  const svg = chartSvg.value
+  if (!svg) return
+  const bounds = svg.getBoundingClientRect()
+  const x = (event.clientX - bounds.left) * chartWidth / bounds.width
+  hoveredIndex.value = getCandleIndexAtX(x)
+}
 </script>
 
 <template>
@@ -133,7 +143,7 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
       <!-- TAB 1: GAME BOARD -->
       <div v-if="activeTab === 'game'" class="space-y-6">
         <!-- 완성형 캔들 차트 (SVG 기반 부드러운 반응형) -->
-        <div class="glass-dark border border-white/5 rounded-3xl p-5 relative overflow-hidden">
+        <div class="glass-dark border border-white/5 rounded-3xl p-4 sm:p-5 relative overflow-hidden">
           <!-- Chart Title & Interactive OHLCV Dashboard -->
           <div class="flex flex-col gap-3 mb-4">
             <div class="flex justify-between items-center">
@@ -144,31 +154,31 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
             </div>
             
             <!-- OHLCV Board -->
-            <div class="grid grid-cols-5 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[10px] font-mono">
+            <div class="grid grid-cols-3 gap-x-2 gap-y-2 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[11px] font-mono">
               <div>
-                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">시가</span>
+                <span class="text-slate-500 block text-[9px] uppercase font-bold mb-0.5">시가</span>
                 <span class="text-slate-300 font-bold">{{ formatPrice(activeCandle?.open) }}</span>
               </div>
               <div>
-                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">고가</span>
+                <span class="text-slate-500 block text-[9px] uppercase font-bold mb-0.5">고가</span>
                 <span class="text-rose-400 font-bold">{{ formatPrice(activeCandle?.high) }}</span>
               </div>
               <div>
-                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">저가</span>
+                <span class="text-slate-500 block text-[9px] uppercase font-bold mb-0.5">저가</span>
                 <span class="text-blue-400 font-bold">{{ formatPrice(activeCandle?.low) }}</span>
               </div>
               <div>
-                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">종가</span>
+                <span class="text-slate-500 block text-[9px] uppercase font-bold mb-0.5">종가</span>
                 <span class="font-bold" :class="activeCandleColorClass">{{ formatPrice(activeCandle?.close) }}</span>
               </div>
               <div>
-                <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">거래량</span>
+                <span class="text-slate-500 block text-[9px] uppercase font-bold mb-0.5">거래량</span>
                 <span class="text-slate-300 font-bold">{{ activeCandle?.volume.toLocaleString() }}</span>
               </div>
             </div>
 
             <!-- 전일대비 등락 (시세판 규칙: 상승 빨강 / 하락 파랑) -->
-            <div class="grid grid-cols-2 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[10px] font-mono">
+            <div class="grid grid-cols-2 gap-1.5 px-3 py-2 bg-slate-900/60 border border-white/5 rounded-2xl text-[11px] font-mono">
               <div>
                 <span class="text-slate-500 block text-[8px] uppercase font-bold mb-0.5">전일대비</span>
                 <span class="font-bold" :class="activeChangeColorClass">
@@ -185,7 +195,13 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
           </div>
 
           <!-- SVG Canvas -->
-          <svg :width="chartWidth" :height="chartHeight + volumeHeight + 20" class="overflow-visible">
+          <p class="mb-2 text-[10px] font-bold text-slate-500">차트를 터치하거나 드래그해 날짜별 가격을 확인하세요.</p>
+          <svg
+            ref="chartSvg"
+            :viewBox="`0 0 ${chartWidth} ${chartHeight + volumeHeight + 20}`"
+            :height="chartHeight + volumeHeight + 20"
+            class="w-full h-auto overflow-visible touch-none select-none"
+          >
             <!-- Grid Lines & Price Labels (Korean & Guidance) -->
             <line x1="0" :y1="chartHeight * 0.25" :x2="chartWidth" :y2="chartHeight * 0.25" :stroke="isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'" />
             <text :x="chartWidth" :y="chartHeight * 0.25 - 4" text-anchor="end" :fill="isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.55)'" font-size="8" font-weight="900" font-family="Pretendard, sans-serif">{{ formatPrice(priceLabels.y75) }}</text>
@@ -205,6 +221,16 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
               :y2="chartHeight + volumeHeight + 15" 
               :stroke="isDark ? 'rgba(239, 68, 68, 0.25)' : 'rgba(220, 38, 38, 0.35)'" 
               stroke-dasharray="3" 
+              stroke-width="1.5"
+            />
+
+            <line
+              v-if="hoveredIndex !== null"
+              :x1="getX(hoveredIndex)"
+              y1="0"
+              :x2="getX(hoveredIndex)"
+              :y2="chartHeight + volumeHeight + 15"
+              :stroke="isDark ? 'rgba(99, 102, 241, 0.75)' : 'rgba(79, 70, 229, 0.75)'"
               stroke-width="1.5"
             />
 
@@ -266,19 +292,16 @@ class="flex items-center gap-1 px-2.5 py-0.5 rounded-md border shrink-0"
               />
             </g>
 
-            <!-- Hover detection pillars -->
-            <g v-for="(candle, index) in visibleCandles" :key="'hover-' + index">
-              <rect 
-                :x="getX(index) - (plotWidth / Math.max(visibleCandles.length, 10)) / 2"
-                y="0"
-                :width="plotWidth / Math.max(visibleCandles.length, 10)"
-                :height="chartHeight + volumeHeight + 20"
-                fill="transparent"
-                class="cursor-pointer hover:fill-white/5 transition-colors duration-150"
-                @mouseenter="hoveredIndex = index"
-                @mouseleave="hoveredIndex = null"
-              />
-            </g>
+            <rect
+              x="0"
+              y="0"
+              :width="chartWidth"
+              :height="chartHeight + volumeHeight + 20"
+              fill="transparent"
+              class="cursor-crosshair"
+              @pointerdown="selectCandleAtPointer"
+              @pointermove="selectCandleAtPointer"
+            />
           </svg>
         </div>
 
