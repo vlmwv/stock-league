@@ -41,6 +41,13 @@ export const useScenarioChart = (visibleCandles: Ref<any[]>) => {
     return paddingLeft + index * step + step / 2
   }
 
+  const getCandleIndexAtX = (x: number) => {
+    const total = visibleCandles.value.length
+    if (total === 0) return null
+    const step = plotWidth / Math.max(total, 10)
+    return Math.min(total - 1, Math.max(0, Math.floor((x - paddingLeft) / step)))
+  }
+
   const getY = (price: number) => {
     const { min, max } = minMax.value
     return chartHeight - ((price - min) / (max - min)) * chartHeight
@@ -113,6 +120,7 @@ export const useScenarioChart = (visibleCandles: Ref<any[]>) => {
     hoveredIndex,
     priceLabels,
     getX,
+    getCandleIndexAtX,
     getY,
     getVolumeY,
     getCandleColor,

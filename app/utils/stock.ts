@@ -111,5 +111,20 @@ export const cleanLlmSummary = (text: string): string => {
 export const changeTextClass = (isUp: boolean): string =>
   isUp ? 'text-rose-400' : 'text-indigo-400'
 
+// 거래량·거래대금 축약 표기(조/억/만). 종목 목록과 차트 Y축에서 공용.
+export const formatVolume = (vol: number | undefined): string => {
+  if (!vol) return '0'
+  if (vol >= 1000000000000) { // 1조 이상
+    return `${(vol / 1000000000000).toFixed(2)}조`
+  }
+  if (vol >= 100000000) { // 1억 이상
+    return `${(vol / 100000000).toFixed(1)}억`
+  }
+  if (vol >= 10000) { // 1만 이상
+    return `${(vol / 10000).toFixed(1)}만`
+  }
+  return vol.toLocaleString()
+}
+
 
 

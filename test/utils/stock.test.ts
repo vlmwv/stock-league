@@ -4,7 +4,8 @@ import {
   cleanLlmSummary,
   decodeHtmlEntities,
   getNewsUrl,
-  repairNewsUrl
+  repairNewsUrl,
+  formatVolume
 } from '../../app/utils/stock'
 
 describe('isEtf', () => {
@@ -86,5 +87,22 @@ describe('repairNewsUrl', () => {
 
   it('빈 URL은 code 기반 기본 URL', () => {
     expect(repairNewsUrl('', '005930')).toBe('https://m.stock.naver.com/domestic/stock/005930/news')
+  })
+})
+
+describe('formatVolume', () => {
+  it('단위 구간별로 조/억/만 축약', () => {
+    expect(formatVolume(1_500_000_000_000)).toBe('1.50조')
+    expect(formatVolume(123_000_000)).toBe('1.2억')
+    expect(formatVolume(3_500_000)).toBe('350.0만')
+  })
+
+  it('1만 미만은 천 단위 구분 표기', () => {
+    expect(formatVolume(9_999)).toBe('9,999')
+  })
+
+  it('0·undefined는 0', () => {
+    expect(formatVolume(0)).toBe('0')
+    expect(formatVolume(undefined)).toBe('0')
   })
 })
