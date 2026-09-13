@@ -65,7 +65,7 @@
                   type="checkbox"
                   class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-brand-primary focus:ring-brand-primary focus:ring-offset-slate-900"
                 >
-                <span>마커</span>
+                <span>뉴스</span>
               </label>
               <div class="px-3 py-1 bg-slate-800/50 rounded-full border border-white/5 text-[10px] font-black text-slate-400">
                 최근 50일
@@ -94,6 +94,31 @@
                   :options="volumeChartOptions"
                   :series="volumeSeries"
                 />
+              </div>
+              <!-- 3. 마커 상세 리스트: 차트의 점·번호 배지와 색으로 매칭 -->
+              <div v-if="aiMarkers.length > 0 || newsMarkers.length > 0" class="border-t border-white/5 pt-3 space-y-1.5">
+                <div v-for="item in aiMarkers" :key="`ai-${item.game_date}`" class="flex items-center gap-2 px-1">
+                  <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 border border-white shrink-0"/>
+                  <span class="text-[11px] font-bold text-slate-400">
+                    {{ formatMarkerDate(item.game_date) }} AI 추천 · 추천가 {{ item.rec_price?.toLocaleString() }}원<template v-if="item.target_price"> → 목표가 {{ item.target_price.toLocaleString() }}원</template>
+                  </span>
+                </div>
+                <div v-for="m in newsMarkers" :key="`news-${m.num}`" class="flex items-start gap-2 px-1">
+                  <span class="w-4 h-4 rounded-full bg-amber-500 text-[9px] font-black text-white flex items-center justify-center shrink-0 mt-0.5">{{ m.num }}</span>
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <button
+                      v-for="(n, i) in m.items"
+                      :key="i"
+                      class="flex items-center gap-1.5 w-full text-left group/marker"
+                      @click="navigateToNews(n.item)"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: n.color }"/>
+                      <span class="text-[11px] font-bold text-slate-400 truncate group-hover/marker:text-slate-200 transition-colors">
+                        <template v-if="i === 0">{{ formatMarkerDate(m.dateStr) }} · </template>{{ n.title }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </client-only>
           </div>
@@ -380,7 +405,7 @@ const currentNewsItems = computed(() => {
   return newsItems.value
 })
 
-const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions } = useStockChart({
+const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers } = useStockChart({
   priceHistory,
   aiHistory,
   news: currentNewsItems,
@@ -426,6 +451,13 @@ const formatPriceDate = (dateStr: string) => {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return '-'
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(d)
+}
+
+const formatMarkerDate = (dateStr: string) => {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return '-'
+  return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric' }).format(d)
 }
 
 const formatNewsDate = (dateStr: string) => {
