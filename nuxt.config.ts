@@ -50,7 +50,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 런타임에 서버에서만 사용할 수 있는 비공개 환경 변수 추가
     geminiApiKey: process.env.NUXT_GEMINI_API_KEY || '',
-    twelveDataApiKey: process.env.NUXT_TWELVE_DATA_API_KEY || '',
     supabaseServiceRoleKey: process.env.NUXT_SUPABASE_SERVICE_ROLE_KEY || '',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://ninanoai.com',
@@ -94,6 +93,12 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       openAPI: true
+    },
+    // Vercel 서버리스 함수 리전: Supabase(서울)와 왕복 지연을 줄이기 위해 서울(icn1) 고정
+    vercel: {
+      functions: {
+        regions: ['icn1']
+      }
     }
   }
 })
