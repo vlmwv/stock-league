@@ -83,6 +83,14 @@
           </div>
           
           <div v-if="chartSeries.length > 0" class="space-y-2">
+            <!-- 0. 범례: 차트의 색·마커 의미를 한 줄로 안내 -->
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[9px] font-bold text-slate-500">
+              <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-sm bg-red-500"/>상승</span>
+              <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-sm bg-blue-500"/>하락</span>
+              <span v-if="latestTargetPrice" class="flex items-center gap-1"><i class="w-3 border-t-2 border-dashed border-emerald-500"/>목표가</span>
+              <span v-if="aiMarkers.length > 0" class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-indigo-500 border border-white"/>AI 추천</span>
+              <span v-if="newsMarkers.length > 0" class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-amber-500"/>뉴스</span>
+            </div>
             <client-only>
               <!-- 1. 상단 캔들스틱 차트 -->
               <div class="h-[200px]">
@@ -419,7 +427,7 @@ const currentNewsItems = computed(() => {
   return newsItems.value
 })
 
-const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers } = useStockChart({
+const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers, latestTargetPrice } = useStockChart({
   priceHistory,
   aiHistory,
   news: currentNewsItems,

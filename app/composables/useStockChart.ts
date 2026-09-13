@@ -121,7 +121,7 @@ export const useStockChart = (params: {
       ann.yaxis.push({
         y: latestTargetPrice.value,
         borderColor: '#10b981', // Emerald 500
-        strokeDashArray: 0, // 실선으로 변경
+        strokeDashArray: 4, // 점선: 실제 시세(캔들)와 구분되는 기준선임을 드러낸다
         borderWidth: 2,
         label: {
           borderColor: '#10b981',
@@ -389,7 +389,7 @@ export const useStockChart = (params: {
           fontSize: '10px',
           fontWeight: 600
         },
-        formatter: () => '',
+        formatter: (value: number) => formatVolume(value), // 조/억/만 축약 표기
         minWidth: 65, // Y축 너비 고정하여 상단 차트와 완벽 매칭
         maxWidth: 65
       }
@@ -411,5 +411,5 @@ export const useStockChart = (params: {
     }
   }))
 
-  return { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers }
+  return { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOptions, aiMarkers, newsMarkers, latestTargetPrice }
 }

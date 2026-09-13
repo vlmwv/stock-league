@@ -103,19 +103,7 @@ export const useStockList = (
     loadStocks(true)
   }
 
-  const formatVolume = (vol: number | undefined) => {
-    if (!vol) return '0'
-    if (vol >= 1000000000000) { // 1조 이상
-      return `${(vol / 1000000000000).toFixed(2)}조`
-    }
-    if (vol >= 100000000) { // 1억 이상
-      return `${(vol / 100000000).toFixed(1)}억`
-    }
-    if (vol >= 10000) { // 1만 이상
-      return `${(vol / 10000).toFixed(1)}만`
-    }
-    return vol.toLocaleString()
-  }
+  // formatVolume은 app/utils/stock.ts 공용 헬퍼를 그대로 노출한다.
 
   const formatMarketValue = (val: number | undefined) => {
     if (!val) return '0'
