@@ -1,18 +1,30 @@
-// useStockChart: 종목 상세(stocks/[code].vue) 캔들/거래량 차트의 시리즈·옵션·주석을 구성한다.
-// 시세 이력·AI 추천 이력·뉴스·마커 토글을 주입받아 ApexCharts용 computed를 반환한다.
+// useStockChart: 종목 상세(stocks/[code].vue) 라인(종가)·캔들/거래량 차트의 시리즈·옵션·주석을 구성한다.
+// 시세 이력·AI 추천 이력·뉴스·마커 토글·차트 유형을 주입받아 ApexCharts용 computed를 반환한다.
 export const useStockChart = (params: {
   priceHistory: Ref<any[]>
   aiHistory: Ref<any[]>
   news: Ref<any[]>
   showMarkers: Ref<boolean>
   chartRange: Ref<number>
+  chartType: Ref<'line' | 'candle'>
 }) => {
-  const { priceHistory, aiHistory, news, showMarkers, chartRange } = params
+  const { priceHistory, aiHistory, news, showMarkers, chartRange, chartType } = params
   const colorMode = useColorMode()
   const isDark = computed(() => colorMode.value === 'dark')
 
   // 시세 이력은 최신순으로 수신된다. 선택한 기간만 모든 차트 요소에 공통 적용한다.
   const visiblePriceHistory = computed(() => priceHistory.value.slice(0, chartRange.value))
+
+  const isLine = computed(() => chartType.value === 'line')
+
+  // 표시 구간의 첫 종가 대비 마지막 종가로 라인 색상을 연동한다 (상승 빨강 / 하락 파랑)
+  const lineColor = computed(() => {
+    const rows = visiblePriceHistory.value
+    if (rows.length < 2) return '#ef4444'
+    const first = resolveOhlc(rows[rows.length - 1]).close
+    const last = resolveOhlc(rows[0]).close
+    return last >= first ? '#ef4444' : '#3b82f6'
+  })
 
   const latestTargetPrice = computed(() => {
     if (aiHistory.value.length === 0) return null
@@ -72,7 +84,7 @@ export const useStockChart = (params: {
         return { title, color, item }
       })
 
-      markers.push({ num, dateStr, high, items })
+      markers.push({ num, dateStr, high, close: resolveOhlc(historyItem).close, items })
     })
     return markers
   })
@@ -80,6 +92,15 @@ export const useStockChart = (params: {
   const chartSeries = computed(() => {
     if (visiblePriceHistory.value.length === 0) return []
     const dataForChart = [...visiblePriceHistory.value].reverse()
+    if (isLine.value) {
+      return [{
+        name: '종가',
+        data: dataForChart.map(h => ({
+          x: new Date(h.price_date).getTime(),
+          y: resolveOhlc(h).close
+        }))
+      }]
+    }
     return [{
       name: '시세',
       data: dataForChart.map(h => {
@@ -157,9 +178,11 @@ export const useStockChart = (params: {
 
     // 3. 뉴스 마커: 제목 라벨 대신 날짜당 번호 배지 하나만 표시하고, 제목은 차트 하단 리스트에서 번호로 매칭해 보여준다
     newsMarkers.value.forEach(m => {
-      const priceScale = m.high > 0 ? m.high : 10000
+      // 라인 모드는 종가 기준 축이라 고가 기준으로 띄우면 배지가 축 밖으로 잘린다
+      const basePrice = isLine.value ? m.close : m.high
+      const priceScale = basePrice > 0 ? basePrice : 10000
       const offsetPercent = 0.04 + (m.num % 3) * 0.055 // 이웃 날짜 배지가 겹치지 않게 3단 지그재그 배치
-      const yValue = m.high + (priceScale * offsetPercent)
+      const yValue = basePrice + (priceScale * offsetPercent)
 
       ann.points.push({
         x: new Date(m.dateStr).getTime(),
@@ -191,7 +214,7 @@ export const useStockChart = (params: {
     chart: {
       id: 'stock-candlestick',
       group: 'stock-charts',
-      type: 'candlestick',
+      type: isLine.value ? 'area' : 'candlestick',
       locales: [{
         name: 'ko',
         options: {
@@ -212,7 +235,7 @@ export const useStockChart = (params: {
       }],
       defaultLocale: 'ko',
       toolbar: {
-        show: true,
+        show: !isLine.value,
         tools: {
           download: false,
           selection: false,
@@ -225,7 +248,7 @@ export const useStockChart = (params: {
         autoSelected: 'zoom'
       },
       zoom: {
-        enabled: true,
+        enabled: !isLine.value,
         type: 'x',
         autoScaleYaxis: true
       },
@@ -243,6 +266,15 @@ export const useStockChart = (params: {
     dataLabels: {
       enabled: false
     },
+    // 라인(영역) 모드 전용: 등락 색상 연동 + 아래쪽 옅은 그라데이션
+    ...(isLine.value
+      ? {
+          colors: [lineColor.value],
+          stroke: { curve: 'straight', width: 2.5 },
+          fill: { type: 'gradient', gradient: { shadeIntensity: 0, opacityFrom: 0.25, opacityTo: 0, stops: [0, 100] } },
+          markers: { size: 0, hover: { size: 5 } }
+        }
+      : {}),
     plotOptions: {
       candlestick: {
         colors: {
@@ -299,17 +331,22 @@ export const useStockChart = (params: {
     tooltip: {
       theme: isDark.value ? 'dark' : 'light',
       x: { format: 'MM월 dd일' },
-      y: {
-        title: {
-          formatter: (seriesName: any) => {
-            if (seriesName === 'Open') return '시가'
-            if (seriesName === 'High') return '고가'
-            if (seriesName === 'Low') return '저가'
-            if (seriesName === 'Close') return '종가'
-            return seriesName
+      y: isLine.value
+        ? {
+            formatter: (val: number) => `${val?.toLocaleString()}원`,
+            title: { formatter: () => '종가' }
           }
-        }
-      },
+        : {
+            title: {
+              formatter: (seriesName: any) => {
+                if (seriesName === 'Open') return '시가'
+                if (seriesName === 'High') return '고가'
+                if (seriesName === 'Low') return '저가'
+                if (seriesName === 'Close') return '종가'
+                return seriesName
+              }
+            }
+          },
       style: {
         fontSize: '10px'
       }
