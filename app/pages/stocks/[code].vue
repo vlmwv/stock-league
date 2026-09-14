@@ -55,7 +55,7 @@
 
         <!-- 차트 섹션 (이력 탭에서만 보일지 고민하다가, 공통 정보로 상단에 작게 배치하거나 이력 탭에만 넣기로 함. 여기서는 상단 유지) -->
         <section class="glass-dark rounded-[2.5rem] p-4 sm:p-6 border border-white/5 relative overflow-hidden">
-          <div class="flex items-center justify-between gap-2 mb-5 sm:mb-8">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-5 sm:mb-8">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">주가 및 거래량</h3>
             <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <!-- 마커 체크박스 -->
@@ -67,6 +67,18 @@
                 >
                 <span>뉴스</span>
               </label>
+              <div class="flex items-center rounded-full bg-slate-800/50 border border-white/5 p-0.5" aria-label="차트 유형">
+                <button
+                  v-for="type in chartTypes"
+                  :key="type.value"
+                  type="button"
+                  class="min-h-8 px-2 rounded-full text-[10px] font-black transition-colors"
+                  :class="chartType === type.value ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-slate-200'"
+                  @click="chartType = type.value"
+                >
+                  {{ type.label }}
+                </button>
+              </div>
               <div class="flex items-center rounded-full bg-slate-800/50 border border-white/5 p-0.5" aria-label="차트 기간">
                 <button
                   v-for="range in chartRanges"
@@ -92,20 +104,20 @@
               <span v-if="newsMarkers.length > 0" class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-amber-500"/>뉴스</span>
             </div>
             <client-only>
-              <!-- 1. 상단 캔들스틱 차트 -->
+              <!-- 1. 상단 시세 차트 (라인/캔들) -->
               <div class="h-[200px]">
                 <apexchart
-                  :key="`candlestick-${chartSeries.length}-${chartAnnotations.points.length}-${showMarkers}`"
-                  type="candlestick"
+                  :key="`price-${chartType}-${chartRange}-${chartSeries.length}-${chartAnnotations.yaxis.length}-${chartAnnotations.xaxis.length}-${chartAnnotations.points.length}-${showMarkers}`"
+                  :type="chartType === 'line' ? 'area' : 'candlestick'"
                   height="200"
                   :options="chartOptions"
                   :series="chartSeries"
                 />
               </div>
-              <!-- 2. 하단 거래량 차트 -->
+              <!-- 2. 하단 거래량 차트: 같은 group의 차트는 옵션 갱신이 서로 전파되므로 key로 재생성시켜 라인 옵션 오염을 막는다 -->
               <div class="h-[80px] border-t border-white/5 pt-2">
                 <apexchart
-                  :key="`volume-${volumeSeries.length}-${showMarkers}`"
+                  :key="`volume-${chartType}-${chartRange}-${volumeSeries.length}-${showMarkers}`"
                   type="bar"
                   height="80"
                   :options="volumeChartOptions"
@@ -387,6 +399,11 @@ const stock = ref<any>(null)
 const priceHistory = ref<any[]>([])
 const activeTab = ref('history')
 const showMarkers = ref(true)
+const chartType = ref<'line' | 'candle'>('line')
+const chartTypes = [
+  { label: '라인', value: 'line' as const },
+  { label: '캔들', value: 'candle' as const }
+]
 const chartRange = ref(20)
 const chartRanges = [
   { label: '20일', value: 20 },
@@ -432,7 +449,8 @@ const { chartSeries, volumeSeries, chartAnnotations, chartOptions, volumeChartOp
   aiHistory,
   news: currentNewsItems,
   showMarkers,
-  chartRange
+  chartRange,
+  chartType
 })
 
 const code = route.params.code as string
