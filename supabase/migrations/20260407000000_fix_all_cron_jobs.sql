@@ -16,14 +16,19 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
 END $$;
 
--- 2. 서비스 롤 키(Service Role Key)를 Vault에 재등록
--- 보안: 실제 키를 저장소에 커밋하지 말 것. 아래 플레이스홀더를 Supabase SQL Editor에서
--- 실제 service_role 키로 교체해 1회 실행하거나, Vault에 직접 등록한다.
-DELETE FROM vault.secrets WHERE name = 'service_role_key';
-SELECT vault.create_secret(
-    'YOUR_SERVICE_ROLE_KEY_HERE',
-    'service_role_key'
-);
+-- 2. 서비스 롤 키(Service Role Key)를 Vault에 등록 (없을 때만)
+-- 보안: 실제 키를 저장소에 커밋하지 말 것. 실제 키 등록·교체는 setup_cron_fix.sql로 1회 실행한다.
+-- 이미 등록된 키는 건드리지 않는다 — 재실행 시 실제 키가 플레이스홀더로 덮여
+-- 모든 크론이 인증 실패하는 것을 막기 위함.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM vault.secrets WHERE name = 'service_role_key') THEN
+        PERFORM vault.create_secret(
+            'YOUR_SERVICE_ROLE_KEY_HERE',
+            'service_role_key'
+        );
+    END IF;
+END $$;
 
 -- 3. 각 기능별 자동화 스케줄 등록 (KST 기준 시간 설정)
 -- 주: pg_cron은 UTC 기준으로 작동하므로 KST 시간에서 9시간을 뺀 값을 스케줄에 사용합니다.
