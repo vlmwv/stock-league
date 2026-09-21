@@ -37,21 +37,23 @@ Deno.serve(async (req) => {
     const currentDateStr = kstDate.toISOString().split('T')[0];
 
     // 1. 처리 대상 목록 생성 (predictions 또는 daily_stocks 기반)
-    const { data: pendingPredictions } = await supabase
-      .from('predictions')
-      .select('stock_id, game_date')
-      .lte('game_date', currentDateStr)
-      .eq('result', 'pending');
+    // 예측 행을 그대로 받아오면 PostgREST의 max_rows(기본 1000)에 잘려 일부 쌍이 누락되므로
+    // DISTINCT 집계는 DB에서 수행한다.
+    const { data: pendingPairs, error: pairsError } = await supabase
+      .rpc('pending_prediction_pairs', { p_max_game_date: currentDateStr });
+
+    if (pairsError) throw pairsError;
 
     const { data: pendingDailyStocks } = await supabase
       .from('daily_stocks')
       .select('stock_id, game_date')
       .lte('game_date', currentDateStr)
-      .or('status.eq.pending,status.eq.closing,ai_result.is.null');
+      .or('status.eq.pending,status.eq.closing,ai_result.is.null')
+      .order('game_date', { ascending: false });
 
     // 유니크한 (stock_id, game_date) 쌍 추출
     const pairsSet = new Set<string>();
-    pendingPredictions?.forEach(p => pairsSet.add(`${p.stock_id}_${p.game_date}`));
+    pendingPairs?.forEach((p: { stock_id: number, game_date: string }) => pairsSet.add(`${p.stock_id}_${p.game_date}`));
     pendingDailyStocks?.forEach(ds => pairsSet.add(`${ds.stock_id}_${ds.game_date}`));
     
     const uniquePairs = Array.from(pairsSet);
@@ -89,6 +91,8 @@ Deno.serve(async (req) => {
 
     let processedCount = 0;
     let skippedNoPriceCount = 0;
+    let gradedPredictionCount = 0;
+    let awardedPointsTotal = 0;
     const leagueMap = new Map(dailyStocks?.map(ds => [`${ds.stock_id}_${ds.game_date}`, ds]));
     const priceMap = new Map(priceRows?.map(row => [`${row.stock_id}_${row.price_date}`, row]));
 
@@ -138,48 +142,21 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 5. 해당 주식/날짜의 모든 pending 예측 처리
-      const { data: predictions } = await supabase
-        .from('predictions')
-        .select('*')
-        .eq('stock_id', stockId)
-        .eq('game_date', gameDate)
-        .eq('result', 'pending');
+      // 5. 해당 주식/날짜의 대기 중인 예측을 한 문장으로 채점 + 포인트 지급
+      // (예측 1건마다 UPDATE/SELECT를 돌리면 왕복이 건수의 3배가 되어 실행 시간 제한에 걸린다)
+      const { data: gradeResult, error: gradeError } = await supabase.rpc('grade_predictions', {
+        p_stock_id: stockId,
+        p_game_date: gameDate,
+        p_outcome: resultOutcome,
+        p_award_points: !!dailyStock,
+        p_win_points: POINTS_FOR_WIN
+      });
 
-      if (predictions && predictions.length > 0) {
-        for (const pred of predictions) {
-          let userResult = 'draw';
-          let pointsAwarded = 0;
+      if (gradeError) throw gradeError;
 
-          if (resultOutcome === 'draw') {
-            userResult = 'draw';
-          } else if (pred.prediction_type === resultOutcome) {
-            userResult = 'win';
-            if (dailyStock) pointsAwarded = POINTS_FOR_WIN;
-          } else {
-            userResult = 'lose';
-          }
-
-          await supabase.from('predictions').update({
-            result: userResult,
-            points_awarded: pointsAwarded
-          }).eq('id', pred.id);
-
-          if (pointsAwarded > 0) {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('points')
-              .eq('id', pred.user_id)
-              .single();
-            
-            if (profileData) {
-              await supabase.from('profiles').update({
-                points: (profileData.points || 0) + pointsAwarded
-              }).eq('id', pred.user_id);
-            }
-          }
-        }
-      }
+      const graded = Array.isArray(gradeResult) ? gradeResult[0] : gradeResult;
+      gradedPredictionCount += Number(graded?.graded ?? 0);
+      awardedPointsTotal += Number(graded?.awarded_points ?? 0);
 
       processedCount++;
     }
@@ -191,7 +168,7 @@ Deno.serve(async (req) => {
         .update({
           status: 'success',
           processed_count: processedCount,
-          message: `Successfully processed results for ${processedCount} stocks (skipped: ${skippedNoPriceCount})`,
+          message: `Successfully processed results for ${processedCount} stocks (graded: ${gradedPredictionCount}, points: ${awardedPointsTotal}, skipped: ${skippedNoPriceCount})`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntry.id)
@@ -200,6 +177,8 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ 
       message: 'Successfully processed daily results', 
       processed_stocks: processedCount,
+      graded_predictions: gradedPredictionCount,
+      awarded_points: awardedPointsTotal,
       skipped_stocks: skippedNoPriceCount
     }), {
       headers: { 'Content-Type': 'application/json' },
