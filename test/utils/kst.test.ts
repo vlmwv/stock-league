@@ -3,6 +3,7 @@ import {
   getKstDateString,
   getKstHourMinute,
   getActiveLeagueDate,
+  isPredictionWindowOpen,
   LEAGUE_SELECT_TIME
 } from '../../app/utils/kst'
 
@@ -44,5 +45,28 @@ describe('getActiveLeagueDate', () => {
   it('월말 21:30이면 다음달 1일로 넘어간다', () => {
     // 21:30 KST (31일) → 8/1
     expect(getActiveLeagueDate(new Date('2026-07-31T12:30:00Z'))).toBe('2026-08-01')
+  })
+})
+
+describe('isPredictionWindowOpen', () => {
+  it('21:20 정각부터 접수 가능', () => {
+    expect(isPredictionWindowOpen(new Date('2026-07-29T12:20:00Z'))).toBe(true)
+  })
+
+  it('21:19는 아직 접수 불가(선정 전)', () => {
+    expect(isPredictionWindowOpen(new Date('2026-07-29T12:19:00Z'))).toBe(false)
+  })
+
+  it('새벽 03:00은 접수 가능', () => {
+    expect(isPredictionWindowOpen(new Date('2026-07-29T18:00:00Z'))).toBe(true)
+  })
+
+  it('07:59는 접수 가능, 08:00 마감부터 불가', () => {
+    expect(isPredictionWindowOpen(new Date('2026-07-29T22:59:00Z'))).toBe(true)
+    expect(isPredictionWindowOpen(new Date('2026-07-29T23:00:00Z'))).toBe(false)
+  })
+
+  it('장중 14:00은 접수 불가', () => {
+    expect(isPredictionWindowOpen(new Date('2026-07-29T05:00:00Z'))).toBe(false)
   })
 })
