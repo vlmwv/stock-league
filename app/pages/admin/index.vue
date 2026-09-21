@@ -431,8 +431,16 @@ const getScoreColor = (score: number) => {
 const runBatch = async (batch: any) => {
   batch.isRunning = true
   try {
-    const { error } = await supabase.functions.invoke(batch.id)
-    if (error) throw error
+    // Edge Function은 service_role 키로만 호출 가능하므로 관리자 전용 서버 라우트를 경유한다.
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData.session?.access_token
+    if (!token) throw new Error('세션이 만료되었어요. 다시 로그인해 주세요.')
+
+    await $fetch('/api/admin/invoke-function', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: { name: batch.id }
+    })
     toast.add({
       title: '배치 실행 완료',
       description: `${batch.name}이(가) 성공적으로 실행되었습니다.`,
@@ -441,9 +449,10 @@ const runBatch = async (batch: any) => {
     })
     await refreshAll()
   } catch (err: any) {
+    const message = err?.data?.statusMessage || err?.statusMessage || err?.message
     toast.add({
       title: '배치 실행 실패',
-      description: `${batch.name} 실행 중 오류가 발생했습니다: ${err.message}`,
+      description: `${batch.name} 실행 중 오류가 발생했습니다: ${message}`,
       color: 'error',
       icon: 'i-heroicons-x-circle'
     })

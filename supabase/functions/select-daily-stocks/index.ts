@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { isEtf } from '../_shared/stock.ts'
+import { isAuthorizedBatchCall, unauthorizedResponse } from '../_shared/auth.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY') || ''
@@ -254,6 +255,9 @@ async function fetchRankingStocks(category: string): Promise<string[]> {
 }
 
 Deno.serve(async (req: any) => {
+  // 인가: cron/서버(service_role)만 호출할 수 있다. verify_jwt만으로는 anon 키 호출이 통과된다.
+  if (!isAuthorizedBatchCall(req)) return unauthorizedResponse()
+
   try {
     console.log('Advanced Select Daily Stocks Triggered...')
     const startTime = new Date().toISOString()
