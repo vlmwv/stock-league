@@ -108,31 +108,32 @@ export const usePredictions = (daily: ReturnType<typeof useDailyStocks>) => {
     myPredictions.value = current
 
     try {
-      const { error } = await (client
-        .from('predictions')
-        .upsert({
-          user_id: userId,
-          stock_id: stockId,
-          game_date: targetDate,
-          prediction_type: prediction,
-          result: 'pending'
-        } as any, { onConflict: 'user_id,stock_id,game_date' } as any) as any)
-
-      if (error) {
-        throw error
+      // 저장은 서버 API만 수행한다 — predictions 테이블은 클라이언트 쓰기 권한이 없고,
+      // 접수 시간·리그 종목·game_date를 서버가 다시 검증한다(usePredictions의 위 가드는 즉시 피드백용).
+      const { data: sessionData } = await client.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) {
+        throw new Error('세션이 만료되었어요. 다시 로그인해 주세요.')
       }
 
+      const saved = await $fetch<{ game_date: string }>('/api/predictions/submit', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: { stock_id: stockId, prediction_type: prediction }
+      })
+
       // 참여자 수 갱신
-      await fetchParticipantCount(targetDate)
+      await fetchParticipantCount(saved?.game_date || targetDate)
       return true
     } catch (err: any) {
-      console.error('[usePredictions] Prediction failed:', err.message || err)
+      const message = err?.data?.statusMessage || err?.statusMessage || err?.message
+      console.error('[usePredictions] Prediction failed:', message || err)
       // 2. 에러 시 원래 상태로 복구 (Rollback)
       myPredictions.value = previousPredictions
 
       toast.add({
         title: '예측 저장에 실패했어요',
-        description: '잠시 후 다시 시도해 주세요.',
+        description: message || '잠시 후 다시 시도해 주세요.',
         color: 'error',
         icon: 'i-heroicons-exclamation-triangle'
       })

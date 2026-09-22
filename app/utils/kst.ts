@@ -33,3 +33,10 @@ export const getActiveLeagueDate = (now: Date): string => {
   }
   return today
 }
+
+// 예측 접수 가능 시간대(21:20 종목 선정 ~ 익일 08:00 마감) 여부.
+// 서버 검증(/api/predictions/submit)과 UI(useDailyStocks.isLeagueOpen)가 동일한 기준을 쓰도록 단일화한다.
+export const isPredictionWindowOpen = (now: Date): boolean => {
+  const { timeVal } = getKstHourMinute(now)
+  return timeVal >= LEAGUE_SELECT_TIME || timeVal < PREDICT_CLOSE_TIME
+}
