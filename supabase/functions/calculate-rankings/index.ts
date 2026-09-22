@@ -6,18 +6,9 @@ const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-function getWeekNumber(d: Date) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-}
-
-function getMonthKey(d: Date) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
+// 집계·순위 계산·upsert는 DB 함수(calculate_rankings)가 한 문장으로 수행한다.
+// 예전처럼 predictions를 전건 조회해 Deno에서 집계하면 PostgREST의 max_rows(기본 1000)에
+// 조용히 잘린 데이터로 랭킹이 계산된다. 이 함수는 트리거와 실행 로그만 담당한다.
 Deno.serve(async (req) => {
   // 인가: cron/서버(service_role)만 호출할 수 있다. verify_jwt만으로는 anon 키 호출이 통과된다.
   if (!isAuthorizedBatchCall(req)) return unauthorizedResponse()
@@ -25,9 +16,9 @@ Deno.serve(async (req) => {
   try {
     console.log('Calculating rankings...')
     const startTime = new Date().toISOString()
-    
+
     // 로그 시작 기록
-    const { data: logEntry, error: logStartError } = await supabase
+    const { data: logEntry } = await supabase
       .from('batch_execution_logs')
       .insert({
         function_name: 'calculate-rankings',
@@ -37,89 +28,15 @@ Deno.serve(async (req) => {
       .select()
       .single()
 
-    const now = new Date()
-    const weekKey = getWeekNumber(now)
-    const monthKey = getMonthKey(now)
+    const { data, error } = await supabase.rpc('calculate_rankings')
+    if (error) throw error
 
-    // 1. Fetch finished predictions
-    const { data: predictions, error: predError } = await supabase
-      .from('predictions')
-      .select('user_id, result, game_date')
-      .neq('result', 'pending')
+    // RETURNS TABLE이므로 단일 행 배열로 반환된다.
+    const summary = Array.isArray(data) ? data[0] : data
+    const rankingRows = Number(summary?.ranking_rows ?? 0)
+    const predictionRows = Number(summary?.prediction_rows ?? 0)
 
-    if (predError) throw predError
-
-    // 2. Aggregate by user and period
-    const stats: Record<string, any> = {}
-
-    predictions.forEach(p => {
-      const date = new Date(p.game_date)
-      const pWeek = getWeekNumber(date)
-      const pMonth = getMonthKey(date)
-
-      const pYear = String(date.getUTCFullYear())
-
-      const updateStat = (type: string, key: string) => {
-        const id = `${p.user_id}_${type}_${key}`
-        if (!stats[id]) {
-          stats[id] = { user_id: p.user_id, type, key, win: 0, total: 0 }
-        }
-        stats[id].total++
-        if (p.result === 'win') stats[id].win++
-      }
-
-      updateStat('weekly', pWeek)
-      updateStat('monthly', pMonth)
-      updateStat('yearly', pYear)
-      updateStat('all_time', 'global')
-    })
-
-    // 3. Calculate Win Rates and Prepare Records
-    const records = Object.values(stats).map(s => {
-      const winRate = s.total > 0 ? (s.win / s.total) * 100 : 0
-      
-      // 참여 횟수 제한 없이 모든 참여자를 랭킹에 포함 (사용자 요청 반영)
-      return {
-        user_id: s.user_id,
-        ranking_type: s.type,
-        period_key: s.key,
-        win_rate: parseFloat(winRate.toFixed(2)),
-        prediction_count: s.total,
-        win_count: s.win, // 추가된 컬럼 반영
-        updated_at: new Date().toISOString(),
-        rank: 0 
-      }
-    })
-
-    // 4. Group by Type/Key and Assign Ranks (Sort by win_rate DESC, then prediction_count DESC)
-    const grouped: Record<string, any[]> = {}
-    records.forEach(r => {
-      const gKey = `${r.ranking_type}_${r.period_key}`
-      if (!grouped[gKey]) grouped[gKey] = []
-      grouped[gKey].push(r)
-    })
-
-    const finalRecords: any[] = []
-    for (const gKey in grouped) {
-      const group = grouped[gKey]
-      // 승률 -> 참여 횟수 순으로 정렬하여 순위 부여
-      group.sort((a, b) => b.win_rate - a.win_rate || b.prediction_count - a.prediction_count)
-      group.forEach((r, idx) => {
-        r.rank = idx + 1
-        finalRecords.push(r)
-      })
-    }
-
-    console.log(`Prepared ${finalRecords.length} ranking records. Upserting...`)
-
-    // 5. Update Rankings Table (Bulk Upsert)
-    if (finalRecords.length > 0) {
-      const { error: upsertError } = await supabase
-        .from('rankings')
-        .upsert(finalRecords, { onConflict: 'user_id, ranking_type, period_key' })
-      
-      if (upsertError) throw upsertError
-    }
+    console.log(`Upserted ${rankingRows} ranking records from ${predictionRows} graded predictions.`)
 
     // 로그 종료 기록
     if (logEntry) {
@@ -127,16 +44,17 @@ Deno.serve(async (req) => {
         .from('batch_execution_logs')
         .update({
           status: 'success',
-          processed_count: finalRecords.length,
-          message: 'Rankings calculated successfully',
+          processed_count: rankingRows,
+          message: `Rankings calculated successfully (predictions: ${predictionRows})`,
           finished_at: new Date().toISOString()
         })
         .eq('id', logEntry.id)
     }
 
-    return new Response(JSON.stringify({ 
-      message: 'Rankings calculated successfully', 
-      count: finalRecords.length 
+    return new Response(JSON.stringify({
+      message: 'Rankings calculated successfully',
+      count: rankingRows,
+      predictions: predictionRows
     }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200
@@ -144,10 +62,7 @@ Deno.serve(async (req) => {
 
   } catch (err: any) {
     console.error('Ranking Calculation Error:', err.message)
-    // 에러 발생 시 로그 업데이트 시도 (함수 실행 중 logEntry가 생성된 경우에만)
-    // 이 시점에서는 supabase 인스턴스가 살아있어야 함
     try {
-      // logEntry를 찾기 위해 별도의 쿼리가 필요할 수 있지만, 여기서는 최대한 시도
       await supabase
         .from('batch_execution_logs')
         .insert({
