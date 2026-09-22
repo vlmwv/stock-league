@@ -5,14 +5,21 @@ export const useRecommendationAdmin = () => {
 
   const reEvaluateRecommendation = async (dailyId: number) => {
     try {
-      const { data, error } = await client.functions.invoke('re-evaluate-recommendation', {
-        body: { daily_stock_id: dailyId }
+      // Edge Function은 service_role 키로만 호출 가능하므로 관리자 전용 서버 라우트를 경유한다.
+      const { data: sessionData } = await client.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('세션이 만료되었어요. 다시 로그인해 주세요.')
+
+      const res = await $fetch<{ data: any }>('/api/admin/invoke-function', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: { name: 're-evaluate-recommendation', body: { daily_stock_id: dailyId } }
       })
-      if (error) throw error
-      return { success: true, data }
+      return { success: true, data: res.data }
     } catch (err: any) {
-      console.error('[useRecommendationAdmin] Re-evaluation failed:', err.message)
-      return { success: false, message: err.message }
+      const message = err?.data?.statusMessage || err?.statusMessage || err?.message
+      console.error('[useRecommendationAdmin] Re-evaluation failed:', message)
+      return { success: false, message }
     }
   }
 

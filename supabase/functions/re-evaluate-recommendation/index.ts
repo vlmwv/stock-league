@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { isAuthorizedBatchCall, unauthorizedResponse } from '../_shared/auth.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
@@ -7,6 +8,9 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY_2') || ''
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
 Deno.serve(async (req) => {
+  // 인가: cron/서버(service_role)만 호출할 수 있다. verify_jwt만으로는 anon 키 호출이 통과된다.
+  if (!isAuthorizedBatchCall(req)) return unauthorizedResponse()
+
   if (!GEMINI_API_KEY) {
     return new Response(JSON.stringify({ error: 'GEMINI_API_KEY_2 is not set in Supabase Secrets' }), { status: 500 })
   }

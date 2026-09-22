@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import * as cheerio from 'cheerio'
+import { isAuthorizedBatchCall, unauthorizedResponse } from '../_shared/auth.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY') || ''
@@ -93,6 +94,9 @@ function parseHtml(htmlStr: string) {
 }
 
 Deno.serve(async (req) => {
+  // 인가: cron/서버(service_role)만 호출할 수 있다. verify_jwt만으로는 anon 키 호출이 통과된다.
+  if (!isAuthorizedBatchCall(req)) return unauthorizedResponse()
+
   try {
     let mode = 'fetch'
     try {
